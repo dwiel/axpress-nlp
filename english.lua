@@ -394,14 +394,6 @@ for instr in io.lines() do
 	
 	con = sql:connect(language, "root", "badf00d")
 
--- 	ret = exec_query(query)
--- 	local is, whynot = is_valid_query(ret)
--- 	if is then
--- 		print("<query>\n"..query_to_string(ret))
--- 	else
--- --    	print(whynot)
--- 		print(ret)
--- 	end
 	clear_sparql_cache()
 	-- test to see if the combined match makes sesne first
 	if lastquery == nil then lastquery = "" end
