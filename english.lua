@@ -31,6 +31,14 @@ function rows (connection, sql_statement)
   end
 end
 
+local function get_language_id(language)
+  local sqlquery = "SELECT language_id FROM languages WHERE name = '"..language.."'"
+  local cur = con:execute(sqlquery)
+  local row = cur:fetch({}, "a")
+  if row == nil then return 0 end
+  return row['language_id']
+end
+
 function get_varname_from_matchtype(matchtype)
 	local var = matchtype:match(":%s*(.*)")
 	if var == nil then
@@ -133,7 +141,7 @@ end
 
 -- the type is optional.  If it is specified, only queries resulting in that
 -- type will be returned
-function match_query(query, result_type)
+function match_query(language_id, query, result_type)
 	local results = {}
 	local sqlquery = ""
 
@@ -142,9 +150,9 @@ function match_query(query, result_type)
 -- 	if result_type == "any" then result_type = nil end
 	local cache_str
 	if type(result_type) == "string" then
-		cache_str = query .. "&&&" .. result_type
+		cache_str = query .. "&" .. result_type .. "&" .. language_id
 	else
-		cache_str = query .. "&&&nil"
+		cache_str = query .. "&nil&" .. language_id
 	end
 
 	local cache = match_query_cache[cache_str]
@@ -162,10 +170,10 @@ function match_query(query, result_type)
 		result_type = result_type:gsub("[^%w%s_:]",""):gsub("%s+"," ")
 		-- then get rid of leading or trailing spaces
 		result_type = result_type:gsub("^%s*", ""):gsub("%s+$","")
-		sqlquery = "SELECT m, function_id, rule_id FROM matches WHERE matchtype='"..result_type.."' or matchtype='any'"
+		sqlquery = "SELECT m, function_id, matches.rule_id FROM matches, rules WHERE rules.language_id = "..language_id.." AND rules.rule_id = matches.rule_id AND (matchtype='"..result_type.."' or matchtype='any')"
 --		debugp("sqlquery:",sqlquery)
 	else
-		sqlquery = "SELECT m, function_id, rule_id FROM matches"
+		sqlquery = "SELECT m, function_id, matches.rule_id FROM matches, rules WHERE rules.language_id = "..language_id.." AND rules.rule_id = matches.rule_id"
 --		debugp("sqlquery:",sqlquery)
 	end
 	
@@ -184,7 +192,7 @@ function match_query(query, result_type)
 				-- don't bother with the recursive checking.
 				if matchtype:sub(1,1) ~= "_" then
 --					debugp("in match: " .. match .. ", " .. rule_id .. " trying to match '" .. queries[i] .. "' with a %" .. get_matchtype_from_matchtype(matchtype) .. "%")
-					matched, with_what = match_query(queries[i], get_matchtype_from_matchtype(matchtype))
+					matched, with_what = match_query(language_id, queries[i], get_matchtype_from_matchtype(matchtype))
 					if matched then
 						subs[matchtype] = with_what
 					else
@@ -353,8 +361,8 @@ end
 -- 	end
 -- end
 
-function exec_query(query, matchtype)
-    local matched, with_what = match_query(query, matchtype)
+function exec_query(language_id, query, matchtype)
+    local matched, with_what = match_query(language_id, query, matchtype)
     -- if matched then display_match(with_what) end
     if matched then
     	return execute_first_match(with_what)
@@ -391,9 +399,11 @@ for instr in io.lines() do
 			language = v[1]
 		end
 	end
-	
-	con = sql:connect(language, "root", "badf00d")
+  
+	con = sql:connect("nlp", "root", "badf00d")
 
+  language_id = get_language_id(language)
+  
 	clear_sparql_cache()
 	-- test to see if the combined match makes sesne first
 	if lastquery == nil then lastquery = "" end
@@ -401,10 +411,10 @@ for instr in io.lines() do
 	combinedquery = lastquery .. " " .. query
 	combinedquery = combinedquery:gsub("%s+", " ")
 	combinedquery = combinedquery:gsub("^ ", "")
-	local matched, with_what = match_query(combinedquery)
+	local matched, with_what = match_query(language_id, combinedquery)
     -- if matched then display_match(with_what) end
 	if not matched then
-	    matched, with_what = match_query(query)
+	    matched, with_what = match_query(language_id, query)
 	else
 		-- if it worked, this is the new query
 		query = combinedquery

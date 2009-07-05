@@ -7,7 +7,9 @@ require 'header.php';
 <br><br>
 <?
 
-$result = mysql_query('select * from rules');
+echo 'language_id: '.$language_id.'<br>';
+
+$result = mysql_query(sprintf('select * from rules WHERE language_id = %d', $language_id));
 while($row = mysql_fetch_array($result, MYSQL_ASSOC))
 {
 	echo "<div class='row'>\n";

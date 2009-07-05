@@ -10,7 +10,8 @@
 	// match_function
 	// match_function_type  : function, python
 	
-	$query = sprintf("INSERT INTO rules (type, content) VALUES ('%s', '%s');",
+	$query = sprintf("INSERT INTO rules (language_id, type, content) VALUES (%d, '%s', '%s');",
+    $language_id,
 		mysql_real_escape_string(stripslashes($_POST['type'])),
 		mysql_real_escape_string(stripslashes($_POST['content'])));
 	echo $query,"<br>";
