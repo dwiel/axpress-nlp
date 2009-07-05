@@ -1,0 +1,58 @@
+body {
+	background-color: #dde5ff;
+	font-family: 'sans-serif';
+}
+
+#middle {
+	width: 80%;
+	margin: auto;
+	margin-top: 10%;
+}
+
+#please-use-english {
+	text-align: center;
+	margin: 1em;
+	font-size: 200%;
+}
+
+#main-form-query {
+	margin: auto;
+	display: block;
+	font-size: 150%;
+}
+
+#below {
+	width: 40%;
+	margin: auto;
+	text-align: center;
+}
+
+#below-title {
+	margin: auto;
+	display: block;
+	font-size: 125%;
+	font-weight: bold;
+	padding: 1em;
+}
+
+.example {
+	margin: auto;
+	display: block;
+}
+
+#description {
+	width: 60%;
+	margin: auto;
+	margin-top: 7em;
+}
+
+#footer {
+	width: 100%;
+	margin: auto;
+	margin-top: 10%;
+}
+
+#footer-login-title {
+	text-align: center;
+}
+
