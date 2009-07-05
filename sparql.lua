@@ -1,3 +1,5 @@
+package.path = package.path..";/usr/share/lua/5.1/?.lua"
+
 -- public: some functions that can be used by code executed in the grammar
 exec_env = {}
 
@@ -610,7 +612,7 @@ function execute(q)
 	if query ~= "" then
 		local url = "http://localhost:2020/query?query="..escaped_query.."&stylesheet=/english/xml-to-html.xsl"
 	
-		require'socket.http'
+		require 'socket.http'
 		response_body = socket.http.request(url)
 		sparql_cache[query] = response_body
 	--	print(response_body)

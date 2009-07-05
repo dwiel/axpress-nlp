@@ -48,13 +48,17 @@ function get_varname_from_matchtype(matchtype)
 	end
 end
 
-function get_matchtype_from_matchtype(matchtype)
+function get_language_and_matchtype_from_matchtype(matchtype, language)
 	local new_matchtype = matchtype:match("(.*)%s*:")
-	if new_matchtype == nil then
-		return matchtype
-	else
-		return new_matchtype
+  if new_matchtype then
+    matchtype = new_matchtype
 	end
+  local new_language, new_matchtype = matchtype:match("([^/]*)/(.*)")
+  if new_language then
+    return new_language, new_matchtype
+  else
+    return language, matchtype
+  end
 end
 
 local function ffalse() return false end
@@ -66,7 +70,7 @@ local function get_function(id, vars)
 	if row == nil then return ffalse end
 	local code = row['function']
 	local code_language = row['type']
-	
+  
 	if code_language == 'function' then
 		-- compile
 		local env = {os = {date = os.date, time = os.time}, 
@@ -87,7 +91,7 @@ local function get_function(id, vars)
 		if type(f) ~= "function" then
 			error(err)
 		end
-				
+    
 		setfenv(f, env)
 		return f(), env
 	elseif code_language == 'python' then
@@ -192,7 +196,8 @@ function match_query(language_id, query, result_type)
 				-- don't bother with the recursive checking.
 				if matchtype:sub(1,1) ~= "_" then
 --					debugp("in match: " .. match .. ", " .. rule_id .. " trying to match '" .. queries[i] .. "' with a %" .. get_matchtype_from_matchtype(matchtype) .. "%")
-					matched, with_what = match_query(language_id, queries[i], get_matchtype_from_matchtype(matchtype))
+          new_language_id, new_matchtype = get_language_and_matchtype_from_matchtype(matchtype, language_id)
+					matched, with_what = match_query(new_language_id, queries[i], new_matchtype)
 					if matched then
 						subs[matchtype] = with_what
 					else
@@ -215,7 +220,7 @@ function match_query(language_id, query, result_type)
 				if function_id ~= nil and function_id ~= 0 then
 					local vars = {}
 					for i, matchtype in pairs(matches.matchtypes) do
-						if matchtype:sub(1,1) == "_" then
+            if matchtype:sub(1,1) == "_" then
 							matchtype = matchtype:sub(2)
 						end
 						vars[get_varname_from_matchtype(matchtype)] = queries[i]
@@ -444,6 +449,8 @@ for instr in io.lines() do
 			print("  <totalmatches>"..totalmatches.."</totalmatches>")
 			print("  <cachemisses>"..cachemisses.."</cachemisses>");
 			print("</results>")
+    elseif type(ret) == "number" then
+      print(ret)
 		elseif isforwardto(ret) then
 			print("<?xml version='1.0' standalone='yes'?>")
 			print("<results>")
