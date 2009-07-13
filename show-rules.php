@@ -6,9 +6,6 @@ require 'header.php';
 ?>
 <br><br>
 <?
-
-echo 'language_id: '.$language_id.'<br>';
-
 $result = mysql_query(sprintf('select * from rules WHERE language_id = %d', $language_id));
 while($row = mysql_fetch_array($result, MYSQL_ASSOC))
 {
@@ -29,7 +26,7 @@ while($row = mysql_fetch_array($result, MYSQL_ASSOC))
 	echo "</div>\n";
 	
 	// get the list of matchtypes
-	$query = sprintf("SELECT matchtype FROM matches WHERE rule_id = '%s' AND m = (SELECT m FROM matches WHERE rule_id = '%s' LIMIT 1);",
+	$query = sprintf("SELECT DISTINCT matchtype FROM matches WHERE rule_id = '%s' AND m = (SELECT m FROM matches WHERE rule_id = '%s' LIMIT 1);",
 				mysql_real_escape_string($row['rule_id']),
 				mysql_real_escape_string($row['rule_id']));
 	$matches = mysql_query($query);

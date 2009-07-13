@@ -49,9 +49,9 @@ function find_matches(query, match)
 	end
 	
 	-- split the match to get an array of the strings between the matchtypes %%
-	local strs = Split(match, "%%[%w%s_:]+%%")
+	local strs = Split(match, "%%[%w%s_:/]+%%")
 	local matchtypes = {}
-	for matchtype in match:gfind("%%([%w%s_:]+)%%") do
+	for matchtype in match:gfind("%%([%w%s_:/]+)%%") do
 		table.insert(matchtypes, matchtype)
 	end
 	

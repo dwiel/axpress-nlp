@@ -13,8 +13,6 @@ if(!strcmp($language, '')) {
 	$language = 'english';
 }
 
-echo 'language:'.$language.':<br />';
-
 mysql_select_db('nlp', $link);
 
 $query = sprintf("SELECT language_id FROM languages WHERE name = '%s'",

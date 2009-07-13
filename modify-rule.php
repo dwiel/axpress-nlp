@@ -39,7 +39,7 @@ while($matchrow = mysql_fetch_array($matches, MYSQL_ASSOC))
 $matches_string = substr($matches_string, 0, strlen($matches_string) - 2);
 
 // build the matchtypes string
-$query = sprintf("SELECT matchtype FROM matches WHERE rule_id = '%s' AND m = (SELECT m FROM matches WHERE rule_id = '%s' LIMIT 1);",
+$query = sprintf("SELECT DISTINCT matchtype FROM matches WHERE rule_id = '%s' AND m = (SELECT m FROM matches WHERE rule_id = '%s' LIMIT 1);",
 			mysql_real_escape_string($row['rule_id']),
 			mysql_real_escape_string($row['rule_id']));
 $matchtypes = mysql_query($query);

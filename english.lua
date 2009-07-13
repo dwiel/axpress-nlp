@@ -22,9 +22,14 @@ class Iter():
 
 
 debugp = function () end
+-- debugp = function (...)
+--   print(..., '<br>')
+-- end
+
+local top_language_id
 
 -- an iterator form the luasql examples page
-function rows (connection, sql_statement)
+local function rows (connection, sql_statement)
   local cursor = assert (connection:execute (sql_statement))
   return function ()
     return cursor:fetch()
@@ -39,8 +44,8 @@ local function get_language_id(language)
   return row['language_id']
 end
 
-function get_varname_from_matchtype(matchtype)
-	local var = matchtype:match(":%s*(.*)")
+local function get_varname_from_matchtype(matchtype)
+	local var = matchtype:match("[:/]+([^:/]*)$")
 	if var == nil then
 		return matchtype
 	else
@@ -48,14 +53,14 @@ function get_varname_from_matchtype(matchtype)
 	end
 end
 
-function get_language_and_matchtype_from_matchtype(matchtype, language)
+local function get_language_and_matchtype_from_matchtype(matchtype, language)
 	local new_matchtype = matchtype:match("(.*)%s*:")
   if new_matchtype then
     matchtype = new_matchtype
 	end
   local new_language, new_matchtype = matchtype:match("([^/]*)/(.*)")
   if new_language then
-    return new_language, new_matchtype
+    return get_language_id(new_language), new_matchtype
   else
     return language, matchtype
   end
@@ -182,27 +187,28 @@ function match_query(language_id, query, result_type)
 	end
 	
 	for match, function_id, rule_id in rows(con, sqlquery) do
---		debugp("x", match, result_type, function_id, rule_id)
-		
 		local matches = find_matches(query, match)
-		
+    
 		for _, queries in ipairs(matches) do
 			local i = 1
 			local all_queries_match = true
 			local subs = {}
 			for _, matchtype in ipairs(matches.matchtypes) do
---				debugp("matchtype:", matchtype)
 				-- if this is a special match just for use by the match function
 				-- don't bother with the recursive checking.
 				if matchtype:sub(1,1) ~= "_" then
---					debugp("in match: " .. match .. ", " .. rule_id .. " trying to match '" .. queries[i] .. "' with a %" .. get_matchtype_from_matchtype(matchtype) .. "%")
           new_language_id, new_matchtype = get_language_and_matchtype_from_matchtype(matchtype, language_id)
+          if new_language_id == top_language_id then
+            debugp("in match: " .. match .. ", " .. rule_id .. " trying to match '" .. queries[i] .. "' with a %" .. new_matchtype .. "%")
+          end
 					matched, with_what = match_query(new_language_id, queries[i], new_matchtype)
 					if matched then
 						subs[matchtype] = with_what
 					else
 						-- if one query doesn't match it doesn't matter if the rest do or not.
---						debugp("all_queries_match = false")
+            if new_language_id == top_language_id then
+              debugp("all_queries_match = false")
+            end
 						all_queries_match = false
 						break
 					end
@@ -230,7 +236,7 @@ function match_query(language_id, query, result_type)
 				end
 				
 				if exec then
-					debugp(match .. " matches!", function_id, rule_id)
+--					debugp(match .. " matches!", function_id, rule_id)
 					local cur = con:execute("SELECT type, content FROM rules WHERE rule_id = '"..rule_id.."'")
 					row = cur:fetch ({}, "a")
 					table.insert(results, {rule = row, subs = subs, env = env})
@@ -292,7 +298,7 @@ function execute_first_match(match)
 						print = print,
 						table = table,
 						math = math,
--- 						vars = {},
+ 						vars = {},
 						pairs = pairs,
 						ipairs = ipairs,
 						forwardto = forwardto}
@@ -305,11 +311,11 @@ function execute_first_match(match)
 		for matchtype, submatch in pairs(match[1].subs) do
 			if matchtype:sub(1,1) == "_" then
 				matchtype = matchtype:sub(2)
--- 				env.vars[get_varname_from_matchtype(matchtype)] = submatch
+ 				env.vars[get_varname_from_matchtype(matchtype)] = submatch
 				env[get_varname_from_matchtype(matchtype)] = submatch
 			else
 				local q = execute_first_match(submatch)
--- 				env.vars[get_varname_from_matchtype(matchtype)] = q
+ 				env.vars[get_varname_from_matchtype(matchtype)] = q
 				env[get_varname_from_matchtype(matchtype)] = q
 			end
 		end
@@ -408,6 +414,7 @@ for instr in io.lines() do
 	con = sql:connect("nlp", "root", "badf00d")
 
   language_id = get_language_id(language)
+  top_language_id = language_id
   
 	clear_sparql_cache()
 	-- test to see if the combined match makes sesne first

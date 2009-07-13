@@ -79,4 +79,4 @@ foreach ($matchtypeary as &$matchtype) {
 }
 
 ?>
-<META HTTP-EQUIV="Refresh" CONTENT="0; URL=show-rules.php?language=<?php echo $language; ?>">
+<!-- <META HTTP-EQUIV="Refresh" CONTENT="0; URL=show-rules.php?language=<?php echo $language; ?>"> -->
