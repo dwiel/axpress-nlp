@@ -1,0 +1,40 @@
+See also dwi Axpress.Todo
+
+immidiate todo:
+
+		make multiline work
+			NEXT make subquery bindings able to pass on to the next subquery
+			from sparql read to sparql write
+			from translate read to sparql write
+			make the image multiline thing work
+			
+			somehow allow each subquery to return each of the set of triples that go
+				on to the next.  
+			well ... The set of triples isn't really important.  Its the set of 
+				bindings.
+		
+			Keep in mind cached compilations ... basically the partial compilation
+		
+	x	make change to allow different kinds of variables?
+	x	make sure vars['x'] = [1,2,3] works as outlined in andandor
+			its close enough. still left:
+				vars['x'] = (1,2,3)
+				vars['x'] = [1,2,(3,4),5]
+		
+		disallow input variables like bnode1
+				...
+		make optional parts of a query and part of a translation work
+
+		method to quickly create triple information and put it into the store.
+		(for example, who Matt is and what his bookmark sites/email/etc is)
+		low level, like:
+
+		query (save with name)
+
+		bindings
+
+		create
+
+
+
+		also allow saving just a long query.  (how to escape it in the database?)
