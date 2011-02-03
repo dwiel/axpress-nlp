@@ -35,87 +35,86 @@ class X():pass
 type_instance = type(X())
 
 class PassCompleteReadsTestCase(unittest.TestCase):
-	#def test1(self) :
-		#ret = translator.read_translations([
-			#'test.u[test.x] = 1',
-			#'test.u[test.x] = 10',
-			#'test.u[test.y] = 2',
-			#'test.u[test.y] = 20',
-			#'test.u[test.z] = 100',
-			#'test.u[test.div] = div',
-		#])
-		#print prettyquery(ret)
-		#assert ret == [
-			#[
-				#[ n.test.u, n.test.x, 1, ],
-				#[ n.test.u, n.test.x, 10, ],
-				#[ n.test.u, n.test.y, 2, ],
-				#[ n.test.u, n.test.y, 20, ],
-				#[ n.test.u, n.test.z, 100, ],
-				#[ n.test.u, n.test.div, n.var.div, ],
-				#[ n.test.u, n.test.sum, 3, ],
-				#[ n.test.u, n.test.prod, 300, ],
-				#[ n.test.u, n.test.div, 0.029999999999999999, ],
-			#], [
-				#[ n.test.u, n.test.x, 1, ],
-				#[ n.test.u, n.test.x, 10, ],
-				#[ n.test.u, n.test.y, 2, ],
-				#[ n.test.u, n.test.y, 20, ],
-				#[ n.test.u, n.test.z, 100, ],
-				#[ n.test.u, n.test.div, n.var.div, ],
-				#[ n.test.u, n.test.sum, 12, ],
-				#[ n.test.u, n.test.prod, 1200, ],
-				#[ n.test.u, n.test.div, 0.12, ],
-			#], [
-				#[ n.test.u, n.test.x, 1, ],
-				#[ n.test.u, n.test.x, 10, ],
-				#[ n.test.u, n.test.y, 2, ],
-				#[ n.test.u, n.test.y, 20, ],
-				#[ n.test.u, n.test.z, 100, ],
-				#[ n.test.u, n.test.div, n.var.div, ],
-				#[ n.test.u, n.test.sum, 21, ],
-				#[ n.test.u, n.test.prod, 2100, ],
-				#[ n.test.u, n.test.div, 0.20999999999999999, ],
-			#], [
-				#[ n.test.u, n.test.x, 1, ],
-				#[ n.test.u, n.test.x, 10, ],
-				#[ n.test.u, n.test.y, 2, ],
-				#[ n.test.u, n.test.y, 20, ],
-				#[ n.test.u, n.test.z, 100, ],
-				#[ n.test.u, n.test.div, n.var.div, ],
-				#[ n.test.u, n.test.sum, 30, ],
-				#[ n.test.u, n.test.prod, 3000, ],
-				#[ n.test.u, n.test.div, 0.29999999999999999, ],
-			#],
-		#]
+	def test1(self) :
+		ret = translator.read_translations([
+			'test.u[test.x] = 1',
+			'test.u[test.x] = 10',
+			'test.u[test.y] = 2',
+			'test.u[test.y] = 20',
+			'test.u[test.z] = 100',
+			'test.u[test.div] = div',
+		])
+		assert ret == [
+			[
+				[ n.test.u, n.test.x, 1, ],
+				[ n.test.u, n.test.x, 10, ],
+				[ n.test.u, n.test.y, 2, ],
+				[ n.test.u, n.test.y, 20, ],
+				[ n.test.u, n.test.z, 100, ],
+				[ n.test.u, n.test.div, n.var.div, ],
+				[ n.test.u, n.test.sum, 3, ],
+				[ n.test.u, n.test.prod, 300, ],
+				[ n.test.u, n.test.div, 0.029999999999999999, ],
+			], [
+				[ n.test.u, n.test.x, 1, ],
+				[ n.test.u, n.test.x, 10, ],
+				[ n.test.u, n.test.y, 2, ],
+				[ n.test.u, n.test.y, 20, ],
+				[ n.test.u, n.test.z, 100, ],
+				[ n.test.u, n.test.div, n.var.div, ],
+				[ n.test.u, n.test.sum, 12, ],
+				[ n.test.u, n.test.prod, 1200, ],
+				[ n.test.u, n.test.div, 0.12, ],
+			], [
+				[ n.test.u, n.test.x, 1, ],
+				[ n.test.u, n.test.x, 10, ],
+				[ n.test.u, n.test.y, 2, ],
+				[ n.test.u, n.test.y, 20, ],
+				[ n.test.u, n.test.z, 100, ],
+				[ n.test.u, n.test.div, n.var.div, ],
+				[ n.test.u, n.test.sum, 21, ],
+				[ n.test.u, n.test.prod, 2100, ],
+				[ n.test.u, n.test.div, 0.20999999999999999, ],
+			], [
+				[ n.test.u, n.test.x, 1, ],
+				[ n.test.u, n.test.x, 10, ],
+				[ n.test.u, n.test.y, 2, ],
+				[ n.test.u, n.test.y, 20, ],
+				[ n.test.u, n.test.z, 100, ],
+				[ n.test.u, n.test.div, n.var.div, ],
+				[ n.test.u, n.test.sum, 30, ],
+				[ n.test.u, n.test.prod, 3000, ],
+				[ n.test.u, n.test.div, 0.29999999999999999, ],
+			],
+		]
 
-	#def test2(self):
-		#ret = translator.read_translations([
-			#'test.u[test.x] = 1',
-			#'test.u[test.x] = 2',
-			#'test.u[test.y] = 10',
-			#'test.u[test.sum] = sum',
-		#])
-		#assert ret == [
-			#[
-				#[ n.test.u, n.test.x, 1, ],
-				#[ n.test.u, n.test.x, 2, ],
-				#[ n.test.u, n.test.y, 10, ],
-				#[ n.test.u, n.test.sum, n.var.sum, ],
-				#[ n.test.u, n.test.sum, 11, ],
-			#],
-			#[
-				#[ n.test.u, n.test.x, 1, ],
-				#[ n.test.u, n.test.x, 2, ],
-				#[ n.test.u, n.test.y, 10, ],
-				#[ n.test.u, n.test.sum, n.var.sum, ],
-				#[ n.test.u, n.test.sum, 12, ],
-			#],
-		#]
+	def test2(self):
+		ret = translator.read_translations([
+			'test.u[test.x] = 1',
+			'test.u[test.x] = 2',
+			'test.u[test.y] = 10',
+			'test.u[test.sum] = sum',
+		])
+		assert ret == [
+			[
+				[ n.test.u, n.test.x, 1, ],
+				[ n.test.u, n.test.x, 2, ],
+				[ n.test.u, n.test.y, 10, ],
+				[ n.test.u, n.test.sum, n.var.sum, ],
+				[ n.test.u, n.test.sum, 11, ],
+			],
+			[
+				[ n.test.u, n.test.x, 1, ],
+				[ n.test.u, n.test.x, 2, ],
+				[ n.test.u, n.test.y, 10, ],
+				[ n.test.u, n.test.sum, n.var.sum, ],
+				[ n.test.u, n.test.sum, 12, ],
+			],
+		]
 	
 	#def test3(self):
 		#ret = translator.read_translations([
-			#'image[file.filename] = "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"',
+			#'image[file.filename] = "pictures/111.jpg"',
 			#'thumb = image.thumbnail(image, 4, 4)'
 		#])
 		#print 'retret',prettyquery(ret)
@@ -123,7 +122,7 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 		#ret[0][6][2] = type(ret[0][6][2])
 		#assert ret == [
 			#[
-				#[ n.var.image, n.file.filename, '/home/dwiel/AMOSvid/1065/20080821_083129.jpg', ],
+				#[ n.var.image, n.file.filename, 'pictures/111.jpg', ],
 				#[ n.var.bnode1, n.call.arg1, n.var.image, ],
 				#[ n.var.bnode1, n.call.arg2, 4, ],
 				#[ n.var.bnode1, n.call.arg3, 4, ],
@@ -142,26 +141,32 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 		#print 'retret',prettyquery(ret)
 	
 	# this case should be seperated from activity on my hard drive
-	def test_glob_glob(self):
-		ret = translator.read_translations([
-			'glob.glob("/home/dwiel/AMOSvid/*.py") = foo[file.filename]',
-			'foo[file.filename] = filename',
-		])
-		assert ret == [
-			[
-				[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, n.var.filename, ],
-				[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, '/home/dwiel/AMOSvid/generate_thumbnail_images.py', ],
-			],
-			[
-				[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, n.var.filename, ],
-				[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, '/home/dwiel/AMOSvid/imagevid.py', ],
-			],
-			[
-				[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, n.var.filename, ],
-				[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, '/home/dwiel/AMOSvid/find_closest_thumnail.py', ],
-			],
-		]
+	# NOTE: this isn't the proper way to use glob anyhow ... : [
+	# 	'foo[glob.glob] = "/home/dwiel/AMOSvid/*.py"',
+	# 	'foo[file.filename] = filename',
+	# ]
+	#def test_glob_glob(self):
+		#ret = translator.read_translations([
+			#'glob.glob("/home/dwiel/AMOSvid/*.py") = foo[file.filename]',
+			#'foo[file.filename] = filename',
+		#])
+		#p('ret',ret)
+		#assert ret == [
+			#[
+				#[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, n.var.filename, ],
+				#[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, '/home/dwiel/AMOSvid/generate_thumbnail_images.py', ],
+			#],
+			#[
+				#[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, n.var.filename, ],
+				#[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, '/home/dwiel/AMOSvid/imagevid.py', ],
+			#],
+			#[
+				#[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, n.var.filename, ],
+				#[ '/home/dwiel/AMOSvid/*.py', n.glob.glob, '/home/dwiel/AMOSvid/find_closest_thumnail.py', ],
+			#],
+		#]
 	
+	# translator doesn't include compiler any more
 	#def test_compile1(self):
 		## in this case the compiler should come up with the paths required to 
 		## evalutate it, but not actually evaluate it
