@@ -3,8 +3,7 @@ from SimpleSPARQL import *
 import os, random, re
 from itertools import izip
 
-
-def loadTranslations(axpress, n) :	
+def loadTranslations(axpress, n) :
 	n.bind('rdfs', '<http://www.w3.org/2000/01/rdf-schema#>')
 	n.bind('math', '<http://dwiel.net/express/math/0.1/>')
 	n.bind('type', '<http://dwiel.net/express/type/0.1/>')

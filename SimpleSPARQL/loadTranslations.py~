@@ -3,7 +3,6 @@ from SimpleSPARQL import *
 import os, random, re
 from itertools import izip
 
-
 def loadTranslations(axpress, n) :	
 	n.bind('rdfs', '<http://www.w3.org/2000/01/rdf-schema#>')
 	n.bind('math', '<http://dwiel.net/express/math/0.1/>')
@@ -162,7 +161,8 @@ def loadTranslations(axpress, n) :
 	re_lastfm_similar = re.compile('(.*?),(.*?),(.+)')
 	def lastfm_similar(vars) :
 		import os, urllib, time
-		os.mkdir('.lastfmcache')
+		if not os.path.exists('.lastfmcache') :
+			os.mkdir('.lastfmcache')
 		filename = '.lastfmcache/artist_%s_similar' % urllib.quote(vars['artist_name'])
 		filename = filename.replace('%','_')
 		if not os.path.exists(filename) :

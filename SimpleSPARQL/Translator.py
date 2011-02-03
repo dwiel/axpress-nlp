@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from SimpleSPARQL import SimpleSPARQL
 from Namespaces import Namespaces
 from PrettyQuery import prettyquery
@@ -26,7 +27,7 @@ class Translator :
 		n = self.n
 		
 		# make sure all of the required keys are present
-		required = [n.meta.input, n.meta.output, n.meta.function, n.meta.name]
+		required = [n.meta.input, n.meta.output, n.meta.name]
 		missing = [key for key in required if key not in translation]
 		if missing :
 			raise Exception('translation is missing keys: %s' % prettyquery(missing))

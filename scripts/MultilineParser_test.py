@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 
 import time, urllib
@@ -6,7 +7,6 @@ from SimpleSPARQL import *
 
 sparql = SimpleSPARQL("http://localhost:2020/sparql")
 sparql.setGraph("http://dwiel.net/axpress/testing")
-
 
 n = sparql.n
 n.bind('string', '<http://dwiel.net/express/string/0.1/>')
@@ -27,16 +27,26 @@ n.bind('test', '<http://dwiel.net/express/test/0.1/>')
 n.bind('bound_var', '<http://dwiel.net/axpress/bound_var/0.1/>')
 a = n.rdfs.type
 
-cache_sparql = SimpleSPARQL("http://localhost:2020/sparql", graph = "http://dwiel.net/axpress/cache")
-cache = Cache(cache_sparql)
-translator = Translator(cache)
+#cache_sparql = SimpleSPARQL("http://localhost:2020/sparql", graph = "http://dwiel.net/axpress/cache")
+#cache = Cache(cache_sparql)
+#translator = Translator(cache)
 
-loadTranslations(translator, n)
+#loadTranslations(translator, n)
+
+#compiler = Compiler(n)
+#loadTranslations(compiler, n)
+
+#axpress = Axpress(sparql = sparql, compiler = compiler, evaluator = Evaluator(n))
 
 compiler = Compiler(n)
-loadTranslations(compiler, n)
+evaluator = Evaluator(n)
 
-axpress = Axpress(sparql = sparql, compiler = compiler, evaluator = Evaluator(n))
+axpress = Axpress(
+	sparql = sparql,
+	compiler = compiler,
+	evaluator = evaluator
+)
+loadTranslations(axpress, n)
 
 class PassCompleteReadsTestCase(unittest.TestCase):
 	def setUp(self):
