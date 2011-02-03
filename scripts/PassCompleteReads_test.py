@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import unittest
 
 from SimpleSPARQL import *
@@ -13,39 +15,40 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 		self.sparql.setNamespaces(n)
 		self.p = PassCompleteReads(self.sparql)
 	
-	def test1(self):
-		q = {
-			n.sparql.reads : [{
-				n.test.x : '1',
-				n.sparql.var : 'autovar1',
-				n.sparql.path : (0,),
-			}],
-			n.sparql.writes : []
-		}
-		try :
-			rr = self.p(q)
-			assert False, "should not have found a match.  found: " + prettyquery(rr)
-		except QueryException, qe :
-			assert qe == QueryException((0,), 'no match found')
+	# depends on Joseki
+	#def test1(self):
+		#q = {
+			#n.sparql.reads : [{
+				#n.test.x : '1',
+				#n.sparql.var : 'autovar1',
+				#n.sparql.path : (0,),
+			#}],
+			#n.sparql.writes : []
+		#}
+		#try :
+			#rr = self.p(q)
+			#assert False, "should not have found a match.  found: " + prettyquery(rr)
+		#except QueryException, qe :
+			#assert qe == QueryException((0,), 'no match found')
 
-	def test2(self):
-		q = {
-			n.sparql.reads : [{
-				n.test.x : 1,
-				n.sparql.var : 'autovar1',
-				n.sparql.path : (0,),
-			}],
-			n.sparql.writes : []
-		}
-		r = {
-			n.sparql.reads : [{
-				n.test.x : 1,
-				n.sparql.var : 'autovar1',
-				n.sparql.path : (0,),
-			}],
-			n.sparql.writes : []
-		}
-		assert r == self.p(q)
+	#def test2(self):
+		#q = {
+			#n.sparql.reads : [{
+				#n.test.x : 1,
+				#n.sparql.var : 'autovar1',
+				#n.sparql.path : (0,),
+			#}],
+			#n.sparql.writes : []
+		#}
+		#r = {
+			#n.sparql.reads : [{
+				#n.test.x : 1,
+				#n.sparql.var : 'autovar1',
+				#n.sparql.path : (0,),
+			#}],
+			#n.sparql.writes : []
+		#}
+		#assert r == self.p(q)
 
 if __name__ == "__main__" :
 	unittest.main()
