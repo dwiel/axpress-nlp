@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Compiler testing
 # this compiler assumes the translations available in loadTranslator
 
