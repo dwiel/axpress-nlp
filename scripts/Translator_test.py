@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Translator testing
 # this translator assumes the translations available in loadTranslator
 
@@ -26,8 +27,7 @@ cache_sparql = SimpleSPARQL("http://localhost:2020/sparql", graph = "http://dwie
 cache = Cache(cache_sparql)
 translator = Translator(cache)
 
-import loadTranslations
-loadTranslations.load(translator, n)
+loadTranslations(translator, n)
 
 # for easy basic stupid matching type instance
 class X():pass
