@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 
 from SimpleSPARQL import *
@@ -15,7 +16,7 @@ class PassAssignVariableNumberTestCase(unittest.TestCase):
 		}]
 		r = [{
 			'x' : '1',
-			n.sparql.var : 'autovar1'
+			n.sparql.subject : '?autovar1'
 		}]
 		assert self.p(q) == r
 		
@@ -32,14 +33,14 @@ class PassAssignVariableNumberTestCase(unittest.TestCase):
 			'y' : [
 				{
 					'a' : '1',
-					n.sparql.var : 'autovar2'
+					n.sparql.subject : '?autovar2'
 				},
 				{
 					'b' : '2',
-					n.sparql.var : 'autovar3'
+					n.sparql.subject : '?autovar3'
 				},
 			],
-			n.sparql.var : 'autovar1'
+			n.sparql.subject : '?autovar1'
 		}]
 		assert self.p(q) == r, self.p(q)
 
