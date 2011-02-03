@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import unittest
 
 from SimpleSPARQL import *
@@ -13,29 +15,30 @@ class PassCheckCreateUnlessExistsTestCase(unittest.TestCase):
 		self.sparql.setNamespaces(n)
 		self.p = PassCheckCreateUnlessExists(self.sparql)
 	
-	def test1(self):
-		q = {
-			sparql:reads : [
-			],
-			sparql:writes : [
-				{
-					sparql:create : sparql:unless_exists,
-					sparql:path : (0,),
-					test:x : 1,
-				},
-			],
-		}
-		r = {
-			sparql:reads : [ ],
-			sparql:writes : [
-				{
-					sparql:create : sparql:existed,
-					sparql:path : (0,),
-					sparql:subject : test:object1,
-					test:x : 1,
-				},
-			],
-		}
+	# depends on Joseki
+	#def test1(self):
+		#q = {
+			#n.sparql.reads : [
+			#],
+			#n.sparql.writes : [
+				#{
+					#n.sparql.create : n.sparql.unless_exists,
+					#n.sparql.path : (0,),
+					#n.test.x : 1,
+				#},
+			#],
+		#}
+		#r = {
+			#n.sparql.reads : [ ],
+			#n.sparql.writes : [
+				#{
+					#n.sparql.create : n.sparql.existed,
+					#n.sparql.path : (0,),
+					#n.sparql.subject : n.test.object1,
+					#n.test.x : 1,
+				#},
+			#],
+		#}
 
 
 		print prettyquery(q)
