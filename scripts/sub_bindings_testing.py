@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Translator testing
 # this translator assumes the translations available in loadTranslator
 
@@ -34,68 +35,60 @@ loadTranslations(translator, n)
 class X():pass
 type_instance = type(X())
 
-class PassCompleteReadsTestCase(unittest.TestCase):
+class SubVarBindingsTestCase(unittest.TestCase):
 	def test1(self) :
 		ret = sub_var_bindings([
  			[ n.var.uri, n.test.div, n.lit_var.div, ],
-		], [
-			{
-				u'div' : 0.20999999999999999,
-				u'sum' : 21,
-				u'uri' : n.test.u,
-				u'z' : 100,
-			},
-		])
+		], {
+			u'div' : 0.20999999999999999,
+			u'sum' : 21,
+			u'uri' : n.test.u,
+			u'z' : 100,
+		})
 		ret = [x for x in ret]
 		assert ret == [
-			[
-				[ n.test.u, n.test.div, 0.20999999999999999, ],
-			],
+			[ n.test.u, n.test.div, 0.20999999999999999, ],
 		]
 
 	def test2(self) :
 		ret = sub_var_bindings([
  			[ n.var.uri, n.test.div, n.lit_var.div, ],
 			[ n.var.uri, n.test.sum, n.lit_var.sum, ],
-		], [
-			{
-				u'div' : 0.20999999999999999,
-				u'sum' : 21,
-				u'uri' : n.test.u,
-				u'z' : 100,
-			},
-		])
+		],{
+			u'div' : 0.20999999999999999,
+			u'sum' : 21,
+			u'uri' : n.test.u,
+			u'z' : 100,
+		})
 		ret = [x for x in ret]
 		assert ret == [
-			[
-				[ n.test.u, n.test.div, 0.20999999999999999, ],
-				[ n.test.u, n.test.sum, 21, ],
-			],
+			[ n.test.u, n.test.div, 0.20999999999999999, ],
+			[ n.test.u, n.test.sum, 21, ],
 		]
-
-	def test3(self) :
-		ret = sub_var_bindings([
- 			[ n.var.uri, n.test.div, n.lit_var.div, ],
-			[ n.var.uri, n.test.sum, n.lit_var.sum, ],
-		], [
-			{
-				u'div' : 0.20999999999999999,
-				u'sum' : [1,2],
-				u'uri' : n.test.u,
-				u'z' : 100,
-			},
-		])
-		ret = [x for x in ret]
+	
+	## NOTE: this isn't a valid test for sub_var_bindings.
+	##       See Util.explode_bindings_set
+	#def test3(self) :
+		#ret = sub_var_bindings([
+			#[ n.var.uri, n.test.div, n.lit_var.div, ],
+			#[ n.var.uri, n.test.sum, n.lit_var.sum, ],
+		#], {
+			#u'div' : 0.20999999999999999,
+			#u'sum' : [1,2],
+			#u'uri' : n.test.u,
+			#u'z' : 100,
+		#})
+		#ret = [x for x in ret]
 		#print 'ret',prettyquery(ret)
-		assert ret == [
-			[
-				[ n.test.u, n.test.div, 0.20999999999999999, ],
-				[ n.test.u, n.test.sum, 1, ],
-			],[
-				[ n.test.u, n.test.div, 0.20999999999999999, ],
-				[ n.test.u, n.test.sum, 2, ],
-			]
-		]
+		#assert ret == [
+			#[
+				#[ n.test.u, n.test.div, 0.20999999999999999, ],
+				#[ n.test.u, n.test.sum, 1, ],
+			#],[
+				#[ n.test.u, n.test.div, 0.20999999999999999, ],
+				#[ n.test.u, n.test.sum, 2, ],
+			#]
+		#]
 
 
 if __name__ == "__main__" :
