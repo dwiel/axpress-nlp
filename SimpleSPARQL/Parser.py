@@ -37,7 +37,8 @@ class Expression() :
 	
 	def triplelist(self, check_for_missing=False) :
 		if check_for_missing and self.missing :
-			p('missing',self.missing)
+			pass
+			#p('missing',self.missing)
 		if isinstance(self.exp, list) and not isinstance(self.exp[0], list) :
 			return [self.exp]
 		else :
