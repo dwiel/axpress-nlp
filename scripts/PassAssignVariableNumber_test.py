@@ -5,6 +5,7 @@ from SimpleSPARQL import *
 
 n = globalNamespaces()
 n.bind('sparql', '<http://dwiel.net/express/sparql/0.1/>')
+#!/usr/bin/env python
 
 class PassAssignVariableNumberTestCase(unittest.TestCase):
 	def setUp(self):
