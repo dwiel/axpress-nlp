@@ -44,6 +44,7 @@ class AxpressTestCase(unittest.TestCase):
 		)
 		loadTranslations(self.axpress, n)
 		
+		# TODO: load a test set of data into the sparql point
 	
 	# depends on Joseki
 	#def testIncomingBindings(self):
@@ -373,13 +374,13 @@ class AxpressTestCase(unittest.TestCase):
 		#""")
 		#p('ret',ret)
 		
-	# depends on Joseki
-	#def testLongCount(self) :
-		#ret = self.axpress.read_sparql("""
-			#x[y] = z
-			#query.query[query.count] = _count		
-		#""")
-		#assert ret == [{'count' : 13}]
+	#depends on Joseki
+	def testLongCount(self) :
+		ret = self.axpress.read_sparql("""
+			x[y] = z
+			query.query[query.count] = _count		
+		""")
+		assert ret == [{'count' : 0}]
 	
 	# test a translation which makes an axpress call
 	def testEmbededAxpress(self):
