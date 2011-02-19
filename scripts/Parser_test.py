@@ -221,7 +221,33 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 			[n.var['x'], n.test['/type/type'], n.test['property']],
 		]
 		
+	def test_full_line_comment(self):
+		query = """
+			x[test./type/type] = test.property
+			# this is a comment
+		"""
+		assert self.parser.parse_query(query) == [
+			[n.var['x'], n.test['/type/type'], n.test['property']],
+		]
+		
+	def test_after_triple_comment(self):
+		query = """
+			x[test./type/type] = test.property # this is a comment
+		"""
+		assert self.parser.parse_query(query) == [
+			[n.var['x'], n.test['/type/type'], n.test['property']],
+		]
 	
+	def test_comment_in_middle_of_query(self):
+		query = """
+			x[test./type/type] = test.property
+			# this is a comment
+			x[test./type/type] = test.property
+		"""
+		assert self.parser.parse_query(query) == [
+			[n.var['x'], n.test['/type/type'], n.test['property']],
+			[n.var['x'], n.test['/type/type'], n.test['property']],
+		]
 if __name__ == "__main__" :
 	unittest.main()
 

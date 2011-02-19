@@ -147,6 +147,13 @@ class Parser() :
 			i += 1
 		return new_expression, str_bindings
 	
+	def strip_comments(self, query) :
+		re_comment = re.compile('(#.*)$')
+		for line in query :
+			new_line = re_comment.sub('', line).strip()
+			if new_line :
+				yield new_line
+	
 	def parse(self, query, reset_bnodes = True) :
 		return self.parse_query(query, reset_bnodes)
 	
@@ -161,6 +168,7 @@ class Parser() :
 		"""
 		if isinstance(query, basestring) :
 			query = self.break_multiline_string(query)
+			query = self.strip_comments(query)
 		if reset_bnodes :
 			self._reset_bnode()
 		return self.flatten([isinstance(expression, basestring) and self.parse_expression(expression) or [expression] for expression in query])
