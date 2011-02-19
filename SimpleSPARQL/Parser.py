@@ -16,6 +16,7 @@ re_uri = re.compile('(\D\w*|)[\.:]([\w/]+)')
 re_var = re.compile('^[a-zA-Z_]\w*$')
 re_meta_var = re.compile('^\?[a-zA-Z_]\w*$')
 re_lit_var = re.compile('^_[a-zA-Z_]\w*$')
+re_comment = re.compile('(#.*)$')
 
 python_keywords = ['True', 'False']
 
@@ -148,7 +149,6 @@ class Parser() :
 		return new_expression, str_bindings
 	
 	def strip_comments(self, query) :
-		re_comment = re.compile('(#.*)$')
 		for line in query :
 			new_line = re_comment.sub('', line).strip()
 			if new_line :
