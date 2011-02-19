@@ -213,6 +213,15 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 			[n.var['note'], n['']['tag'], n.lit_var['tag']],
 		]
 	
+	def test_URIwithSlashes(self):
+		query = """
+			x[test./type/type] = test.property
+		"""
+		assert self.parser.parse_query(query) == [
+			[n.var['x'], n.test['/type/type'], n.test['property']],
+		]
+		
+	
 if __name__ == "__main__" :
 	unittest.main()
 
