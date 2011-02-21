@@ -44,12 +44,16 @@ class Compiler :
 	
 	def debug(self, str) :
 		self.debug_str += str + '<br>'
+
+	def debugp(self, *args) :
+		
+		self.debug('<xmp>' + ' '.join([prettyquery(arg) for arg in args]) + '</xmp>')
 		
 	def debug_open_block(self, title) :
 		self.debug_str += """
 			<div class="logblock">
       <div class="logblock-title" id="block-title-%d">%s</div>
-			<div class="logblock-body" style="display:none" id="block-body-%d"></div></div>
+			<div class="logblock-body" style="display:none" id="block-body-%d">
     """ % (self.debug_block_id, title, self.debug_block_id)
 		self.debug_block_id += 1
 	
@@ -430,27 +434,19 @@ class Compiler :
 			return False
 		
 		for translation in self.translations :
-			#p('name',translation[n.meta.name])
-			self.debug('test ' + translation[n.meta.name])
 			matches, bindings_set = self.testtranslation(translation, query, output_vars, reqd_triples, root)
-			#debug('bindings_set', bindings_set)
 			if matches :
-				self.debug('match ' + translation[n.meta.name])
-				#p('match %s' % translation[n.meta.name])
+				self.debug('found match ' + translation[n.meta.name])
 				for bindings in bindings_set :
 					# not allowed to bind an output variable as a value to the input of a
 					# translation
 					if bindings_contain_output_var(bindings) :
 						continue
 					
-					#print '---'
-					#print 'bindings',prettyquery(bindings)
-					#print 'translation',prettyquery(translation)
 					# keep the possible property
 					new_bindings = Bindings(possible = bindings.possible)
 					# replace the bindings which the translation defines as constant with
 					# the exact binding value
-					#print '???',prettyquery(value),prettyquery(q
 					# replace the other bindings which are variables, with variables with
 					# the name from the query and the type from the translation ...
 					# TODO?: keep the state of each of the variables in the triple set
@@ -482,16 +478,10 @@ class Compiler :
 									#p('qv',qv)
 								#else :
 									#break
-					#p('input_bindings',input_bindings)
-					#p('translation[n.meta.output]',translation[n.meta.output])
 					#tmp_out = sub_var_bindings(translation[n.meta.output], input_bindings)
-					#p('tmp_out',tmp_out)
-					#p('query',query)
 					#unified_bindings = self.find_unified_bindings(query, tmp_out)
-					#p('unified_bindings',unified_bindings)
 					
 					#constant_vars = unified_bindings.values()
-					#p('constant_vars',constant_vars)
 					
 					# find output_bindings
 					for var in find_vars(translation[n.meta.output]) :
@@ -502,20 +492,15 @@ class Compiler :
 						else :
 							output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
 					
-					#p('1input_bindings',input_bindings)
-					#p('1output_bindings',output_bindings)
-					
 					new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
 					new_query = copy.copy(query)
 					
 					new_query.extend(new_triples)
 					
 					partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(self.var_triples, new_query, new_triples)
-					#p('partial_triples',partial_triples)					
 					#partial_triples = [triple for triple in partial_triples if triple in new_triples]
 											
 					if matches == self.MAYBE :
-						#print 'new_triples',prettyquery(new_triples)
 						possible_steps.append({
 							'query' : query,
 							'input_bindings' : input_bindings,
@@ -540,7 +525,7 @@ class Compiler :
 							'partial_bindings' : partial_bindings,
 						})
 		
-		#p('steps:',[step['translation'][n.meta.name] for step in guaranteed_steps])
+		p('steps:',[step['translation'][n.meta.name] for step in guaranteed_steps])
 		return guaranteed_steps, possible_steps
 	
 	def contains_all_bindings(self, required, obtained) :
@@ -675,6 +660,8 @@ class Compiler :
 		#debug('fg query',query)
 		#print 'history',prettyquery(history)
 		
+		self.debug_open_block('follow guaranteed')
+		
 		compile_node = {
 			'guaranteed' : [],
 			'possible' : [],
@@ -684,42 +671,32 @@ class Compiler :
 		# recursively search through all possible guaranteed translations
 		
 		guaranteed_steps, possible_steps = self.next_translations(query, history, output_vars, new_triples, root)
-		#p('len_guaranteed_steps',len(guaranteed_steps))
 		if len(guaranteed_steps) == 0 :
 			#partial_solution = self.find_partial_solution(self.var_triples, query, [])
+			self.debug_close_block()
 			return compile_node
 		
-		self.debug('<xmp>'+prettyquery(guaranteed_steps)+'</xmp>')
-		#debug('possible_steps',possible_steps)
+		self.debug_open_block('guaranteed_steps')
+		self.debugp(guaranteed_steps)
+		self.debug_close_block()
 		# look through all guarenteed steps recursively to see if they terminate and
 		# should be added to the compile_node, the finished 'program'
 		for step in guaranteed_steps :
-			#debug('?match',step['translation'][n.meta.name])
 			if [step['translation'], step['input_bindings']] not in history :
 				self.debug_open_block(step['translation'][n.meta.name] or '<unnamed>')
-				#p('+match',step['translation'][n.meta.name])
-				#p(" step['input_bindings']",step['input_bindings'])
 				# if there is only one next step, don't worry about copying the history
 				if len(guaranteed_steps) > 1 :
 					new_history = copy.copy(history)
 				else :
 					new_history = history
 				new_history.append([step['translation'], copy.copy(step['input_bindings'])])
-				#p('step',step)
-				#p('step',step['translation'][self.n.meta.name])
 				
 				# if the new information at this point is enough to fulfil the query, done
 				# otherwise, recursively continue searching
-				#p('var_triples',self.var_triples)
-				#p('step',step['translation'][self.n.meta.name])
-				#p("step['new_query']",step['new_query'])
 				found_solution = self.find_solution(self.var_triples, step['new_query'])
-				#p('found_solution',found_solution)
 				if found_solution :
 					step['solution'] = found_solution
-					#debug('solution', step['solution'])
 				else :
-					#p('root',root)
 					new_triples = step['new_triples']
 					#if root :
 						#new_triples = new_triples + query
@@ -748,6 +725,8 @@ class Compiler :
 				'step' : step,
 				'query' : query,
 			})
+		
+		self.debug_close_block()
 		
 		if compile_node_found_solution == False :
 			return False
@@ -978,11 +957,15 @@ class Compiler :
 			step['output_bindings'] = dict([(var, binding) for (var, binding) in step['output_bindings'].iteritems() if not is_var(binding)])
 			#p("step['output_bindings']",step['output_bindings'])
 		
-		return {
+		ret = {
 			'combinations' : combinations,
 			'modifiers' : modifiers,
 			'solution_bindings_set' : solution_bindings_set
 		}
+		self.debug_open_block('result')
+		self.debugp(ret)
+		self.debug_close_block()
+		return ret
 		
 		
 		

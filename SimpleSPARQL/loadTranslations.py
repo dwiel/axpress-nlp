@@ -60,6 +60,35 @@ def loadTranslations(axpress, n) :
 		n.meta.function : _sum,
 		n.meta.constant_vars : ['foo'],
 	})
+	
+	def _add_one(vars) :
+		vars['sum'] = vars['x'] + 1
+	axpress.register_translation({
+		n.meta.name : 'add_one',
+		n.meta.input : """
+			foo[test.x] = _x
+		""",
+		n.meta.output : [
+			'foo[test.add_one] = _sum',
+		],
+		n.meta.function : _add_one,
+		n.meta.constant_vars : ['foo'],
+	})
+	
+	def _add_two(vars) :
+		vars['sum'] = vars['x'] + 2
+	axpress.register_translation({
+		n.meta.name : 'add_two',
+		n.meta.input : """
+			foo[test.x] = _x
+		""",
+		n.meta.output : [
+			'foo[test.add_two] = _sum',
+		],
+		n.meta.function : _add_two,
+		n.meta.constant_vars : ['foo'],
+	})
+	
 	"""
 	uri[test.sum] = x + y
 	uri[test.x] = x
@@ -540,27 +569,42 @@ def loadTranslations(axpress, n) :
 		output:
 			image[image.average_color] = _color
 	"""
-	def image_average_color(vars):
-		print 'vars',vars
-		ret = axpress.read_translate("""
-			image[pil.image] = pil_image
-			image.thumbnail(image, 1, 1) = thumb
-			image.pixel(thumb, 0, 0) = pixel
-			pixel[pil.color] = _color
-		""", vars)
-		print 'ret',ret
-		return ret
-	axpress.register_translation({
-		n.meta.name : 'image average color',
-		n.meta.input : """
-			image[pil.image] = _pil_image
-		""",
-		n.meta.output : """
-			image[image.average_color] = _color
-		""",
-		n.meta.function : image_average_color,
-		n.meta.constant_vars : ['image'],
-	})
+	#def image_average_color(vars):
+		#print 'vars',vars
+		## damn you says the logger and likely many others
+		#ret = axpress.read_translate("""
+			#image[pil.image] = pil_image
+			#image.thumbnail(image, 1, 1) = thumb
+			#image.pixel(thumb, 0, 0) = pixel
+			#pixel[pil.color] = _color
+		#""", vars)
+		#return ret
+	#axpress.register_translation({
+		#n.meta.name : 'image average color',
+		#n.meta.input : """
+			#image[pil.image] = _pil_image
+		#""",
+		#n.meta.output : """
+			#image[image.average_color] = _color
+		#""",
+		#n.meta.function : image_average_color,
+		#n.meta.constant_vars : ['image'],
+	#})
+	#axpress.register_translation({
+		#n.meta.name : 'image average color',
+		#n.meta.input : """
+			#image[pil.image] = _pil_image
+		#""",
+		#n.meta.output : """
+			#image[image.average_color] = _color
+			#### this needs true unification
+			#image[pil.image] = pil_image
+			#image.thumbnail(image, 1, 1) = thumb
+			#image.pixel(thumb, 0, 0) = pixel
+			#pixel[pil.color] = _color
+		#""",
+		#n.meta.constant_vars : ['image'],
+	#})
 
 	
 	
@@ -900,14 +944,14 @@ def loadTranslations(axpress, n) :
 		""",
 	})
 	
-	axpress.register_translation({
-		n.meta.name : '',
-		n.meta.input : """
+	#axpress.register_translation({
+		#n.meta.name : '',
+		#n.meta.input : """
 			
-		""",
-		n.meta.output : """
-		""",
-	})
+		#""",
+		#n.meta.output : """
+		#""",
+	#})
 	
 	axpress.register_translation({
 		n.meta.name : '',

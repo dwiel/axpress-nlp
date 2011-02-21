@@ -13,13 +13,12 @@ log = logging.getLogger(__name__)
 class IndexController(BaseController):
 
 	def debug(self):
-		c.query = request.params.get('query').strip()
+		c.query = request.params.get('query') or ""
 		c.ret = ""
 		c.debug_html = ""
-		
-		c.ret = g.axpress.read_translate(c.query)
-		c.debug_html = g.axpress.compiler.debug_str
-		
-		p('ret',c.ret)
+
+		if c.query :
+			c.ret = g.axpress.read_translate(c.query)
+			c.debug_html = g.axpress.compiler.debug_str
 		
 		return render('debug.mako')
