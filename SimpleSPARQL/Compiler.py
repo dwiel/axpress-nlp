@@ -177,7 +177,7 @@ class Compiler :
 			elif isstr(t) and isstr(q) :
 				# BUG: if there is more than one way to match the string with the 
 				# pattern this will only return the first
-				ret = self.find_matches(t, q)
+				ret = self.find_matches(str(t), str(q))
 				for i in range(len(ret[1])) :
 					j = i + 1
 					binding[ret['matchtypes'][j]] = ret[1][j]
@@ -657,8 +657,6 @@ class Compiler :
 		@return the compiled guaranteed path (see thoughts for more info on this 
 			structure)
 		"""
-		#debug('fg query',query)
-		#print 'history',prettyquery(history)
 		
 		self.debug_open_block('follow guaranteed')
 		
@@ -668,8 +666,7 @@ class Compiler :
 		}
 		compile_node_found_solution = False
 		
-		# recursively search through all possible guaranteed translations
-		
+		# see what the guaranteed and possible next steps are
 		guaranteed_steps, possible_steps = self.next_translations(query, history, output_vars, new_triples, root)
 		if len(guaranteed_steps) == 0 :
 			#partial_solution = self.find_partial_solution(self.var_triples, query, [])
@@ -679,16 +676,22 @@ class Compiler :
 		self.debug_open_block('guaranteed_steps')
 		self.debugp(guaranteed_steps)
 		self.debug_close_block()
+		
 		# look through all guarenteed steps recursively to see if they terminate and
 		# should be added to the compile_node, the finished 'program'
 		for step in guaranteed_steps :
+			# if we've already made this translation, skip it
 			if [step['translation'], step['input_bindings']] not in history :
 				self.debug_open_block(step['translation'][n.meta.name] or '<unnamed>')
 				# if there is only one next step, don't worry about copying the history
+				# otherwise, we need a deep copy of the history.  This is so that other
+				# paths can alter it without effecting other paths.
 				if len(guaranteed_steps) > 1 :
 					new_history = copy.copy(history)
 				else :
 					new_history = history
+				
+				# add this step to the history
 				new_history.append([step['translation'], copy.copy(step['input_bindings'])])
 				
 				# if the new information at this point is enough to fulfil the query, done
@@ -697,16 +700,10 @@ class Compiler :
 				if found_solution :
 					step['solution'] = found_solution
 				else :
-					new_triples = step['new_triples']
-					#if root :
-						#new_triples = new_triples + query
-					child_steps = self.follow_guaranteed(step['new_query'], possible_stack, new_history, output_vars, new_triples)
+					child_steps = self.follow_guaranteed(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
 					if child_steps :
 						found_solution = True
-						#for child_step in child_steps['guaranteed'] :
-							#child_step['parent'] = step
-						#for child_step in child_steps['possible'] :
-							#child_step['parent'] = step
+						# TODO: what exactly is going on here?
 						step['guaranteed'].extend(child_steps['guaranteed'])
 						step['possible'].extend(child_steps['possible'])
 					

@@ -934,14 +934,18 @@ def loadTranslations(axpress, n) :
 		n.meta.constant_vars : ['search'],
 	})
 	
+	def red(vars) :
+		vars['c'] = "FF0000"
 	axpress.register_translation({
 		n.meta.name : '',
 		n.meta.input : """
 			color[axpress.is] = "red"
 		""",
 		n.meta.output : """
-			color.rgb(256, 0, 0) = color
+			color[html.color] = _c
 		""",
+		n.meta.constant_vars : ['color'],
+		n.meta.function : red,
 	})
 	
 	#axpress.register_translation({
