@@ -397,6 +397,20 @@ class AxpressTestCase(unittest.TestCase):
 			#},
 		#]
 
+	#def testSimpleQuery(self):
+		#ret = self.axpress.read_translate("""
+			#image[file.pattern] = "/home/dwiel/axpress/scripts/pictures/*.jpg"
+			#image.pixel(image, 1, 1) = pixel
+			#pixel[html.color] = _color
+		#""")
+		#assert ret == [
+			#{
+				#u'color' : '000'
+			#}, {
+				#u'color' : '302'
+			#}
+		#]
+
 	def testStringQuery(self):
 		ret = self.axpress.read_translate("""
 			x[axpress.is] = "files matching pictures/*.jpg"
