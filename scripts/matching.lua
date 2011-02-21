@@ -7,10 +7,12 @@
 --  possibilities.  Each possibility is a list of the text values
 --      example:
 --      find_matches("abcXYdefXYghYZijYZkl", "%a%XY%a%YZ%a%") returns
---      {{"abc", "defXYgh", "ijYZkl"},
---       {"abc", "defXYghYZij", "kl"},
---       {"abcXYdef", "gh", "ijYZkl"},
---       {"abcXYdef", "ghYZij", "kl"}}
+--      {1: {"abc", "defXYgh", "ijYZkl"},
+--       2: {"abc", "defXYghYZij", "kl"},
+--       3: {"abcXYdef", "gh", "ijYZkl"},
+--       4: {"abcXYdef", "ghYZij", "kl"},
+--			 "matchtypes" : ["a", "a", "a"]
+--      }
 
 
 function find_matches(query, match)

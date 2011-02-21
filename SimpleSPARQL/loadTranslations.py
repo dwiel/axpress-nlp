@@ -24,7 +24,9 @@ def loadTranslations(axpress, n) :
 	n.bind('yahoo', '<http://dwiel.net/axpress/yahoo/0.1/>')
 	n.bind('amarok', '<http://dwiel.net/axpress/amarok/0.1/>')
 	n.bind('reference', '<http://dwiel.net/axpress/reference/0.1/>')
-	#n.bind('test', '<http://dwiel.net/axpress/test/0.1/>')
+	n.bind('display', '<http://dwiel.net/axpress/display/0.1/>')
+	n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
+		#n.bind('test', '<http://dwiel.net/axpress/test/0.1/>')
 	
 ## TODO: allow a 'function' to accept a variable number of arguments?
 	#def sum(vars) :
@@ -392,6 +394,58 @@ def loadTranslations(axpress, n) :
 		n.meta.constant_vars : ['image'],
 	})
 	
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			image[axpress.is] = "images tagged %tag%"
+		""",
+		n.meta.output : """
+			image[flickr.tag] = tag
+		""",
+	})
+	
+	# this terminates a string match and binds it as an output variable
+	def string_tag(vars):
+		vars['tag_out'] = vars['tag']
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			tag[axpress.is] = "%tag%"
+		""",
+		n.meta.output : """
+			tag[axpress.is] = _tag_out
+		""",
+		n.meta.function : string_tag
+	})
+	
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			file[axpress.is] = "files matching %pattern%"
+		""",
+		n.meta.output : """
+			file[glob.pattern] = "%pattern%"
+		""",
+		n.meta.function : string_tag
+	})
+	
+	def display_html_filenames(vars) :
+		str = "<ul>"
+		for filename in vars['filenames'] :
+			str += "<li>" + filename
+		str += "</ul>"
+		return str
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			file[file.filename] = _filename
+		""",
+		n.meta.output : """
+			file[display.html] = _html
+		""",
+		n.meta.function : display_html_filenames,
+	})
+
 	def load_image(vars) :
 		from PIL import Image
 		im = Image.open(vars['filename'])
@@ -622,7 +676,7 @@ def loadTranslations(axpress, n) :
 			vars['bool'] = True
 		else :
 			vars['bool'] = False
-		
+	
 	
 	how else could this kind of matching be done?
 	
@@ -836,7 +890,74 @@ def loadTranslations(axpress, n) :
 		n.meta.constant_vars : ['search'],
 	})
 	
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			color[axpress.is] = "red"
+		""",
+		n.meta.output : """
+			color.rgb(256, 0, 0) = color
+		""",
+	})
 	
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			
+		""",
+		n.meta.output : """
+		""",
+	})
+	
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			author[axpress.is] = "author of %book%"
+			book[freebase.mid] = _mid
+			book[freebase.type] = '/book/written_work'
+		""",
+		n.meta.output : """
+			book[freebase./book/written_work/author] = author
+		""",
+	})
+	
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			date_of_first_publication[axpress.is] = "first published %book%"
+			book[freebase.mid] = _mid
+			book[freebase.type] = '/book/written_work'
+		""",
+		n.meta.output : """
+			book[freebase./book/written_work/date_of_first_publication] = date_of_first_publication
+			# this next line might be implied by a more general rule (see following)
+			date_of_first_publication[freebase.type] = freebase.type/datetime
+		""",
+	})
+	
+	# this translation shows only that properties of type freebase./book/wri...
+	# must have values which have the freebase.type freebase.type/datetime
+	# this kind of rule should be automatically generated/translated from the 
+	# freebase database of properties soon, perhpas using axpress
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			book[freebase./book/written_work/date_of_first_publication] = date_of_first_publication
+		""",
+		n.meta.output : """
+			date_of_first_publication[freebase.type] = freebase.type/datetime
+			# and maybe even something like :
+			date_of_first_publication[axpress.constraint] = axpress.unique
+		""",
+	})
+	
+	#axpress.register_translation({
+		#n.meta.name : '',
+		#n.meta.input : """
+		#""",
+		#n.meta.output : """
+		#""",
+	#})
 	
 	#axpress.register_translation({
 		#n.meta.name : 'sql test',

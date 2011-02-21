@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from SimpleSPARQL import SimpleSPARQL
 from Namespaces import Namespaces
 from PrettyQuery import prettyquery
@@ -11,10 +12,13 @@ from rdflib import URIRef
 from itertools import izip
 import copy, time, random
 
+def isstr(v) :
+	return isinstance(v, basestring) and not isinstance(v, URIRef)
+
 class Compiler :
 	MAYBE = 'maybe'
 	
-	def __init__(self, n = None) :
+	def __init__(self, n = None, debug = False) :
 		if n :
 			self.n = n
 		else :
@@ -30,7 +34,28 @@ class Compiler :
 		self.translations = []
 		#self.sparql = sparql
 		self._next_num = 0
+		
+		self.debug = debug
+		self.debug_reset()
 	
+	def debug_reset(self) :
+		self.debug_str = ""
+		self.debug_block_id = 0
+	
+	def debug(self, str) :
+		self.debug_str += str
+		
+	def debug_open_block(self, title) :
+		self.debug_str += """
+			<div class="logblock">
+      <div class="logblock-title" id="block-title-%d">%s</div>
+      <div class="logblock-body" style="display:none" id="block-body-%d"></div></div>
+    """ % (self.debug_block_id, title, self.debug_block_id)
+    self.debug_block_id += 1
+
+	def debug_close_block(self) :
+		self.debug_str += """</div></div>"""
+
 	def register_translation(self, translation) :
 		n = self.n
 		
@@ -72,6 +97,20 @@ class Compiler :
 			extract_uris(translation[n.meta.output])
 		
 		return set(uris)
+		
+	def find_matches(self, value, qvalue) :
+		import lua
+		lua.require('matching')
+		find_matches = lua.globals()['find_matches']
+		ret = find_matches(qvalue, value)
+		return ret
+	
+	def string_matches(self, value, qvalue) :
+		import lua
+		lua.require('matching')
+		find_matches = lua.globals()['find_matches']
+		ret = find_matches(qvalue, value)
+		return ret[1] != None
 	
 	#@logger
 	def values_match(self, value, qvalue) :
@@ -102,6 +141,9 @@ class Compiler :
 					return False
 				else :
 					return True
+		if isstr(value) and isstr(qvalue) :
+			if self.string_matches(value, qvalue) :
+				return True
 		if value == qvalue :
 			return True
 		#return False
@@ -128,6 +170,13 @@ class Compiler :
 				if t in binding and binding[var_name(t)] != q :
 					return Bindings()
 				binding[var_name(t)] = q
+			elif isstr(t) and isstr(q) :
+				# BUG: if there is more than one way to match the string with the 
+				# pattern this will only return the first
+				ret = self.find_matches(t, q)
+				for i in range(len(ret[1])) :
+					j = i + 1
+					binding[ret['matchtypes'][j]] = ret[1][j]
 			elif t != q :
 				return Bindings()
 		return binding
@@ -248,6 +297,13 @@ class Compiler :
 		#debug('bindings',bindings)
 		
 		return matches, bindings
+		
+	def contains(self, triples, value) :
+		for triple in triples :
+			for v in triple :
+				if v == value :
+					return True
+		return False
 	
 	def find_bindings(self, facts, pattern, output_vars, reqd_triples, root = False) :
 		"""
@@ -265,10 +321,11 @@ class Compiler :
 			set_of_bindings is the set of bindings which matched the data
 		"""
 		# check that one of the new_triples match part of the query
-		#p('facts',facts)
-		#p('pattern',pattern)
-		#p('output_vars',output_vars)
-		#p('reqd_triples',reqd_triples)
+		if self.contains(pattern, 'files matching %pattern%') :
+			p('facts',facts)
+			p('pattern',pattern)
+			p('output_vars',output_vars)
+			p('reqd_triples',reqd_triples)
 		if len(pattern) == 0 and root:
 			return True, [Bindings()]
 		found_reqd = False
@@ -298,7 +355,7 @@ class Compiler :
 	def testtranslation(self, translation, query, output_vars, reqd_triples, root = False) :
 		"""
 		@returns matches, bindings
-			matches is True iff the translation is guaranteed to match the query.  It 
+			matches is True if the translation is guaranteed to match the query.  It 
 				is self.MAYBE if the translation might match the query and False if it
 				is guaranteed to not match the query.
 			bindings is the set of bindings which allow this translation to match the
@@ -364,8 +421,8 @@ class Compiler :
 		#debug('output_vars',output_vars)
 		
 		def bindings_contain_output_var(bindings) :
-			# check to see if any of the bindings are with output_variables which
-			# don't actually have a value yet
+			""" check to see if any of the bindings are with output_variables which
+			    don't actually have a value yet """
 			for var, value in bindings.iteritems() :
 				#if is_any_var(value) and var_name(value) in output_vars :
 				if (is_lit_var(value) or is_out_lit_var(value)) and var_name(value) in output_vars :
@@ -603,8 +660,13 @@ class Compiler :
 		@arg possible_stack is a list which is filled in with next next possible 
 			translations to follow after the guaranteed translations have already been
 			followed completely
+		@history is a list of all the paths we've already explored so we don't 
+			repeat them.
 		@arg output_vars is a set of variables which are not allowed to be bound as
 			an input to a translation
+		@new_triples is a set of triples which are new as of the previous 
+			translation.  This next translation must take them into account.  If they
+			are not needed, then an earlier step should have gotten there already
 		@return the compiled guaranteed path (see thoughts for more info on this 
 			structure)
 		"""
@@ -626,6 +688,8 @@ class Compiler :
 		
 		#debug('guaranteed_steps',guaranteed_steps)
 		#debug('possible_steps',possible_steps)
+		# look through all guarenteed steps recursively to see if they terminate and
+		# should be added to the compile_node, the finished 'program'
 		for step in guaranteed_steps :
 			#debug('?match',step['translation'][n.meta.name])
 			if [step['translation'], step['input_bindings']] not in history :
@@ -671,6 +735,7 @@ class Compiler :
 		
 		# don't follow the possible translations yet, just add then to a stack to
 		# follow once all guaranteed translations have been found
+		# NOTE: this will need to change
 		for step in possible_steps:
 			possible_stack.append({
 				'root' : compile_node,
@@ -692,7 +757,7 @@ class Compiler :
 			## next_query, input_bindings, output_bindings
 			#translation_step = self.follow_translation(query, translation)
 			#compile_node['guaranteed'].append(translation_step)
-		
+		# TODO
 		
 	def make_vars_out_vars(self, query, reqd_bound_vars) :
 		"""
