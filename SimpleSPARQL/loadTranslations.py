@@ -419,7 +419,7 @@ def loadTranslations(axpress, n) :
 	})
 	
 	axpress.register_translation({
-		n.meta.name : '',
+		n.meta.name : 'string: files matching %pattern%',
 		n.meta.input : """
 			file[axpress.is] = "files matching %pattern%"
 		""",

@@ -35,7 +35,7 @@ class Compiler :
 		#self.sparql = sparql
 		self._next_num = 0
 		
-		self.debug = debug
+		self.log_debug = debug
 		self.debug_reset()
 	
 	def debug_reset(self) :
@@ -43,16 +43,16 @@ class Compiler :
 		self.debug_block_id = 0
 	
 	def debug(self, str) :
-		self.debug_str += str
+		self.debug_str += str + '<br>'
 		
 	def debug_open_block(self, title) :
 		self.debug_str += """
 			<div class="logblock">
       <div class="logblock-title" id="block-title-%d">%s</div>
-      <div class="logblock-body" style="display:none" id="block-body-%d"></div></div>
+			<div class="logblock-body" style="display:none" id="block-body-%d"></div></div>
     """ % (self.debug_block_id, title, self.debug_block_id)
-    self.debug_block_id += 1
-
+		self.debug_block_id += 1
+	
 	def debug_close_block(self) :
 		self.debug_str += """</div></div>"""
 
@@ -141,9 +141,9 @@ class Compiler :
 					return False
 				else :
 					return True
-		if isstr(value) and isstr(qvalue) :
-			if self.string_matches(value, qvalue) :
-				return True
+		#if isstr(value) and isstr(qvalue) :
+			#if self.string_matches(value, qvalue) :
+				#return True
 		if value == qvalue :
 			return True
 		#return False
@@ -321,11 +321,11 @@ class Compiler :
 			set_of_bindings is the set of bindings which matched the data
 		"""
 		# check that one of the new_triples match part of the query
-		if self.contains(pattern, 'files matching %pattern%') :
-			p('facts',facts)
-			p('pattern',pattern)
-			p('output_vars',output_vars)
-			p('reqd_triples',reqd_triples)
+		#if self.contains(pattern, 'files matching %pattern%') :
+			#p('facts',facts)
+			#p('pattern',pattern)
+			#p('output_vars',output_vars)
+			#p('reqd_triples',reqd_triples)
 		if len(pattern) == 0 and root:
 			return True, [Bindings()]
 		found_reqd = False
@@ -431,9 +431,11 @@ class Compiler :
 		
 		for translation in self.translations :
 			#p('name',translation[n.meta.name])
+			self.debug('test ' + translation[n.meta.name])
 			matches, bindings_set = self.testtranslation(translation, query, output_vars, reqd_triples, root)
 			#debug('bindings_set', bindings_set)
 			if matches :
+				self.debug('match ' + translation[n.meta.name])
 				#p('match %s' % translation[n.meta.name])
 				for bindings in bindings_set :
 					# not allowed to bind an output variable as a value to the input of a
@@ -680,19 +682,21 @@ class Compiler :
 		compile_node_found_solution = False
 		
 		# recursively search through all possible guaranteed translations
+		
 		guaranteed_steps, possible_steps = self.next_translations(query, history, output_vars, new_triples, root)
 		#p('len_guaranteed_steps',len(guaranteed_steps))
 		if len(guaranteed_steps) == 0 :
 			#partial_solution = self.find_partial_solution(self.var_triples, query, [])
 			return compile_node
 		
-		#debug('guaranteed_steps',guaranteed_steps)
+		self.debug('<xmp>'+prettyquery(guaranteed_steps)+'</xmp>')
 		#debug('possible_steps',possible_steps)
 		# look through all guarenteed steps recursively to see if they terminate and
 		# should be added to the compile_node, the finished 'program'
 		for step in guaranteed_steps :
 			#debug('?match',step['translation'][n.meta.name])
 			if [step['translation'], step['input_bindings']] not in history :
+				self.debug_open_block(step['translation'][n.meta.name] or '<unnamed>')
 				#p('+match',step['translation'][n.meta.name])
 				#p(" step['input_bindings']",step['input_bindings'])
 				# if there is only one next step, don't worry about copying the history
@@ -728,6 +732,8 @@ class Compiler :
 							#child_step['parent'] = step
 						step['guaranteed'].extend(child_steps['guaranteed'])
 						step['possible'].extend(child_steps['possible'])
+					
+				self.debug_close_block()
 				
 				if found_solution :
 					compile_node['guaranteed'].append(step)
@@ -822,6 +828,8 @@ class Compiler :
 		return new_combination
 
 	def compile(self, query, reqd_bound_vars, input = [], output = []) :
+		self.debug_reset()
+		
 		if isinstance(query, basestring) :
 			query = [line.strip() for line in query.split('\n')]
 			query = [line for line in query if line is not ""]

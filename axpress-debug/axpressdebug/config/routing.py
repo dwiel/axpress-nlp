@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Routes configuration
 
 The more specific and detailed routes should be defined first so they
@@ -20,6 +21,7 @@ def make_map(config):
 
     # CUSTOM ROUTES HERE
 
+    map.connect('/{action}', controller='index')
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
 
