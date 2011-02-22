@@ -324,12 +324,9 @@ class Compiler :
 			matches is True iff the query matched the set of data
 			set_of_bindings is the set of bindings which matched the data
 		"""
+		# TODO: UNIFICATION use unification here, not just basic pattern matching
+		
 		# check that one of the new_triples match part of the query
-		#if self.contains(pattern, 'files matching %pattern%') :
-			#p('facts',facts)
-			#p('pattern',pattern)
-			#p('output_vars',output_vars)
-			#p('reqd_triples',reqd_triples)
 		if len(pattern) == 0 and root:
 			return True, [Bindings()]
 		found_reqd = False
@@ -340,20 +337,13 @@ class Compiler :
 		if not found_reqd :
 			return False, None
 		
-		#p('in new_triples')
-		
 		# check that all of the translation inputs match part of the query
 		for triple in pattern :
 			if not self.find_triple_match(triple, facts) :
 				return False, None
 		
-		#p('in pattern')
-		
-		#p('passed the first two tests')
-		
 		# find all possible bindings for the vars if any exist
 		matches, bindings_set = self.bind_vars(pattern, facts, reqd_triples)
-		#p('testret',matches,bindings_set)
 		return matches, bindings_set
 	
 	def testtranslation(self, translation, query, output_vars, reqd_triples, root = False) :
@@ -366,7 +356,21 @@ class Compiler :
 				query
 		"""
 		#p('testing',translation[self.n.meta.name])
-		return self.find_bindings(query, translation[self.n.meta.input], output_vars, reqd_triples, root)
+		matches, bindings = self.find_bindings(query, translation[self.n.meta.input], output_vars, reqd_triples, root)
+		def filter_bindings(bindings) :
+			
+			if matches :
+				for binding in bindings :
+					# sometimes binding to an output variable is ok.  It is only ok if
+					# they have already been bound to some value.  If they haven't the 
+					# translation doesn't pass the test
+					for var, value in binding.iteritems() :
+						if (is_lit_var(value) or is_out_lit_var(value)) and var_name(value) in output_vars :
+							continue
+					
+					yield binding
+			
+		return matches, filter_bindings(bindings)
 	
 	def next_bnode(self) :
 		return self.n.bnode[str(time.time()).replace('.','') + '_' +  str(random.random()).replace('.','')]
@@ -416,33 +420,15 @@ class Compiler :
 		"""
 		n = self.n
 		
-		#p('query',query)
-		#p('reqd_triples',reqd_triples)
-		
 		guaranteed_steps = []
 		possible_steps = []
-		
-		#debug('output_vars',output_vars)
-		
-		def bindings_contain_output_var(bindings) :
-			""" check to see if any of the bindings are with output_variables which
-			    don't actually have a value yet """
-			for var, value in bindings.iteritems() :
-				#if is_any_var(value) and var_name(value) in output_vars :
-				if (is_lit_var(value) or is_out_lit_var(value)) and var_name(value) in output_vars :
-					return True
-			return False
 		
 		for translation in self.translations :
 			matches, bindings_set = self.testtranslation(translation, query, output_vars, reqd_triples, root)
 			if matches :
 				self.debug('found match ' + translation[n.meta.name])
 				for bindings in bindings_set :
-					# not allowed to bind an output variable as a value to the input of a
-					# translation
-					if bindings_contain_output_var(bindings) :
-						continue
-					
+
 					# keep the possible property
 					new_bindings = Bindings(possible = bindings.possible)
 					# replace the bindings which the translation defines as constant with
@@ -463,8 +449,10 @@ class Compiler :
 					
 					# input_bindings map from translation space to query space
 					input_bindings = bindings
+					# output_bindings map from translation space to query space
 					output_bindings = {}
 					
+					# TODO: resurect something like this.  UNIFICATION
 					# look through each of the output triples to see if they match any of 
 					# the already known facts.  By match, I mean everything the same 
 					# except for a lit_var in the output where a var is in the facts.  If
@@ -525,7 +513,7 @@ class Compiler :
 							'partial_bindings' : partial_bindings,
 						})
 		
-		p('steps:',[step['translation'][n.meta.name] for step in guaranteed_steps])
+		#p('steps:',[step['translation'][n.meta.name] for step in guaranteed_steps])
 		return guaranteed_steps, possible_steps
 	
 	def contains_all_bindings(self, required, obtained) :
