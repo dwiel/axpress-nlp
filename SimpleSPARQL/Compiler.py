@@ -52,9 +52,9 @@ class Compiler :
 	def debug_open_block(self, title) :
 		self.debug_str += """
 			<div class="logblock">
-      <div class="logblock-title" id="block-title-%d">%s</div>
+			<div class="logblock-title" id="block-title-%d">%s</div>
 			<div class="logblock-body" style="display:none" id="block-body-%d">
-    """ % (self.debug_block_id, title, self.debug_block_id)
+		""" % (self.debug_block_id, title, self.debug_block_id)
 		self.debug_block_id += 1
 	
 	def debug_close_block(self) :
@@ -118,6 +118,7 @@ class Compiler :
 	
 	#@logger
 	def values_match(self, value, qvalue) :
+		self.debugp('values_match', value, qvalue)
 		if type(value) == URIRef :
 			#if is_out_var(value) or is_out_var(qvalue) :
 				#print '???',prettyquery(value),prettyquery(qvalue)
@@ -138,6 +139,7 @@ class Compiler :
 					return True
 			elif is_out_lit_var(value) :
 				#print 'does this happen?',prettyquery(value),prettyquery(qvalue)
+				self.debugp('out_lit_var', value, qvalue)
 				# not often ... probably only in the if matches(q,v) or (v,q) ...
 				if is_lit_var(qvalue) :
 					return True
@@ -189,7 +191,7 @@ class Compiler :
 		bindings = []
 		for ftriple in facts :
 			binding = self.get_binding(triple, ftriple)
-			if ftriple in reqd_facts :
+			if ftriple in reqd_facts or not reqd_facts :
 				binding.matches_reqd_fact = True
 			if binding and binding not in bindings :
 				bindings.append(binding)
@@ -325,27 +327,32 @@ class Compiler :
 			set_of_bindings is the set of bindings which matched the data
 		"""
 		# TODO: UNIFICATION use unification here, not just basic pattern matching
+		# NOTE: actually I think this already is unification.  Its the 
+		#       output_bindings which need to start using unification - and this 
+		#       function will probably be used
 		
-		# check that one of the new_triples match part of the query
 		if len(pattern) == 0 and root:
 			return True, [Bindings()]
-		found_reqd = False
-		for triple in pattern :
-			if self.find_triple_match(triple, reqd_triples) :
-				found_reqd = True
-				break
-		if not found_reqd :
-			return False, None
 		
+		self.debugp('here')
 		# check that all of the translation inputs match part of the query
 		for triple in pattern :
+			self.debugp('find_triple_match', triple, facts)
 			if not self.find_triple_match(triple, facts) :
 				return False, None
 		
+		self.debugp('here')
 		# find all possible bindings for the vars if any exist
 		matches, bindings_set = self.bind_vars(pattern, facts, reqd_triples)
 		return matches, bindings_set
 	
+	def partial_match_exists(self, pattern, reqd_triples) :
+		# check that one of the reqd_triples match part of the query
+		for triple in pattern :
+			if self.find_triple_match(triple, reqd_triples) :
+				return True
+		return False
+		
 	def testtranslation(self, translation, query, output_vars, reqd_triples, root = False) :
 		"""
 		@returns matches, bindings
@@ -355,15 +362,21 @@ class Compiler :
 			bindings is the set of bindings which allow this translation to match the
 				query
 		"""
-		#p('testing',translation[self.n.meta.name])
+		
+		# make sure that the translation's input matches part of the reqd_triples
+		# otherwise, not a new path
+		if not self.partial_match_exists(translation[self.n.meta.input], reqd_triples) :
+			return False, None
+		
 		matches, bindings = self.find_bindings(query, translation[self.n.meta.input], output_vars, reqd_triples, root)
+		
 		def filter_bindings(bindings) :
-			
 			if matches :
 				for binding in bindings :
 					# sometimes binding to an output variable is ok.  It is only ok if
 					# they have already been bound to some value.  If they haven't the 
 					# translation doesn't pass the test
+					# TODO: this doesn't do anything ... what should it do?
 					for var, value in binding.iteritems() :
 						if (is_lit_var(value) or is_out_lit_var(value)) and var_name(value) in output_vars :
 							continue
@@ -452,31 +465,78 @@ class Compiler :
 					# output_bindings map from translation space to query space
 					output_bindings = {}
 					
-					# TODO: resurect something like this.  UNIFICATION
-					# look through each of the output triples to see if they match any of 
-					# the already known facts.  By match, I mean everything the same 
-					# except for a lit_var in the output where a var is in the facts.  If
-					# one of these are found, replace the lit var with the var
-					#for ttriple in translation[n.meta.output] :
-						#for qtriple in query :
-							#self.find_triple_match
-							#for tv, qv in izip(ttriple, qtriple) :
-								#if tv == qv :
-									#p('tv',tv)
-									#p('qv',qv)
-								#else :
-									#break
-					#tmp_out = sub_var_bindings(translation[n.meta.output], input_bindings)
-					#unified_bindings = self.find_unified_bindings(query, tmp_out)
+					###### TODO: resurect something like this.  UNIFICATION
+					###### 			though it should probably wind up in/replacing find_bindings 
+					######       rather than glued on here
+					###### look through each of the output triples to see if they match any of 
+					###### the already known facts.  By match, I mean everything the same 
+					###### except for a lit_var in the output where a var is in the facts.  If
+					###### one of these are found, replace the lit var with the var
+					######for ttriple in translation[n.meta.output] :
+						######for qtriple in query :
+							######self.find_triple_match
+							######for tv, qv in izip(ttriple, qtriple) :
+								######if tv == qv :
+									######p('tv',tv)
+									######p('qv',qv)
+								######else :
+									######break
+					######tmp_out = sub_var_bindings(translation[n.meta.output], input_bindings)
+					######unified_bindings = self.find_unified_bindings(query, tmp_out)
 					
-					#constant_vars = unified_bindings.values()
+					######constant_vars = unified_bindings.values()
+					
+					# TODO
+					# this is where unification isn't happening right.
+					# don't just automatically bind a new lit_var for everything.
+					# instead, try to unify the output triples with the query and see if
+					# any of the output triples match the existing triples.  If so, 
+					# replace them:
+					# ex:
+					#	output: [n.var.x n.test.p, n.lit_var.x_out_1]
+					# existing triples: [n.var.x, n.test.p, n.var.y]
+					#
+					# in this should bind to n.var.y instead of lit_var.x_out_1
+					
+					# first replace some vars with lit_vars (the ones which will be bound
+					# eventually.
+					
+					# TODO: make sure that lit_var will work - make sure it matches 
+					#       correctly
+					
+					
+							
+					# find bindings between the output and the query
+					self.debugp('query', query)
+					self.debugp('translation[n.meta.output]', translation[n.meta.output])
+					# TODO: might be a good idea to clean up find_bindings first ...
+					#tmp_output_bindings = self.find_bindings(translation[n.meta.output], query, output_vars, translation[n.meta.output])
+					tmp_output_bindings = self.find_bindings(query, translation[n.meta.output], output_vars, query)
+					self.debugp('tmp_output_bindings', tmp_output_bindings)
+					
+					# make sure output_bindings is setup like this old code has been doing
+					# before
+					
+					# TODO: the guaranteed_steps stuff is going to have to look a little
+					# different too ... if we want to replace (delete) triples that were
+					# in the query something will need to change.
+					# will just need to break the current assumption that:
+					#   query + new_triples = new_query
+					# instead we will know that :
+					#   new_query - query = new_triples
+					#     though note that there may be triples in query that are not in 
+					#     new_query
 					
 					# find output_bindings
+					# for each variable in the output triples
 					for var in find_vars(translation[n.meta.output]) :
+						# if this is a constant_var, bind it to whatever it was bound to
+						# in the input part of the translation
 						if var in translation[n.meta.constant_vars] :
 							output_bindings[var] = input_bindings[var]
 						#elif var in constant_vars :
 							#output_bindings[var] = n.var[var]
+						# otherwise, create a new lit_var to bind to
 						else :
 							output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
 					
@@ -641,7 +701,8 @@ class Compiler :
 			an input to a translation
 		@new_triples is a set of triples which are new as of the previous 
 			translation.  This next translation must take them into account.  If they
-			are not needed, then an earlier step should have gotten there already
+			are not needed, then an earlier step could have gotten there already and
+			the most recent step was unnecessary
 		@return the compiled guaranteed path (see thoughts for more info on this 
 			structure)
 		"""
