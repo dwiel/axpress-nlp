@@ -1,0 +1,185 @@
+# This file is written in N3 / Turtle
+
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+@prefix module: <http://joseki.org/2003/06/module#> .
+@prefix joseki: <http://joseki.org/2005/06/configuration#> .
+@prefix ja:     <http://jena.hpl.hp.com/2005/11/Assembler#> .
+
+## --------------------------------------------------------------
+## This file is written in N3 / Turtle
+## It is an RDF graph - order of RDF triples does not matter
+## to the machine but it does help people who need to edit this file.
+
+## Note: web.xml must be in-step with this file.
+## for each service, 
+
+## Note: adding rdfs:label to blank nodes will cause Joseki 
+## to print that in log messages.
+
+## See also file:joseki-config-example.ttl
+
+
+## --------------------------------------------------------------
+## About this configuration
+
+<> rdfs:label "Joseki Configuration File" .
+
+## --------------------------------------------------------------
+## About this server
+
+<#server>  rdf:type joseki:Server ;
+    # Example of some initialization code.
+    joseki:initialization
+        [ module:implementation 
+            [ module:className <java:org.joseki.util.ServiceInitSimple> ;
+              rdfs:label "Example initializer" ; ]
+        ] ;
+    .
+
+## --------------------------------------------------------------
+## Services
+
+## Services are best described by a blank node - it's the
+## serviceRef that will be used to match requests to services,
+## not some resource URI for the description.
+
+## Note that the service reference and the routing of incoming
+## requests by URI as defined by web.xml have to align.
+
+# Service 1
+# General purpose SPARQL processor, no dataset, expects the
+# request to specify the dataset (either by parameters in the
+# protocol request or in the query itself).
+
+# ---- SPARQL/Update
+# A pair of services - one for SPARQL queries, one for SPARQL/Update
+# Previous web.xml must also be updated to include a defintion for the
+# servlet "SPARQL/Update service processor" and update requests must
+# be routed to this servlet.
+
+
+<#serviceUdpate>
+    rdf:type            joseki:Service ;
+    rdfs:label          "SPARQL/Update" ;
+    joseki:serviceRef   "sparul" ;
+    # dataset part
+    joseki:dataset      <#ds>;
+    # Service part.
+    # This processor will not allow either the protocol,
+    # nor the query, to specify the dataset.
+    joseki:processor    joseki:ProcessorSPARQLUpdate
+    .
+
+<#serviceRead>
+    rdf:type            joseki:Service ;
+    rdfs:label          "SPARQL" ;
+    joseki:serviceRef   "sparql" ;
+    # dataset part
+    joseki:dataset      <#ds> ;     ## Same dataset
+    # Service part.
+    # This processor will not allow either the protocol,
+    # nor the query, to specify the dataset.
+    joseki:processor    joseki:ProcessorSPARQL_FixedDS ;
+    .
+
+<#serviceUdpateKumquat>
+    rdf:type            joseki:Service ;
+    rdfs:label          "SPARQL/Update Kumquat" ;
+    joseki:serviceRef   "updateKumquat" ;
+    # dataset part
+    joseki:dataset      <#dsKumquat> ;
+    # Service part.
+    # This processor will not allow either the protocol,
+    # nor the query, to specify the dataset.
+    joseki:processor    joseki:ProcessorSPARQLUpdate
+    .
+
+<#serviceReadKumquat>
+    rdf:type            joseki:Service ;
+    rdfs:label          "SPARQL Kumquat" ;
+    joseki:serviceRef   "queryKumquat" ;
+    # dataset part
+    joseki:dataset      <#dsKumquat> ;
+    # Service part.
+    # This processor will not allow either the protocol,
+    # nor the query, to specify the dataset.
+    joseki:processor    joseki:ProcessorSPARQL_FixedDS ;
+    .
+
+## --------------------------------------------------------------
+## Datasets
+
+<#db> rdf:type ja:RDBModel ;
+    ja:connection
+    [
+        ja:dbType "MySQL" ;
+        ja:dbURL          <jdbc:mysql://localhost/rdftest?autoReconnect=true> ;
+        ja:dbUser         "root" ;
+        ja:dbPassword     "badf00d" ;
+        ja:dbClass        "com.mysql.jdbc.Driver" ;
+    ] ;
+    ja:reificationMode    ja:minimal ;      ## Minimal means fastpath is possible.
+    ja:modelName "DEFAULT"
+    . 
+
+<#dbKumquat> rdf:type ja:RDBModel ;
+    ja:connection
+    [
+        ja:dbType "MySQL" ;
+        ja:dbURL          <jdbc:mysql://localhost/kumquat_triple?autoReconnect=true> ;
+        ja:dbUser         "root" ;
+        ja:dbPassword     "badf00d" ;
+        ja:dbClass        "com.mysql.jdbc.Driver" ;
+    ] ;
+    ja:reificationMode    ja:minimal ;      ## Minimal means fastpath is possible.
+    ja:modelName "DEFAULT" ;
+		.
+
+<#ds>   rdf:type ja:RDFDataset ;
+    rdfs:label "ds" ;
+    ja:defaultGraph <#db> ;
+    .
+
+<#dsKumquat> rdf:type ja:RDFDataset ;
+    rdfs:label "dsKumquat" ;
+    ja:defaultGraph <#dbKumquat> ;
+    .
+
+## --------------------------------------------------------------
+## Processors
+
+joseki:ProcessorSPARQL_FixedDS
+    rdfs:label "SPARQL processor for fixed datasets" ;
+    rdf:type joseki:Processor ;
+    module:implementation joseki:ImplSPARQL ;
+
+    # This processor does not accept queries with FROM/FROM NAMED
+    joseki:allowExplicitDataset       "true"^^xsd:boolean ;
+    joseki:allowWebLoading            "false"^^xsd:boolean ;
+    joseki:lockingPolicy              joseki:lockingPolicyMRSW ;
+    .
+
+joseki:ProcessorSPARQLUpdate
+    rdfs:label "SPARQL Udpate processor" ;
+    rdf:type joseki:Processor ;
+    module:implementation joseki:ImplSPARQLUpdate ;
+    joseki:lockingPolicy              joseki:lockingPolicyMRSW ;
+    .
+
+joseki:ImplSPARQL
+    rdf:type   joseki:ServiceImpl ;
+    module:className
+        <java:org.joseki.processors.SPARQL> .
+
+joseki:ImplSPARQLUpdate
+    rdf:type   joseki:ServiceImpl ;
+    module:className
+        <java:org.joseki.processors.SPARQLUpdate> .
+
+# Local Variables:        
+# tab-width: 4
+# indent-tabs-mode: nil
+# End:

@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE web-app
+PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN"
+"http://java.sun.com/j2ee/dtds/web-app_2_2.dtd">
+
+<web-app>
+
+  <display-name>Jena RDF Server</display-name>
+
+  <!-- SERVLETS -->
+
+  <!-- The Joseki SPARQL servlet -->
+
+  <servlet>
+    <servlet-name>SPARQL service processor</servlet-name>
+    <servlet-class>org.joseki.http.Servlet</servlet-class>
+
+    <!-- Configuration file -->
+    <init-param>
+      <param-name>org.joseki.rdfserver.config</param-name>
+      <param-value>joseki-config.ttl</param-value>
+    </init-param>
+
+  </servlet>
+
+  <!-- Validator -->
+
+  <servlet>
+    <servlet-name>Validator</servlet-name>
+    <servlet-class>
+      org.joseki.validator.Validator
+    </servlet-class>
+  </servlet>
+
+  <!-- Well-known servlets for testing -->
+
+  <servlet>
+    <servlet-name>Dumper</servlet-name>
+    <servlet-class>
+      org.joseki.servlets.DumpServlet
+    </servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>DumpBody</servlet-name>
+    <servlet-class>
+      org.joseki.servlets.DumpBodyServlet
+    </servlet-class>
+  </servlet>
+
+  <!-- MAPPINGS -->
+
+  <!-- Map URLs to SPARQL service processors -->
+  <!-- Rules:
+       /sparql
+       Anything starting /sparql/
+       Anything starting /service/
+       Warning: using /* for Joseki services 
+       means that the welcome page is not handled.
+       Nor other mappings like /*.html, unless explicitly enumerated.
+  -->
+
+  <servlet-mapping>
+    <servlet-name>SPARQL service processor</servlet-name>
+    <url-pattern>/query/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>SPARQL service processor</servlet-name>
+    <url-pattern>/update/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>SPARQL service processor</servlet-name>
+    <url-pattern>/queryKumquat</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>SPARUL service processor</servlet-name>
+    <url-pattern>/updateKumquat</url-pattern>
+  </servlet-mapping>
+
+  <!-- SECURIY -->
+
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Joseki</web-resource-name>
+      <url-pattern>/*</url-pattern>
+      <http-method>GET</http-method>
+      <http-method>POST</http-method>
+      <!-- <http-method>OPTIONS</http-method> -->
+    </web-resource-collection>
+  </security-constraint>
+
+</web-app>

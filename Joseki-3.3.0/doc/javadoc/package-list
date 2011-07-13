@@ -1,0 +1,10 @@
+org.joseki
+org.joseki.graph
+org.joseki.http
+org.joseki.junit
+org.joseki.module
+org.joseki.processors
+org.joseki.servlets
+org.joseki.util
+org.joseki.validator
+org.joseki.vocabulary
