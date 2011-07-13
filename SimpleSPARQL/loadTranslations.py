@@ -937,7 +937,7 @@ def loadTranslations(axpress, n) :
 	def red(vars) :
 		vars['c'] = "FF0000"
 	axpress.register_translation({
-		n.meta.name : '',
+		n.meta.name : 'is red',
 		n.meta.input : """
 			color[axpress.is] = "red"
 		""",
@@ -948,6 +948,95 @@ def loadTranslations(axpress, n) :
 		n.meta.function : red,
 	})
 	
+	def green(vars) :
+		vars['c'] = "00FF00"
+	axpress.register_translation({
+		n.meta.name : 'is green',
+		n.meta.input : """
+			color[axpress.is] = "green"
+		""",
+		n.meta.output : """
+			color[html.color] = _c
+		""",
+		n.meta.constant_vars : ['color'],
+		n.meta.function : green,
+	})
+	
+	def invert_color(vars) :
+		vars['r'] = 255 - vars['r']
+		vars['g'] = 255 - vars['g']
+		vars['b'] = 255 - vars['b']
+	axpress.register_translation({
+		n.meta.name : 'invert',
+		n.meta.input : """
+			color[html.color_red]   = _r
+			color[html.color_green] = _g
+			color[html.color_blue]  = _b
+			color[color.invert] = inverted_color
+		""",
+		n.meta.output : """
+			inverted_color[html.color_red]   = _r
+			inverted_color[html.color_green] = _g
+			inverted_color[html.color_blue]  = _b
+		""",
+		n.meta.constant_vars : ['color', 'inverted_color'],
+		n.meta.function : invert_color,
+	})
+	
+	def html_color_rgb(vars) :
+		# hex to rgb
+		vars['red']  = int(vars['c'][0:2], 16)
+		vars['green'] = int(vars['c'][2:4], 16)
+		vars['blue'] = int(vars['c'][4:6], 16)
+	axpress.register_translation({
+		n.meta.name : 'html color to rgb',
+		n.meta.input : """
+			color[html.color] = _c
+		""",
+		n.meta.output : """
+			color[html.color_red] = _red
+			color[html.color_green] = _green
+			color[html.color_blue] = _blue
+		""",
+		n.meta.constant_vars : ['color'],
+		n.meta.function : html_color_rgb,
+		n.meta.inverse_function : 'html rgb to color',
+	})
+	
+	def html_rgb_color(vars) :
+		# rgb_to_hex
+		vars['c'] = "%0.2X%0.2X%0.2X" % (
+			vars['red'], vars['green'], vars['blue']
+		)
+	axpress.register_translation({
+		n.meta.name : 'html rgb to color',
+		n.meta.input : """
+			color[html.color_red] = _red
+			color[html.color_green] = _green
+			color[html.color_blue] = _blue
+		""",
+		n.meta.output : """
+			color[html.color] = _c
+		""",
+		n.meta.constant_vars : ['color'],
+		n.meta.function : html_rgb_color,
+		n.meta.inverse_function : 'html color to rgb',
+	})
+	
+	axpress.register_translation({
+		n.meta.name : 'is inverse of color',
+		n.meta.input : """
+			icolor[axpress.is] = "inverse of %color%"
+		""",
+		n.meta.output : """
+			color[html.color] = _c
+			color[color.invert] = icolor
+			icolor[html.color] = _ic
+		""",
+		n.meta.constant_vars : ['color'],
+		n.meta.function : red,
+	})
+
 	#axpress.register_translation({
 		#n.meta.name : '',
 		#n.meta.input : """

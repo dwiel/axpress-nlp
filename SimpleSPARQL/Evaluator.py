@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from Utils import var_name, is_any_var, is_var, is_lit_var, explode_bindings_set, debug, p, logger, new_explode_bindings_set
 from PrettyQuery import prettyquery
 
@@ -72,6 +73,23 @@ class Evaluator :
 						new_bindings[var_name(output_bindings[var])] = value
 					else :
 						print 'hmm should I do something?',output_bindings[var],value
+
+			#check to make sure everything was bound that was supposed to be
+			if len(new_bindings) != len(output_bindings) :
+				missing_variables = set(output_bindings) - set(result_bindings)
+				if missing_variables :
+					if len(missing_variables) > 1 :
+						variables = "variables"
+					else :
+						variables = "variable"
+					raise ValueError(
+						"%s %s didn't get bound by translation '%s'" % (
+							variables, ', '.join(
+								"'"+v+"'" for v in missing_variables
+							), step['translation'][self.n.meta.name]
+						)
+					)
+			
 			new_bindings_set.append(new_bindings)
 		
 		#p('new_bindings_set',new_bindings_set)

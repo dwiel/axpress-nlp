@@ -59,6 +59,8 @@ class Compiler :
 	
 	def debug_close_block(self) :
 		self.debug_str += """</div></div>"""
+		#print self.debug_str
+		#self.debug_str = ""
 
 	def register_translation(self, translation) :
 		n = self.n
@@ -118,7 +120,7 @@ class Compiler :
 	
 	#@logger
 	def values_match(self, value, qvalue) :
-		self.debugp('values_match', value, qvalue)
+		#self.debugp('values_match', value, qvalue)
 		if type(value) == URIRef :
 			#if is_out_var(value) or is_out_var(qvalue) :
 				#print '???',prettyquery(value),prettyquery(qvalue)
@@ -339,6 +341,7 @@ class Compiler :
 		for triple in pattern :
 			self.debugp('find_triple_match', triple, facts)
 			if not self.find_triple_match(triple, facts) :
+				self.debugp('False')
 				return False, None
 		
 		self.debugp('here')
@@ -437,6 +440,13 @@ class Compiler :
 		possible_steps = []
 		
 		for translation in self.translations :
+			if history :
+				inverse_function = history[-1][0].get(n.meta.inverse_function) 
+				if inverse_function :
+					if inverse_function == translation[n.meta.name] :
+						continue
+			
+			self.debug('testing ' + translation[n.meta.name])
 			matches, bindings_set = self.testtranslation(translation, query, output_vars, reqd_triples, root)
 			if matches :
 				self.debug('found match ' + translation[n.meta.name])
@@ -507,12 +517,14 @@ class Compiler :
 					
 							
 					# find bindings between the output and the query
-					self.debugp('query', query)
-					self.debugp('translation[n.meta.output]', translation[n.meta.output])
+					#self.debugp('query', query)
+					#self.debugp('translation[n.meta.output]', translation[n.meta.output])
 					# TODO: might be a good idea to clean up find_bindings first ...
 					#tmp_output_bindings = self.find_bindings(translation[n.meta.output], query, output_vars, translation[n.meta.output])
-					tmp_output_bindings = self.find_bindings(query, translation[n.meta.output], output_vars, query)
-					self.debugp('tmp_output_bindings', tmp_output_bindings)
+					#new_query = sub_var_bindings(query, input_bindings)
+					#self.debugp('new_query', new_query)
+					#tmp_output_bindings = self.find_bindings(new_query, translation[n.meta.output], output_vars, query)
+					#self.debugp('tmp_output_bindings', tmp_output_bindings)
 					
 					# make sure output_bindings is setup like this old code has been doing
 					# before

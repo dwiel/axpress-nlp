@@ -410,6 +410,34 @@ class AxpressTestCase(unittest.TestCase):
 				u'color' : '302'
 			}
 		]
+		
+	def testSimpleUnification(self):
+		ret = self.axpress.read_translate("""
+			color[axpress.is] = "red"
+			color[html.color] = _c
+		""")
+		p('testSimpleUnification', ret)
+		assert ret == [
+			{
+				u'c' : "FF0000"
+			}
+		]
+	
+	def testInverseFunction(self):
+		""" this would go into an infinite loop if it weren't for inverse functions
+		    being explicitly defined """
+		ret = self.axpress.read_translate("""
+			color[html.color] = "00FFFF"
+			color[color.invert] = icolor
+			icolor[html.color] = _ic
+		""")
+		p('testInverseFunction', ret)
+		assert ret == [
+			{
+				u'ic' : "FF0000"
+			}
+		]
+
 
 	def testStringQuery(self):
 		ret = self.axpress.read_translate("""
