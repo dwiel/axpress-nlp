@@ -1,2 +1,11 @@
 #!/bin/bash
 sudo python setup.py install
+
+sudo apt-get install python-dev lua5.1 git liblua5.1-0 liblua5.1-0-dev
+
+git clone git@github.com:dwiel/LunaticPython.git
+cd LunaticPython
+# not sure if these are necessary any more
+#export CPATH="$PATH:/usr/include/lua5.1"
+#export LIBRARY_PATH="$LIBRARY_PATH:/usr/lib"
+make
