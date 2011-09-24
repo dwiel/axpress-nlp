@@ -374,13 +374,13 @@ class AxpressTestCase(unittest.TestCase):
 		#""")
 		#p('ret',ret)
 		
-	#depends on Joseki
-	def testLongCount(self) :
-		ret = self.axpress.read_sparql("""
-			x[y] = z
-			query.query[query.count] = _count		
-		""")
-		assert ret == [{'count' : 0}]
+	##depends on Joseki
+	#def testLongCount(self) :
+	#	ret = self.axpress.read_sparql("""
+	#		x[y] = z
+	#		query.query[query.count] = _count		
+	#	""")
+	#	assert ret == [{'count' : 0}]
 	
 	## test a translation which requires a relatively complex unification
 	#def testUnification(self):
