@@ -30,7 +30,7 @@ class Compiler :
 		#self.n.bind('meta', '<http://dwiel.net/axpress/meta/0.1/>')
 		
 		self.parser = Parser(self.n)
-
+		
 		self.translations = []
 		#self.sparql = sparql
 		self._next_num = 0
@@ -61,7 +61,7 @@ class Compiler :
 		self.debug_str += """</div></div>"""
 		#print self.debug_str
 		#self.debug_str = ""
-
+	
 	def register_translation(self, translation) :
 		n = self.n
 		
@@ -365,7 +365,7 @@ class Compiler :
 			bindings is the set of bindings which allow this translation to match the
 				query
 		"""
-		
+		# HEURISTIC
 		# make sure that the translation's input matches part of the reqd_triples
 		# otherwise, not a new path
 		if not self.partial_match_exists(translation[self.n.meta.input], reqd_triples) :
@@ -376,9 +376,10 @@ class Compiler :
 		def filter_bindings(bindings) :
 			if matches :
 				for binding in bindings :
-					# sometimes binding to an output variable is ok.  It is only ok if
-					# they have already been bound to some value.  If they haven't the 
-					# translation doesn't pass the test
+					# binding to an output variable is ok if they have already been bound 
+					# to some value.  If they haven't the translation doesn't pass the 
+					# test
+					#
 					# TODO: this doesn't do anything ... what should it do?
 					for var, value in binding.iteritems() :
 						if (is_lit_var(value) or is_out_lit_var(value)) and var_name(value) in output_vars :
@@ -434,12 +435,16 @@ class Compiler :
 			Ensures that this set of translation and bindings haven't already been 
 			searched.....
 		"""
+		#p('query', query)
+		#p('output_vars', output_vars)
+		#p('reqd_triples', reqd_triples)
 		n = self.n
 		
 		guaranteed_steps = []
 		possible_steps = []
 		
 		for translation in self.translations :
+			# HEURISTIC
 			if history :
 				inverse_function = history[-1][0].get(n.meta.inverse_function) 
 				if inverse_function :
@@ -451,7 +456,6 @@ class Compiler :
 			if matches :
 				self.debug('found match ' + translation[n.meta.name])
 				for bindings in bindings_set :
-
 					# keep the possible property
 					new_bindings = Bindings(possible = bindings.possible)
 					# replace the bindings which the translation defines as constant with
@@ -503,7 +507,7 @@ class Compiler :
 					# any of the output triples match the existing triples.  If so, 
 					# replace them:
 					# ex:
-					#	output: [n.var.x n.test.p, n.lit_var.x_out_1]
+					# output: [n.var.x n.test.p, n.lit_var.x_out_1]
 					# existing triples: [n.var.x, n.test.p, n.var.y]
 					#
 					# in this should bind to n.var.y instead of lit_var.x_out_1
@@ -559,7 +563,7 @@ class Compiler :
 					
 					partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(self.var_triples, new_query, new_triples)
 					#partial_triples = [triple for triple in partial_triples if triple in new_triples]
-											
+					
 					if matches == self.MAYBE :
 						possible_steps.append({
 							'query' : query,
@@ -703,6 +707,7 @@ class Compiler :
 		"""
 		follow guaranteed translations and add possible translations to the 
 			possible_stack
+		this is somewhat of an evaluator ...
 		@arg query is the query to start from
 		@arg possible_stack is a list which is filled in with next next possible 
 			translations to follow after the guaranteed translations have already been
@@ -729,6 +734,8 @@ class Compiler :
 		
 		# see what the guaranteed and possible next steps are
 		guaranteed_steps, possible_steps = self.next_translations(query, history, output_vars, new_triples, root)
+		
+		# NOTE right now we don't do anything with the partial solutions ...
 		if len(guaranteed_steps) == 0 :
 			#partial_solution = self.find_partial_solution(self.var_triples, query, [])
 			self.debug_close_block()
@@ -760,6 +767,8 @@ class Compiler :
 				found_solution = self.find_solution(self.var_triples, step['new_query'])
 				if found_solution :
 					step['solution'] = found_solution
+					compile_node['guaranteed'].append(step)
+					compile_node_found_solution = True
 				else :
 					child_steps = self.follow_guaranteed(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
 					if child_steps :
@@ -769,10 +778,6 @@ class Compiler :
 						step['possible'].extend(child_steps['possible'])
 					
 				self.debug_close_block()
-				
-				if found_solution :
-					compile_node['guaranteed'].append(step)
-					compile_node_found_solution = True
 		
 		# don't follow the possible translations yet, just add then to a stack to
 		# follow once all guaranteed translations have been found
