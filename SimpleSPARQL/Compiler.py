@@ -709,7 +709,7 @@ class Compiler :
 		return bindings, found_var_triples, fact_triples
 	
 	#@logger
-	def follow_guaranteed(self, query, possible_stack, history, output_vars, new_triples, root = False) :
+	def search(self, query, possible_stack, history, output_vars, new_triples, root = False) :
 		"""
 		follow guaranteed translations and add possible translations to the 
 			possible_stack
@@ -730,7 +730,7 @@ class Compiler :
 			structure)
 		"""
 		
-		self.debug_open_block('follow guaranteed')
+		self.debug_open_block('search')
 		
 		compile_node = {
 			'guaranteed' : [],
@@ -774,7 +774,7 @@ class Compiler :
 				if found_solution :
 					step['solution'] = found_solution
 				else :
-					child_steps = self.follow_guaranteed(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
+					child_steps = self.search(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
 					if child_steps :
 						found_solution = True
 						# TODO: what exactly is going on here?
@@ -905,7 +905,7 @@ class Compiler :
 		possible_stack = []
 		history = []
 		
-		compile_root_node = self.follow_guaranteed(query, possible_stack, history, reqd_bound_vars, query, True)
+		compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
 		
 		if not compile_root_node :
 			return compile_root_node
