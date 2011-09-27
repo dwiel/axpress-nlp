@@ -773,8 +773,6 @@ class Compiler :
 				found_solution = self.find_solution(self.var_triples, step['new_query'])
 				if found_solution :
 					step['solution'] = found_solution
-					compile_node['guaranteed'].append(step)
-					compile_node_found_solution = True
 				else :
 					child_steps = self.follow_guaranteed(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
 					if child_steps :
@@ -784,6 +782,10 @@ class Compiler :
 						step['possible'].extend(child_steps['possible'])
 					
 				self.debug_close_block()
+				
+				if found_solution :
+					compile_node['guaranteed'].append(step)
+					compile_node_found_solution = True
 		
 		# don't follow the possible translations yet, just add then to a stack to
 		# follow once all guaranteed translations have been found
