@@ -757,13 +757,7 @@ class Compiler :
 			# if we've already made this translation, skip it
 			if [step['translation'], step['input_bindings']] not in history :
 				self.debug_open_block(step['translation'][n.meta.name] or '<unnamed>')
-				# if there is only one next step, don't worry about copying the history
-				# otherwise, we need a deep copy of the history.  This is so that other
-				# paths can alter it without effecting other paths.
-				if len(guaranteed_steps) > 1 :
-					new_history = copy.copy(history)
-				else :
-					new_history = history
+				new_history = copy.copy(history)
 				
 				# add this step to the history
 				new_history.append([step['translation'], copy.copy(step['input_bindings'])])
