@@ -63,8 +63,6 @@ class Compiler :
 	
 	def debug_close_block(self) :
 		self.debug_str += """</div></div>"""
-		#print self.debug_str
-		#self.debug_str = ""
 	
 	def register_translation(self, translation) :
 		n = self.n
@@ -85,29 +83,8 @@ class Compiler :
 		translation[n.meta.input] = self.parser.parse_query(translation[n.meta.input])
 		translation[n.meta.output] = self.parser.parse_query(translation[n.meta.output])
 		
-		#print 'registering'
-		#print translation[n.meta.name]
-		#print prettyquery(translation[n.meta.input])
-		#print prettyquery(translation[n.meta.output])
-		#print
-		
 		self.translations.append(translation)
 	
-	def get_used_uris(self) :
-		uris = []
-		
-		def extract_uris(triples_list) :
-			for triple in triples_list :
-				for v in triple :
-					if isinstance(v, URIRef) and not is_any_var(v):
-						uris.append(v)
-		
-		for translation in self.translations :
-			extract_uris(translation[n.meta.input])
-			extract_uris(translation[n.meta.output])
-		
-		return set(uris)
-		
 	def find_matches(self, value, qvalue) :
 		import lua
 		lua.require('matching')
@@ -216,12 +193,6 @@ class Compiler :
 				return True
 		return False
 	
-	def has_already_executed(self, history, translation, binding) :
-		return [translation, binding] in history
-	
-	def register_executed(self, history, translation, binding) :
-		history.append([translation, copy.copy(binding)])
-		
 	def bind_vars(self, translation, facts, reqd_facts) :
 		"""
 		@arg translation is a list of triples (the translation)
