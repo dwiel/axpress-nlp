@@ -195,7 +195,7 @@ class Compiler :
 	
 	def bind_vars(self, translation, facts, reqd_facts) :
 		"""
-		@arg translation is a list of triples (the translation)
+		@arg translation is a list of triples (the input part of the translation)
 		@arg facts is a list of triples (the currently known facts)
 		@arg reqd_facts is a list of triples of which one must be used in the binding
 		@returns matches, bindings
@@ -365,10 +365,6 @@ class Compiler :
 	
 	def next_bnode(self) :
 		return self.n.bnode[str(time.time()).replace('.','') + '_' +  str(random.random()).replace('.','')]
-	
-	def find_paths(self, query, find_vars) :
-		for possible_translation in possible_translations :
-			something = find_paths(possible_translation, find_vars)
 	
 	# return all triples which have at least one var
 	def find_var_triples(self, query, is_a_var = is_any_var) :
