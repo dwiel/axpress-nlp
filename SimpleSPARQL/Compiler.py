@@ -428,7 +428,7 @@ class Compiler :
 		return bindings
 
 	#@logger
-	def next_translations(self, query, history, output_vars, reqd_triples, root = False) :
+	def next_steps(self, query, history, output_vars, reqd_triples, root = False) :
 		"""
 		@arg query the query in triples set form
 		@arg history the history of steps already followed
@@ -739,7 +739,7 @@ class Compiler :
 		compile_node_found_solution = False
 		
 		# see what the guaranteed and possible next steps are
-		guaranteed_steps, possible_steps = self.next_translations(query, history, output_vars, new_triples, root)
+		guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, new_triples, root)
 		
 		# NOTE right now we don't do anything with the partial solutions ...
 		if len(guaranteed_steps) == 0 :
@@ -772,6 +772,8 @@ class Compiler :
 					if child_steps :
 						found_solution = True
 						# TODO: what exactly is going on here?
+						# it seems that step['guaranteed'] is a list of steps to get to the 
+						# solution which is built up recursively here
 						step['guaranteed'].extend(child_steps['guaranteed'])
 						step['possible'].extend(child_steps['possible'])
 					
