@@ -248,6 +248,16 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 			[n.var['x'], n.test['/type/type'], n.test['property']],
 			[n.var['x'], n.test['/type/type'], n.test['property']],
 		]
+	
+	def test_implied_var(self):
+		query = """
+			x[test.test][test.test] = 1
+		"""
+		assert self.parser.parse_query(query) == [
+			[n.var['x'], n.test['test'], n.var['bnode1']],
+			[n.var['bnode1'], n.test['test'], 1]
+		]
+
 if __name__ == "__main__" :
 	unittest.main()
 
