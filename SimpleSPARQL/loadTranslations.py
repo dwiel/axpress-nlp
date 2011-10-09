@@ -595,13 +595,20 @@ def loadTranslations(axpress, n) :
 		#n.meta.input : """
 			#image[pil.image] = _pil_image
 		#""",
+		##n.meta.output : """
+			##image[image.average_color] = _color
+			##### this needs true unification ... or does it?  I think this may be 
+			##### something else entirely
+			##image[pil.image] = pil_image
+			##image.thumbnail(image, 1, 1) = thumb
+			##image.pixel(thumb, 0, 0) = pixel
+			##pixel[pil.color] = _color
+		##""",
 		#n.meta.output : """
-			#image[image.average_color] = _color
-			#### this needs true unification
-			#image[pil.image] = pil_image
+			#image[image.average_color] = color
 			#image.thumbnail(image, 1, 1) = thumb
 			#image.pixel(thumb, 0, 0) = pixel
-			#pixel[pil.color] = _color
+			#pixel[pil.color] = color
 		#""",
 		#n.meta.constant_vars : ['image'],
 	#})
@@ -1122,14 +1129,25 @@ def loadTranslations(axpress, n) :
 		#n.meta.constant_vars : [],
 	#})
 
+	axpress.register_translation({
+		n.meta.name : 'test',
+		n.meta.input : """
+			x[test.p][test.p] = y
+		""",
+		n.meta.output : """
+			x[test.q] = tmp
+			tmp[test.q] = y
+		""",
+		# note that y isn't a constant var ... right now it is because y in the 
+		# input will likely be bound to a different variable than y in the output,
+		# so it isn't constant.  The value is constant, 
+		n.meta.constant_vars : ['x'],
+	})
 
 """
 
-
-
-
-
-
+x[foo.foo][foo.foo] = 1
+x[foo.bar][foo.bar] = _one
 
 new_final_bindings [
   [

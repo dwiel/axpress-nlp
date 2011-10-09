@@ -26,6 +26,7 @@ n.bind('rdfs', '<http://www.w3.org/2000/01/rdf-schema#>')
 n.bind('bound_var', '<http://dwiel.net/axpress/bound_var/0.1/>')
 n.bind('flickr', '<http://dwiel.net/axpress/flickr/0.1/>')
 n.bind('amos', '<http://dwiel.net/axpress/amos/0.1/>')
+n.bind('test', '<http://dwiel.net/express/test/0.1/>')
 a = n.rdfs.type
 
 # for easy basic stupid matching type instance
@@ -383,20 +384,31 @@ class AxpressTestCase(unittest.TestCase):
 	#	assert ret == [{'count' : 0}]
 	
 	## test a translation which requires a relatively complex unification
-	#def testUnification(self):
-		#ret = self.axpress.read_translate("""
-			#image[file.pattern] = "pictures/*.jpg"
-			#image[image.average_color] = _color
-		#""")
-		##p('testEmbededAxpress', ret)
-		#assert ret == [
-			#{
-				#u'color' : ( 16, 15, 15, ),
-			#}, {
-				#u'color' : ( 139, 137, 145, ),
-			#},
-		#]
-
+	def testUnification(self):
+		ret = self.axpress.read_translate("""
+			image[file.pattern] = "pictures/*.jpg"
+			image[image.average_color] = _color
+		""")
+		p('testUnification', ret)
+		assert ret == [
+			{
+				u'color' : ( 16, 15, 15, ),
+			}, {
+				u'color' : ( 139, 137, 145, ),
+			},
+		]
+	
+	def testSimplestUnification(self):
+		ret = self.axpress.read_translate("""
+			x[test.p][test.p] = 1
+			x[test.q][test.q] = _one
+		""")
+		assert ret == [
+			{
+				u'one' : 1
+			}
+		]
+	
 	def testSimpleQuery(self):
 		ret = self.axpress.read_translate("""
 			image[file.pattern] = "/home/dwiel/axpress/scripts/pictures/*.jpg"
@@ -425,7 +437,7 @@ class AxpressTestCase(unittest.TestCase):
 	
 	def testInverseFunction(self):
 		""" this would go into an infinite loop if it weren't for inverse functions
-		    being explicitly defined """
+		    being explicitly defined."""
 		ret = self.axpress.read_translate("""
 			color[html.color] = "00FFFF"
 			color[color.invert] = icolor
