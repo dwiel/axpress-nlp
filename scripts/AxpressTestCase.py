@@ -385,6 +385,7 @@ class AxpressTestCase(unittest.TestCase):
 	
 	## test a translation which requires a relatively complex unification
 	def testUnification(self):
+		""" this doesn't work because there is no image.average_color in the translations"""
 		ret = self.axpress.read_translate("""
 			image[file.pattern] = "pictures/*.jpg"
 			image[image.average_color] = _color
