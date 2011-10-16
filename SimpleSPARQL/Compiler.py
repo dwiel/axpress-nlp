@@ -386,9 +386,9 @@ class Compiler :
 		
 		translation_queue = list(self.translations)
 		
-		# HEURISTIC
-		# sort translation queue so that the most recently applied translation is 
-		# tested last.  This helps avoid infite applications of the same translation
+		## HEURISTIC
+		## sort translation queue so that the most recently applied translation is 
+		## tested last.  This helps avoid infite applications of the same translation
 		#if history :
 			#names = [h[0].get(n.meta.name) for h in history]
 			#names = [name for name in names if name]
