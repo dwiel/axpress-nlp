@@ -696,7 +696,6 @@ class Compiler :
 		
 		# NOTE right now we don't do anything with the partial solutions ...
 		if len(guaranteed_steps) == 0 :
-			#partial_solution = self.find_partial_solution(self.var_triples, query, [])
 			self.debug_close_block()
 			return compile_node
 		
@@ -856,9 +855,6 @@ class Compiler :
 		if var_triples == [] :
 			raise Exception("Waring, required bound triples were provided, but not found in the query")
 		
-		self.original_query = query
-		self.var_triples = var_triples
-		#p('var_triples',var_triples)
 		self.vars = reqd_bound_vars
 		self.vars = [var for var in self.vars if var.find('bnode') is not 0]
 		#debug('self.vars',self.vars)
@@ -890,7 +886,7 @@ class Compiler :
 		
 		# generate path combinations
 		# a combination is a dictionary from triple to translation, which each 
-		# triple is from the self.var_triples set.  A full completion/solution will 
+		# triple is from the var_triples set.  A full completion/solution will 
 		# have one translation for each var_triple.
 		#p('begin combinations')
 		combinations = [{}]
