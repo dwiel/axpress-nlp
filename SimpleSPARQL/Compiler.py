@@ -862,17 +862,23 @@ class Compiler :
 		possible_stack = []
 		history = []
 		
+		# this is the maximum depth we will search
 		self.depth = 5
 		compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
 		
+		# if there were no paths through the search space we are done here
 		if not compile_root_node :
 			return compile_root_node
 		
-		#p('compile_root_node',compile_root_node)
+		# HIGH LEVEL:
+		# at this point, we must go through the resulting steps and figure out which
+		# are actually necessary.  It is quite possible that there are translations
+		# in the resulting path which don't need to be executed.  In some cases
+		# executing unneeded translations is just wasted computation, but in others
+		# if the translation has side effects, we must avoid executing them to 
+		# preserve correctness
 		
 		which_translations_fulfil_which_query_triple = self.extract_which_translations_fulfil_which_query_triple(compile_root_node)
-		
-		#p('which_translations_fulfil_which_query_triple',which_translations_fulfil_which_query_triple)
 		
 		which_translations_fulfil_which_query_triple_dict = {}
 		for triple, step, depends in which_translations_fulfil_which_query_triple :
@@ -881,8 +887,6 @@ class Compiler :
 				which_translations_fulfil_which_query_triple_dict[triple].append(obj)
 			else :
 				which_translations_fulfil_which_query_triple_dict[triple] = [obj]
-		
-		#p('which_translations_fulfil_which_query_triple_dict',which_translations_fulfil_which_query_triple_dict)
 		
 		# generate path combinations
 		# a combination is a dictionary from triple to translation, which each 
@@ -893,9 +897,6 @@ class Compiler :
 		new_combinations = []
 		for triple, translations in which_translations_fulfil_which_query_triple_dict.iteritems() :
 			for translation in translations :
-				#p('triple',triple)
-				#p('translation',translation['step'])
-				#p('combinations',combinations.keys())
 				for combination in combinations :
 					# for each existing combination, if it already depends on a different
 					# solution for a triple that this new translation depends on, can
@@ -903,10 +904,7 @@ class Compiler :
 					# if none of the existing combinations fits with this one, there is
 					# no solution
 					# if the dependencies of this
-					#p('combination',combination)
-					#p('translation',translation)
 					new_combination = self.permute_combinations(combination, translation)
-					#p('new_combination',new_combination)
 					if new_combination is not False:
 						new_combination[triple] = translation
 						new_combinations.append(new_combination)
@@ -917,7 +915,6 @@ class Compiler :
 				p('not')
 		
 		def print_combinations(combinations) :
-			p()
 			p('len(combinations)',len(combinations))
 			for combination in combinations :
 				p('len(combination)',len(combination))
@@ -996,167 +993,3 @@ class Compiler :
 		self.debug_close_block()
 		return ret
 		
-		
-		
-		
-		##p('compile_root_node',compile_root_node)
-		##@logger
-		#def print_compiled(node, l = []) :
-			#for step in node['guaranteed'] :
-				##p('\\',step['translation'][n.meta.name])
-				#instruction = [
-					#step['translation'][n.meta.name], {
-						#'input_bindings' : step['input_bindings'],
-						#'output_bindings' : step['output_bindings'],
-					#}
-				#]
-				#print_compiled(step, l + [instruction])
-				##p('/',step['translation'][n.meta.name])
-			#if not node['guaranteed'] :
-				#p(l+[node['solution']])
-		##print_compiled(compile_root_node)
-		
-		
-		## prune any paths which are not necessary:
-		#def mark_unnecessary_translations_helper(node) :
-			#"""
-			#returns variables which need to be bound for the children (next) 
-			#translations to be able to work.  If a translation doesn't provide any of
-			#those variables as output, than it is unecessary.
-			#correlary: if a translation provides an output binding that is never used
-			#remove it.
-			#"""
-			#if 'solution' in node :
-				#required_variables = set(node['solution'].values())
-			#else :
-				#required_variables = set()
-			
-			#for step in node['guaranteed'] :
-				#required_variables.update(mark_unnecessary_translations_helper(step))
-			
-			#for var, binding in node['output_bindings'].items() :
-				#if binding not in required_variables :
-					#del node['output_bindings'][var]
-			
-			#if node['output_bindings'] :
-				#node['input_bindings'] = dict([(var, binding) for (var, binding) in node['input_bindings'].iteritems() if not is_var(binding)])
-				#required_variables.update(node['input_bindings'].values())
-			
-			#return required_variables
-		
-		#for node in compile_root_node['guaranteed'] :
-			##p('---')
-			#mark_unnecessary_translations_helper(node)
-			
-		##p('///')
-		##print_compiled(compile_root_node)
-		
-		#def remove_unnecessary_translations(node) :
-			#"""
-			#returns a list to replace
-			#"""
-			#node['guaranteed'] = [step for step in node['guaranteed'] if step['output_bindings']]
-			#for step in node['guaranteed'] :
-				#remove_unnecessary_translations(step)
-			
-		#remove_unnecessary_translations(compile_root_node)
-		
-		##print_compiled(compile_root_node)
-		
-		##p(compile_root_node['guaranteed'][0]['translation'][n.meta.name])
-		
-		## TODO: make this work
-		## self.follow_possible(query, possible_stack)
-		
-		#compile_root_node['modifiers'] = modifiers
-		
-		##debug('modifiers',modifiers)
-		
-		#p('compile_root_node',compile_root_node)
-			
-		#return compile_root_node
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
- OLD first attempt at output unification
-
-					###### TODO: resurect something like this.  UNIFICATION
-					###### 			though it should probably wind up in/replacing find_bindings 
-					######       rather than glued on here
-					###### look through each of the output triples to see if they match any of 
-					###### the already known facts.  By match, I mean everything the same 
-					###### except for a lit_var in the output where a var is in the facts.  If
-					###### one of these are found, replace the lit var with the var
-					######for ttriple in translation[n.meta.output] :
-						######for qtriple in query :
-							######self.find_triple_match
-							######for tv, qv in izip(ttriple, qtriple) :
-								######if tv == qv :
-									######p('tv',tv)
-									######p('qv',qv)
-								######else :
-									######break
-					######tmp_out = sub_var_bindings(translation[n.meta.output], input_bindings)
-					######unified_bindings = self.find_unified_bindings(query, tmp_out)
-					
-					######constant_vars = unified_bindings.values()
-					
-					# TODO
-					# this is where unification isn't happening right.
-					# don't just automatically bind a new lit_var for everything.
-					# instead, try to unify the output triples with the query and see if
-					# any of the output triples match the existing triples.  If so, 
-					# replace them:
-					# ex:
-					# output: [n.var.x n.test.p, n.lit_var.x_out_1]
-					# existing triples: [n.var.x, n.test.p, n.var.y]
-					#
-					# in this should bind to n.var.y instead of lit_var.x_out_1
-					
-					# first replace some vars with lit_vars (the ones which will be bound
-					# eventually.
-					
-					# TODO: make sure that lit_var will work - make sure it matches 
-					#       correctly
-					
-					
-							
-					# find bindings between the output and the query
-					#self.debugp('query', query)
-					#self.debugp('translation[n.meta.output]', translation[n.meta.output])
-					# TODO: might be a good idea to clean up find_bindings first ...
-					#tmp_output_bindings = self.find_bindings(translation[n.meta.output], query, output_vars, translation[n.meta.output])
-					#new_query = sub_var_bindings(query, input_bindings)
-					#self.debugp('new_query', new_query)
-					#tmp_output_bindings = self.find_bindings(new_query, translation[n.meta.output], output_vars, query)
-					#self.debugp('tmp_output_bindings', tmp_output_bindings)
-					
-					# make sure output_bindings is setup like this old code has been doing
-					# before
-					
-					# TODO: the guaranteed_steps stuff is going to have to look a little
-					# different too ... if we want to replace (delete) triples that were
-					# in the query something will need to change.
-					# will just need to break the current assumption that:
-					#   query + new_triples = new_query
-					# instead we will know that :
-					#   new_query - query = new_triples
-					#     though note that there may be triples in query that are not in 
-					#     new_query
-					#### this whole new_triples thing isn't going to work any more if we
-					#### replace some triples with others, is it?  Or maybe it will just
-					#### be more efficient to replace them, but still correct to leave 
-					#### them ...  we'll see :)
-"""
