@@ -708,38 +708,44 @@ class Compiler :
 		# should be added to the compile_node, the finished 'program'
 		for step in guaranteed_steps :
 			# if we've already made this translation, skip it
-			if [step['translation'], step['input_bindings']] not in history :
-				self.debug_open_block(step['translation'][n.meta.name] or '<unnamed>')
-				new_history = copy.copy(history)
+			if [step['translation'], step['input_bindings']] in history :
+				continue
+			
+			self.debug_open_block(step['translation'][n.meta.name] or '<unnamed>')
+			
+			
+			# add this step to the history (though since this history object can be 
+			# forked by other guaranteed_steps, we must copy it first)
+			new_history = copy.copy(history)
+			new_history.append([step['translation'], copy.copy(step['input_bindings'])])
+			
+			# if the new information at this point is enough to fulfil the query, done
+			# otherwise, recursively continue searching.
+			# found_solution is filled with the bindings from the query to the 
+			# out_lit_vars
+			# NOTE: it is quite possible that the output unification step has enough 
+			# information to know if a solution has been found too, which could make
+			# this step unecessary.
+			var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
+			found_solution = self.find_solution(var_triples, step['new_query'])
+			if found_solution :
+				step['solution'] = found_solution
+			else :
+				child_steps = self.search(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
+				if child_steps :
+					found_solution = True
+					# step['guaranteed'] is a list of steps to get to the solution which 
+					# is built up recursively.  step['guaranteed'] will always be [] 
+					# before these lines
+					assert step['guaranteed'] == []
+					step['guaranteed'].extend(child_steps['guaranteed'])
+					step['possible'].extend(child_steps['possible'])
 				
-				# add this step to the history
-				new_history.append([step['translation'], copy.copy(step['input_bindings'])])
-				
-				# if the new information at this point is enough to fulfil the query, done
-				# otherwise, recursively continue searching
-				var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
-				#p('var_triples', self.var_triples)
-				found_solution = self.find_solution(var_triples, step['new_query'])
-				if found_solution :
-					#print "FOUND SOLUTION"
-					#p('var_triples', self.var_triples)
-					#p('new_query', step['new_query'])
-					step['solution'] = found_solution
-				else :
-					child_steps = self.search(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
-					if child_steps :
-						found_solution = True
-						# TODO: what exactly is going on here?
-						# it seems that step['guaranteed'] is a list of steps to get to the 
-						# solution which is built up recursively here
-						step['guaranteed'].extend(child_steps['guaranteed'])
-						step['possible'].extend(child_steps['possible'])
-					
-				self.debug_close_block()
-				
-				if found_solution :
-					compile_node['guaranteed'].append(step)
-					compile_node_found_solution = True
+			self.debug_close_block()
+			
+			if found_solution :
+				compile_node['guaranteed'].append(step)
+				compile_node_found_solution = True
 		
 		# don't follow the possible translations yet, just add then to a stack to
 		# follow once all guaranteed translations have been found
