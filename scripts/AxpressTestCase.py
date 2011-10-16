@@ -481,6 +481,17 @@ class AxpressTestCase(unittest.TestCase):
 			}
 		]
 	
+	def testStringQuerySuperSimple(self):
+		ret = self.axpress.read_translate("""
+			color[axpress.is] = "red"
+			color[html.color] = _c
+		""")
+		p('testStringQuerySuperSimple', ret)
+		assert ret == [
+			{
+				u'c' : "FF0000"
+			}
+		]
 if __name__ == "__main__" :
 	#print '<root>'
 	unittest.main()
