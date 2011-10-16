@@ -332,22 +332,10 @@ class Compiler :
 		
 		matches, bindings = self.find_bindings(query, translation[self.n.meta.input], output_vars, reqd_triples, root)
 		
-		def filter_bindings(bindings) :
-			if matches :
-				## TODO: this doesn't do anything ... what should it do?
-				#for binding in bindings :
-					## binding to an output variable is ok if they have already been bound 
-					## to some value.  If they haven't the translation doesn't pass the 
-					## test
-					##
-					#for var, value in binding.iteritems() :
-						#if (is_lit_var(value) or is_out_lit_var(value)) and var_name(value) in output_vars :
-							#continue
-					
-					#yield binding
-				return bindings
-			
-		return matches, filter_bindings(bindings)
+		if matches :
+			return matches, bindings
+		else :
+			return matches, None
 	
 	def next_bnode(self) :
 		return self.n.bnode[str(time.time()).replace('.','') + '_' +  str(random.random()).replace('.','')]
