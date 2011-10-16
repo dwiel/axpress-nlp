@@ -297,7 +297,7 @@ class Compiler :
 			return True, [Bindings()]
 		
 		# check that all of the translation inputs match part of the query
-		if reqd_triples:
+		if reqd_triples != False:
 			for triple in pattern :
 				self.debugp('find_triple_match', triple, facts)
 				if not self.find_triple_match(triple, facts) :
