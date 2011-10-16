@@ -501,31 +501,15 @@ class Compiler :
 						for var in find_vars(translation[n.meta.output], is_lit_var) :
 							output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
 					
-					#p('input_bindings', input_bindings)
-					#p('output_bindings', output_bindings)
+					# generate the new query by adding the output triples with 
+					# output bindings substituted in
 					new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
 					new_query = copy.copy(query)
-					
-					#if translation[n.meta.name] == 'image average color' :
-						#print "*-"*40
-						#p('pre_new_triples', new_triples)
-						#new_triples = new_triples[1:]
-						#new_triples[-1][2] = n.out_lit_var.color
-						
-					
 					new_query.extend(new_triples)
-					#p('query', query)
-					#p('output_bindings', output_bindings)
-					#p('new_triples', new_triples)
-					#p('new_query', new_query)
-					#print
-					#print
-					#print
 					
-					var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
-					partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(var_triples, new_query, new_triples)
-					#partial_triples = [triple for triple in partial_triples if triple in new_triples]
-					
+					# TODO: this will need to be better fleshed out when we want to 
+					# support possible steps.  For now execution always goes to the elif 
+					# below
 					if matches == self.MAYBE :
 						possible_steps.append({
 							'query' : query,
@@ -538,6 +522,10 @@ class Compiler :
 							'possible' : [],
 						})
 					elif matches == True :
+						var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
+						partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(var_triples, new_query, new_triples)
+						#partial_triples = [triple for triple in partial_triples if triple in new_triples]
+						
 						guaranteed_steps.append({
 							'input_bindings' : input_bindings,
 							'output_bindings' : output_bindings,
@@ -551,7 +539,6 @@ class Compiler :
 							'partial_bindings' : partial_bindings,
 						})
 		
-		#p('steps:',[step['translation'][n.meta.name] for step in guaranteed_steps])
 		return guaranteed_steps, possible_steps
 	
 	def contains_all_bindings(self, required, obtained) :
