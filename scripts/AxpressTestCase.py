@@ -469,17 +469,17 @@ class AxpressTestCase(unittest.TestCase):
 		]
 
 
-	def testStringQuery(self):
-		ret = self.axpress.read_translate("""
-			x[axpress.is] = "files matching pictures/*.jpg"
-			x[display.html] = _html
-		""")
-		#p('testStringQuery', ret)
-		assert ret == [
-			{
-				u'_html' : "<ul><li>xxx.jpg<li>yyy.jpg</ul>"
-			}
-		]
+	#def testStringQuery(self):
+		#ret = self.axpress.read_translate("""
+			#x[axpress.is] = "files matching pictures/*.jpg"
+			#x[display.html] = _html
+		#""")
+		##p('testStringQuery', ret)
+		#assert ret == [
+			#{
+				#u'_html' : "<ul><li>xxx.jpg<li>yyy.jpg</ul>"
+			#}
+		#]
 	
 	def testStringQuerySuperSimple(self):
 		ret = self.axpress.read_translate("""
