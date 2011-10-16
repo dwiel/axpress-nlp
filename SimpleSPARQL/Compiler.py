@@ -384,6 +384,9 @@ class Compiler :
 		guaranteed_steps = []
 		possible_steps = []
 		
+		# the translation_queue is a list of translations that will be searched.  
+		# There are some heuristics which alter the order that the translations are
+		# searched in
 		translation_queue = list(self.translations)
 		
 		## HEURISTIC
