@@ -337,9 +337,6 @@ class Compiler :
 		else :
 			return matches, None
 	
-	def next_bnode(self) :
-		return self.n.bnode[str(time.time()).replace('.','') + '_' +  str(random.random()).replace('.','')]
-	
 	# return all triples which have at least one var
 	def find_var_triples(self, query, is_a_var = is_any_var) :
 		return [triple for triple in query if any(map(lambda x:is_a_var(x), triple))]
