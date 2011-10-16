@@ -446,6 +446,7 @@ class Compiler :
 					# output_bindings map from translation space to query space
 					output_bindings = {}
 					
+					# THIS IS THE OLD OUTPUT BINDINGS CODE.  NO UNIFICATION
 					## find output_bindings
 					## for each variable in the output triples
 					#for var in find_vars(translation[n.meta.output]) :
@@ -459,31 +460,23 @@ class Compiler :
 						## otherwise, create a new lit_var to bind to
 						#else :
 							#output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
-					#old_output_bindings = output_bindings
 					
-					# BEGIN NEW PART
+					# initial_bindings are the bindings that we already know from the 
+					# input unification that must also hold true for output unification
 					# some of the initial_binding vars don't appear in the output triples
 					# so we can get rid of them
 					output_triple_vars = find_vars(translation[n.meta.output])
-					#output_triples = sub_var_bindings(translation[n.meta.output], new_bindings)
-					
 					output_triples = translation[n.meta.output]
 					initial_bindings = dict(
-						(unicode(name), bindings[name]) for name in translation[n.meta.constant_vars] if name in bindings and name in output_triple_vars
+						(unicode(name), bindings[name]) for name in translation[n.meta.constant_vars]
+							if name in bindings and 
+							   name in output_triple_vars
 					)
 					
-					#p('translation[name]', translation[n.meta.name])
-					#p('translation[output]', translation[n.meta.output])
-					#p('query', query)
-					#p('output_triples', output_triples)
-					#p('initial_bindings', initial_bindings)
-					
+					# unify output_triples with query
 					output_matches, output_bindings_set = self.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
 					if output_matches :
-						#p('output_triples', output_triples)
-						#p('output_bindings_set', output_bindings_set)
-						#p('old_output_bindings', old_output_bindings)
-						
+						# TODO: fix this, we should iterate over output_bindings_sets
 						output_bindings = output_bindings_set[0]
 						if len(output_bindings_set) > 1 :
 							print "WARNING: multiple ways this might bind ..."
@@ -507,18 +500,9 @@ class Compiler :
 						# lit_vars
 						for var in find_vars(translation[n.meta.output], is_lit_var) :
 							output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
-						
-					else :
-						#output_bindings = old_output_bindings
-						pass
-					
-					#if output_bindings != old_output_bindings :
-						#print '#'*80
-					## END NEW PART
 					
 					#p('input_bindings', input_bindings)
 					#p('output_bindings', output_bindings)
-					#p('old_output_bindings', old_output_bindings)
 					new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
 					new_query = copy.copy(query)
 					
