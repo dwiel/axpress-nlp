@@ -25,15 +25,11 @@ class Compiler :
 			self.n = Namespaces()
 		self.n.bind('out_lit_var', '<http://dwiel.net/axpress/out_lit_var/0.1/>')
 		self.n.bind('out_var', '<http://dwiel.net/axpress/out_var/0.1/>')
-		#self.n.bind('tvar', '<http://dwiel.net/axpress/translation/var/0.1/>')
-		#self.n.bind('bnode', '<http://dwiel.net/axpress/bnode/0.1/>')
-		#self.n.bind('meta', '<http://dwiel.net/axpress/meta/0.1/>')
 		
 		self.parser = Parser(self.n)
 		
 		self.translations = []
 		self.translations_by_name = {}
-		#self.sparql = sparql
 		self._next_num = 0
 		
 		self.log_debug = debug
@@ -211,55 +207,50 @@ class Compiler :
 		#p('translation',translation)
 		#p('facts',facts)
 		#p('reqd_facts',reqd_facts)
+		
+		# loop through each triple.  find possible bindings for each triple.  If 
+		# this triple's bindings conflict with previous triple's bindings then 
+		# return false.  It does not bind, unless we are only looking for partial
+		# matches like for output unification.  In that case however, I think that
+		# technically, there should be a split there so that we return both sets
+		# of possible bindings rather than just the first one.
+		# WARNING: likely bug,  See above comment
 		bindings = [Bindings(initial_bindings)]
 		for ttriple in translation :
-			#p('ttriple',ttriple)
-			
 			possible_bindings = self.find_bindings_for_triple(ttriple, facts, reqd_facts)
-			new_bindings = []
+			
 			# see if any of the next_bindings fit with the existing bindings
+			new_bindings = []
 			found_binding = False
 			for pbinding in possible_bindings :
-				#p('matches',pbinding.matches_reqd_fact)
 				# if there are no values in bindings that already have some other 
 				# value in bindings 
 				for binding in bindings :
-					#debug('ttriple',ttriple)
 					conflicting = self.conflicting_bindings(binding, pbinding)
-					#debug('binding',binding)
-					#debug('pbinding',pbinding)
-					#debug('conflicting',conflicting)
 					if not conflicting :
 						# WARNING: this isn't going to copy the values of the bindings!!!
 						new_binding = copy.copy(binding)
-						#print prettyquery(new_binding)
-						#print prettyquery(pbinding)
-						#print
 						new_binding.update(pbinding)
 						if new_binding not in new_bindings :
-							#debug('new_binding',new_binding)
 							new_bindings.append(new_binding)
 							found_binding = True
 					elif conflicting == self.MAYBE :
 						# WARNING: this isn't going to copy the values of the bindings!!!
 						new_binding = Bindings(binding, possible = True)
-						#print prettyquery(new_binding)
-						#print prettyquery(pbinding)
-						#print
 						new_binding.update(pbinding)
 						if new_binding not in new_bindings :
-							#debug('maybe_new_binding',new_binding)
 							new_bindings.append(new_binding)
 							found_binding = True
-						#debug('maybe ... this will work')
 						matches = self.MAYBE
-			#debug('found_binding',found_binding)
+					else :
+						pass # binding conflicted
+			
+			# in output unification reqd_facts will be False - in that case, we don't
+			# care if every triple binds
 			if reqd_facts != False and not found_binding :
 				return False, []
 			if len(new_bindings) > 0 :
 				bindings = new_bindings
-		
-		#debug('bindings',bindings)
 		
 		# get a set of all vars
 		vars = find_vars(translation)
@@ -268,18 +259,15 @@ class Compiler :
 		if len(vars) == 0 :
 			return matches, []
 		
-		#p('bindings',bindings)
 		# keep only the bindings which contain bindings for all of the vars and 
-		# match a reqd_triple
+		# match a reqd_triple.  In output unification reqd_facts is False and we 
+		# only need partial bindings so this step isn't necessary
 		if reqd_facts != False:
 			bindings = [binding for binding in bindings if len(binding) == len(vars) and binding.matches_reqd_fact]
 		
 		# if there are no bindings (and there are vars), failed to find a match
 		if len(bindings) == 0 :
 			return False, []
-		
-		#debug('matches',matches)
-		#debug('bindings',bindings)
 		
 		return matches, bindings
 		
@@ -309,7 +297,7 @@ class Compiler :
 			return True, [Bindings()]
 		
 		# check that all of the translation inputs match part of the query
-		if reqd_triples :
+		if reqd_triples:
 			for triple in pattern :
 				self.debugp('find_triple_match', triple, facts)
 				if not self.find_triple_match(triple, facts) :
