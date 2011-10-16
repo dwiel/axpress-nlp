@@ -425,27 +425,21 @@ class Compiler :
 				# triples) with existing information.
 				self.debug('found match ' + translation[n.meta.name])
 				for bindings in bindings_set :
-					# keep the possible property
-					#p('t[n.meta.out]', translation[n.meta.output])
-					#p('bindings', bindings)
+					# copies the bindings so we can manipulate it while keeping the 
+					# possible property intact
 					new_bindings = Bindings(possible = bindings.possible)
 					# replace the bindings which the translation defines as constant with
 					# the exact binding value
 					# replace the other bindings which are variables, with variables with
 					# the name from the query and the type from the translation ...
-					# TODO?: keep the state of each of the variables in the triple set
-					# rather than as the namespace so it can be changed and checked 
-					# easily.  Also, it should be consistant throughout the query anyway
-					new_lit_vars = {}
 					for var, value in bindings.iteritems() :
 						if var in translation[n.meta.constant_vars] :
 							new_bindings[var] = value
 						elif is_any_var(value) :
 							new_var = n.lit_var[var_name(value)+'_'+str(self.next_num())]
-							new_lit_vars[var_name(value)] = new_var
 							new_bindings[var] = new_var
-					
-					#p('new_bindings', new_bindings)
+						else :
+							assert "none shall pass"
 					
 					# input_bindings map from translation space to query space
 					input_bindings = bindings
