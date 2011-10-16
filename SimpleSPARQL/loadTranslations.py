@@ -569,27 +569,29 @@ def loadTranslations(axpress, n) :
 		output:
 			image[image.average_color] = _color
 	"""
-	#def image_average_color(vars):
-		#print 'vars',vars
-		## damn you says the logger and likely many others
-		#ret = axpress.read_translate("""
-			#image[pil.image] = pil_image
-			#image.thumbnail(image, 1, 1) = thumb
-			#image.pixel(thumb, 0, 0) = pixel
-			#pixel[pil.color] = _color
-		#""", vars)
-		#return ret
-	#axpress.register_translation({
-		#n.meta.name : 'image average color',
-		#n.meta.input : """
-			#image[pil.image] = _pil_image
-		#""",
-		#n.meta.output : """
-			#image[image.average_color] = _color
-		#""",
-		#n.meta.function : image_average_color,
-		#n.meta.constant_vars : ['image'],
-	#})
+	def image_average_color(vars):
+		print 'vars',vars
+		# damn you says the logger and likely many others
+		ret = axpress.read_translate("""
+			image[pil.image] = pil_image
+			image.thumbnail(image, 1, 1) = thumb
+			image.pixel(thumb, 0, 0) = pixel
+			pixel[pil.color] = _color
+		""", vars)
+		return ret
+	axpress.register_translation({
+		n.meta.name : 'image average color',
+		n.meta.input : """
+			image[pil.image] = _pil_image
+		""",
+		n.meta.output : """
+			image[image.average_color] = _color
+		""",
+		n.meta.function : image_average_color,
+		n.meta.constant_vars : ['image'],
+	})
+	
+	
 	#axpress.register_translation({
 		#n.meta.name : 'image average color',
 		#n.meta.input : """
@@ -610,7 +612,8 @@ def loadTranslations(axpress, n) :
 			#image.pixel(thumb, 0, 0) = pixel
 			#pixel[pil.color] = color
 		#""",
-		#n.meta.constant_vars : ['image'],
+		#n.meta.constant_vars : ['image', 'color', 'thumb', 'pixel', 'bnode1', 'bnode2'],
+		##n.meta.constant_vars : ['image'],
 	#})
 
 	
@@ -1056,7 +1059,13 @@ def loadTranslations(axpress, n) :
 	axpress.register_translation({
 		n.meta.name : '',
 		n.meta.input : """
+			# short hand
 			author[axpress.is] = "author of %book%"
+			# long hand
+			author[axpress.is] = "author of %s"
+			author[axpress.arg0] = book
+			# both require some kind of regexp ... the regexp will need to be testable
+			# through both the compiler and evaluator
 			book[freebase.mid] = _mid
 			book[freebase.type] = '/book/written_work'
 		""",
@@ -1135,8 +1144,22 @@ def loadTranslations(axpress, n) :
 			x[test.p][test.p] = y
 		""",
 		n.meta.output : """
-			x[test.q] = tmp
-			tmp[test.q] = y
+			x[test.q][test.q] = y
+		""",
+		# note that y isn't a constant var ... right now it is because y in the 
+		# input will likely be bound to a different variable than y in the output,
+		# so it isn't constant.  The value is constant, 
+		n.meta.constant_vars : ['x'],
+	})
+
+	axpress.register_translation({
+		n.meta.name : 'test2',
+		n.meta.input : """
+			x[test.p] = y
+		""",
+		n.meta.output : """
+			x[test.q] = y
+			x[test.r] = z
 		""",
 		# note that y isn't a constant var ... right now it is because y in the 
 		# input will likely be bound to a different variable than y in the output,

@@ -32,6 +32,7 @@ class Compiler :
 		self.parser = Parser(self.n)
 		
 		self.translations = []
+		self.translations_by_name = {}
 		#self.sparql = sparql
 		self._next_num = 0
 		
@@ -84,6 +85,7 @@ class Compiler :
 		translation[n.meta.output] = self.parser.parse_query(translation[n.meta.output])
 		
 		self.translations.append(translation)
+		self.translations_by_name[translation[n.meta.name]] = translation
 	
 	def find_matches(self, value, qvalue) :
 		import lua
@@ -174,7 +176,7 @@ class Compiler :
 		bindings = []
 		for ftriple in facts :
 			binding = self.get_binding(triple, ftriple)
-			if ftriple in reqd_facts or not reqd_facts :
+			if not reqd_facts or ftriple in reqd_facts :
 				binding.matches_reqd_fact = True
 			if binding and binding not in bindings :
 				bindings.append(binding)
@@ -205,11 +207,10 @@ class Compiler :
 			matches is True if the query matches the translation
 			bindings is a list of bindings for var to value
 		"""
+		matches = True
+		#p('translation',translation)
 		#p('facts',facts)
 		#p('reqd_facts',reqd_facts)
-		matches = True
-		#debug('translation',translation)
-		#print 'q',prettyquery(query)
 		bindings = [Bindings(initial_bindings)]
 		for ttriple in translation :
 			#p('ttriple',ttriple)
@@ -253,7 +254,7 @@ class Compiler :
 						#debug('maybe ... this will work')
 						matches = self.MAYBE
 			#debug('found_binding',found_binding)
-			if not found_binding :
+			if reqd_facts != False and not found_binding :
 				return False, []
 			if len(new_bindings) > 0 :
 				bindings = new_bindings
@@ -270,7 +271,8 @@ class Compiler :
 		#p('bindings',bindings)
 		# keep only the bindings which contain bindings for all of the vars and 
 		# match a reqd_triple
-		bindings = [binding for binding in bindings if len(binding) == len(vars) and binding.matches_reqd_fact]
+		if reqd_facts != False:
+			bindings = [binding for binding in bindings if len(binding) == len(vars) and binding.matches_reqd_fact]
 		
 		# if there are no bindings (and there are vars), failed to find a match
 		if len(bindings) == 0 :
@@ -307,11 +309,12 @@ class Compiler :
 			return True, [Bindings()]
 		
 		# check that all of the translation inputs match part of the query
-		for triple in pattern :
-			self.debugp('find_triple_match', triple, facts)
-			if not self.find_triple_match(triple, facts) :
-				self.debugp('False')
-				return False, None
+		if reqd_triples :
+			for triple in pattern :
+				self.debugp('find_triple_match', triple, facts)
+				if not self.find_triple_match(triple, facts) :
+					self.debugp('False')
+					return False, None
 		
 		# find all possible bindings for the vars if any exist
 		matches, bindings_set = self.bind_vars(pattern, facts, reqd_triples, initial_bindings)
@@ -408,7 +411,29 @@ class Compiler :
 		guaranteed_steps = []
 		possible_steps = []
 		
-		for translation in self.translations :
+		translation_queue = list(self.translations)
+		
+		# HEURISTIC
+		# sort translation queue so that the most recently applied translation is 
+		# tested last.  This helps avoid infite applications of the same translation
+		#if history :
+			#names = [h[0].get(n.meta.name) for h in history]
+			#names = [name for name in names if name]
+			
+			#translation_queue = [
+				#t for t in translation_queue if t.get(n.meta.name) not in names
+			#]
+			#translation_queue.extend([h[0] for h in history])
+		
+		# HEURISTIC
+		# stop DFS search at depth 5
+		if history :
+			#print '#'*80
+			#print len(history)
+			if len(history) >= self.depth :
+				translation_queue = []
+		
+		for translation in translation_queue :
 			# HEURISTIC
 			if history :
 				inverse_function = history[-1][0].get(n.meta.inverse_function) 
@@ -425,8 +450,8 @@ class Compiler :
 				self.debug('found match ' + translation[n.meta.name])
 				for bindings in bindings_set :
 					# keep the possible property
-					p('t[n.meta.out]', translation[n.meta.output])
-					p('bindings', bindings)
+					#p('t[n.meta.out]', translation[n.meta.output])
+					#p('bindings', bindings)
 					new_bindings = Bindings(possible = bindings.possible)
 					# replace the bindings which the translation defines as constant with
 					# the exact binding value
@@ -444,70 +469,107 @@ class Compiler :
 							new_lit_vars[var_name(value)] = new_var
 							new_bindings[var] = new_var
 					
-					p('new_bindings', new_bindings)
+					#p('new_bindings', new_bindings)
 					
 					# input_bindings map from translation space to query space
 					input_bindings = bindings
 					# output_bindings map from translation space to query space
 					output_bindings = {}
 					
-					# find output_bindings
-					# for each variable in the output triples
-					for var in find_vars(translation[n.meta.output]) :
-						# if this is a constant_var, bind it to whatever it was bound to
-						# in the input part of the translation
-						if var in translation[n.meta.constant_vars] :
-							output_bindings[var] = input_bindings[var]
-						# otherwise, create a new lit_var to bind to
-						else :
-							output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
-					old_output_bindings = output_bindings
+					## find output_bindings
+					## for each variable in the output triples
+					#for var in find_vars(translation[n.meta.output]) :
+						## if this is a constant_var, bind it to whatever it was bound to
+						## in the input part of the translation
+						#if var in translation[n.meta.constant_vars] :
+							#if var in input_bindings :
+								#output_bindings[var] = input_bindings[var]
+							#else :
+								#output_bindings[var] = n.var[var]
+						## otherwise, create a new lit_var to bind to
+						#else :
+							#output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
+					#old_output_bindings = output_bindings
 					
 					# BEGIN NEW PART
+					# some of the initial_binding vars don't appear in the output triples
+					# so we can get rid of them
+					output_triple_vars = find_vars(translation[n.meta.output])
 					#output_triples = sub_var_bindings(translation[n.meta.output], new_bindings)
+					
 					output_triples = translation[n.meta.output]
 					initial_bindings = dict(
-						(unicode(name), bindings[name]) for name in translation[n.meta.constant_vars]
+						(unicode(name), bindings[name]) for name in translation[n.meta.constant_vars] if name in bindings and name in output_triple_vars
 					)
 					
-					p('query', query)
-					p('output_triples', output_triples)
-					p('initial_bindings', initial_bindings)
-					output_matches, output_bindings_set = self.find_bindings(query, output_triples, [], [], initial_bindings = initial_bindings)
+					#p('translation[name]', translation[n.meta.name])
+					#p('translation[output]', translation[n.meta.output])
+					#p('query', query)
+					#p('output_triples', output_triples)
+					#p('initial_bindings', initial_bindings)
+					
+					output_matches, output_bindings_set = self.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
 					if output_matches :
-						p('output_triples', output_triples)
-						p('output_bindings_set', output_bindings_set)
-						p('old_output_bindings', old_output_bindings)
+						#p('output_triples', output_triples)
+						#p('output_bindings_set', output_bindings_set)
+						#p('old_output_bindings', old_output_bindings)
 						
 						output_bindings = output_bindings_set[0]
+						if len(output_bindings_set) > 1 :
+							print "WARNING: multiple ways this might bind ..."
+						
+						# if an output binding is to an out_lit_var, than we need to change
+						# it to a simple lit_var.  This is so that later, we can look for
+						# solutions which we know we have found when a lit_var is bound to
+						# a out_lit_var.  It would seem that we could just flag it here, but
+						# for now it works to convert it like this so that it looks like the
+						# other cases ...  Or maybe it isn't necessary, but this seems to 
+						# work for now!
 						for k, v in output_bindings.iteritems() :
 							if is_out_lit_var(v) :
 								output_bindings[k] = n.lit_var[k+'_out_'+str(self.next_num())]
+						
+						# if var is a lit var in the output_triples, then its output bindings
+						# must bind it to a new value since it will be computed and set by
+						# the translation function and may not have the same value any more
+						# WARNING: I think this menas that find_bindings might not do the 
+						# right thing if it thinks that it can bind whatever it wants to 
+						# lit_vars
+						for var in find_vars(translation[n.meta.output], is_lit_var) :
+							output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
+						
 					else :
 						#output_bindings = old_output_bindings
 						pass
 					
-					if output_bindings != old_output_bindings :
-						print '#'*80
-					# END NEW PART
+					#if output_bindings != old_output_bindings :
+						#print '#'*80
+					## END NEW PART
 					
+					#p('input_bindings', input_bindings)
+					#p('output_bindings', output_bindings)
+					#p('old_output_bindings', old_output_bindings)
 					new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
 					new_query = copy.copy(query)
 					
-					if translation[n.meta.name] == 'image average color' :
-						new_triples = new_triples[1:]
-						new_triples[-1][2] = n.out_lit_var.color
+					#if translation[n.meta.name] == 'image average color' :
+						#print "*-"*40
+						#p('pre_new_triples', new_triples)
+						#new_triples = new_triples[1:]
+						#new_triples[-1][2] = n.out_lit_var.color
+						
 					
 					new_query.extend(new_triples)
-					p('query', query)
-					p('output_bindings', output_bindings)
-					p('new_triples', new_triples)
-					p('new_query', new_query)
-					print
-					print
-					print
+					#p('query', query)
+					#p('output_bindings', output_bindings)
+					#p('new_triples', new_triples)
+					#p('new_query', new_query)
+					#print
+					#print
+					#print
 					
-					partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(self.var_triples, new_query, new_triples)
+					var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
+					partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(var_triples, new_query, new_triples)
 					#partial_triples = [triple for triple in partial_triples if triple in new_triples]
 					
 					if matches == self.MAYBE :
@@ -637,7 +699,10 @@ class Compiler :
 		found_var_triples = []
 		fact_triples = []
 		for triple in var_triples :
+			#p('triple', triple)
+			#p('facts', facts)
 			new_bindings, ftriple = self.find_solution_triple(triple, facts)
+			#p('new_bindings', new_bindings, ftriple)
 			if new_bindings :
 				bindings.update(new_bindings)
 				if ftriple in interesting_facts :
@@ -679,7 +744,14 @@ class Compiler :
 		compile_node_found_solution = False
 		
 		# see what the guaranteed and possible next steps are
+		#print '%'*80
+		#p('query', query)
+		#p('output_vars', output_vars)
+		#p('new_triples', new_triples)
+		#p('root', root)
 		guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, new_triples, root)
+		#p('guaranteed_steps', guaranteed_steps)
+		#p('possible_steps', possible_steps)
 		
 		# NOTE right now we don't do anything with the partial solutions ...
 		if len(guaranteed_steps) == 0 :
@@ -704,8 +776,13 @@ class Compiler :
 				
 				# if the new information at this point is enough to fulfil the query, done
 				# otherwise, recursively continue searching
-				found_solution = self.find_solution(self.var_triples, step['new_query'])
+				var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
+				#p('var_triples', self.var_triples)
+				found_solution = self.find_solution(var_triples, step['new_query'])
 				if found_solution :
+					#print "FOUND SOLUTION"
+					#p('var_triples', self.var_triples)
+					#p('new_query', step['new_query'])
 					step['solution'] = found_solution
 				else :
 					child_steps = self.search(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
@@ -827,13 +904,14 @@ class Compiler :
 		
 		#debug('query',query)
 		
+		self.reqd_bound_vars = reqd_bound_vars
 		var_triples = self.find_specific_var_triples(query, reqd_bound_vars)
 		if var_triples == [] :
 			raise Exception("Waring, required bound triples were provided, but not found in the query")
 		
 		self.original_query = query
 		self.var_triples = var_triples
-		p('var_triples',var_triples)
+		#p('var_triples',var_triples)
 		self.vars = reqd_bound_vars
 		self.vars = [var for var in self.vars if var.find('bnode') is not 0]
 		#debug('self.vars',self.vars)
@@ -841,6 +919,7 @@ class Compiler :
 		possible_stack = []
 		history = []
 		
+		self.depth = 5
 		compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
 		
 		if not compile_root_node :

@@ -399,6 +399,23 @@ class AxpressTestCase(unittest.TestCase):
 			},
 		]
 	
+	def testSpecialUnification(self):
+		ret = self.axpress.read_translate("""
+			image[file.pattern] = "pictures/*.jpg"
+			image.thumbnail(image, 1, 1) = thumb
+			image.pixel(thumb, 0, 0) = pixel
+			pixel[pil.color] = _color
+		""")
+		#p('testUnification', ret)
+		assert ret == [
+			{
+				u'color' : ( 16, 15, 15, ),
+			}, {
+				u'color' : ( 139, 137, 145, ),
+			},
+		]
+
+	
 	def testSimplestUnification(self):
 		ret = self.axpress.read_translate("""
 			x[test.p][test.p] = 1
@@ -429,7 +446,7 @@ class AxpressTestCase(unittest.TestCase):
 			color[axpress.is] = "red"
 			color[html.color] = _c
 		""")
-		p('testSimpleUnification', ret)
+		#p('testSimpleUnification', ret)
 		assert ret == [
 			{
 				u'c' : "FF0000"
@@ -444,7 +461,7 @@ class AxpressTestCase(unittest.TestCase):
 			color[color.invert] = icolor
 			icolor[html.color] = _ic
 		""")
-		p('testInverseFunction', ret)
+		#p('testInverseFunction', ret)
 		assert ret == [
 			{
 				u'ic' : "FF0000"
@@ -457,7 +474,7 @@ class AxpressTestCase(unittest.TestCase):
 			x[axpress.is] = "files matching pictures/*.jpg"
 			x[display.html] = _html
 		""")
-		p('testStringQuery', ret)
+		#p('testStringQuery', ret)
 		assert ret == [
 			{
 				u'_html' : "<ul><li>xxx.jpg<li>yyy.jpg</ul>"
