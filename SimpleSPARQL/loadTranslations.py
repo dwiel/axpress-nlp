@@ -570,7 +570,7 @@ def loadTranslations(axpress, n) :
 			#image.pixel(thumb, 0, 0) = pixel
 			#pixel[pil.color] = color
 		#""",
-		#n.meta.constant_vars : ['image', 'color', 'thumb', 'pixel', 'bnode1', 'bnode2'],
+		#n.meta.constant_vars : ['image'],
 		##n.meta.constant_vars : ['image'],
 	#})
 	

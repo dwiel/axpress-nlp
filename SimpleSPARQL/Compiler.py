@@ -296,6 +296,7 @@ class Compiler :
 		if len(pattern) == 0 and root:
 			return True, [Bindings()]
 		
+		# OPTIMIZATION
 		# check that all of the translation inputs match part of the query
 		if reqd_triples != False:
 			for triple in pattern :
@@ -475,6 +476,9 @@ class Compiler :
 							   name in output_triple_vars
 					)
 					
+					# used in a couple places later on
+					output_lit_vars = find_vars(translation[n.meta.output], is_lit_var)
+					
 					# unify output_triples with query
 					output_matches, output_bindings_set = self.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
 					if output_matches :
@@ -496,20 +500,33 @@ class Compiler :
 								#output_bindings[k] = n.out_lit_var[k+'_out_'+str(self.next_num())]
 						
 						# if var is a lit var in the output_triples, then its output bindings
-						# must bind it to a new value since it will be computed and set by
+						# must bind it to a new variable since it will be computed and set by
 						# the translation function and may not have the same value any more
-						# WARNING: I think this menas that find_bindings might not do the 
+						# WARNING: I think this means that find_bindings might not do the 
 						# right thing if it thinks that it can bind whatever it wants to 
-						# lit_vars
-						#for var in find_vars(translation[n.meta.output], is_lit_var) :
-							#p('output_bindings['+var+']', output_bindings[var])
-							#output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
-					
+						# lit_vars.  lit_vars for example shouldn't bind to literal values
+						for var in output_lit_vars :
+							output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
+						
 					# generate the new query by adding the output triples with 
 					# output bindings substituted in
 					new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
 					new_query = copy.copy(query)
 					new_query.extend(new_triples)
+					
+					# remove output_bindings which are not constant_vars or lit_vars (in
+					# the translation's output triples.  An example of an instance when
+					# a variable would be in output_bindings that we would remove here is
+					# when an output_triple has normal variables which are not used in 
+					# the input, but also aren't bound to anything by the translation fn.
+					# we want to know if that variable binds to anything for creating 
+					# new_triples above, but as far as the evaluator is concerned, it has
+					# no value and thus no output binding
+					output_bindings = {
+						var: binding for var, binding in output_bindings.iteritems()
+						if var in output_lit_vars or
+						   var in translation[n.meta.constant_vars]
+					}
 					
 					p('new_query', new_query)
 					p('output_bindings', output_bindings)
@@ -740,8 +757,9 @@ class Compiler :
 			var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
 			p('var_triples', var_triples)
 			p("step['new_query']", step['new_query'])
-			if True : # if old
+			if False : # if old
 				found_solution = self.find_solution(var_triples, step['new_query'])
+				p('found_solution', found_solution)
 			else :
 				found_bindings, bindings_set = self.find_bindings(step['new_query'], var_triples, [], False)
 				p('bindings_set', bindings_set)
@@ -754,6 +772,7 @@ class Compiler :
 								found_bindings_for.add(k)
 						if len(found_bindings_for) == len(self.reqd_bound_vars) :
 							found_solution = {n.var[name] : v for name, v in bindings.iteritems()}
+				p('found_solution', found_solution)
 			
 			if found_solution :
 				print "FOUND SOLUTION"
