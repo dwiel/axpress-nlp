@@ -1047,6 +1047,33 @@ def loadTranslations(axpress, n) :
 		""",
 	})
 	
+	# STRING MUSINGS
+	"""
+	with this method, the output isn't so much an assertion that the output is
+	true given the input, but that it could be true and we should continue 
+	exploring with some new information to see if it is.
+	
+	it is possible that this kind of search will require that the compiler is more
+	precise than it currently is.  It might need to do possible cases, or it might
+	need to support quick fns, which are cheaper to evaluate during compilation 
+	than registering as possible and dealing with later.  These will obviously
+	need to also be free of side-effects
+	"""
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			author[axpress.is] = "author of %book%"
+		""",
+		n.meta.output : """
+			# auto-created by above string match:
+			book[axpress.is] = "%book%"
+			# end auto-created by above string match:
+			book[freebase.type] = '/book/written_work'
+			book[freebase./book/written_work/author] = author
+		""",
+	})
+	
+	
 	axpress.register_translation({
 		n.meta.name : '',
 		n.meta.input : """
