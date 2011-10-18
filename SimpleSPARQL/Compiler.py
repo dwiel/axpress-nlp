@@ -478,8 +478,7 @@ class Compiler :
 					if output_matches :
 						# TODO: fix this, we should iterate over output_bindings_sets
 						output_bindings = output_bindings_set[0]
-						if len(output_bindings_set) > 1 :
-							print "WARNING: multiple ways this might bind ..."
+						assert len(output_bindings_set) <= 1
 						
 						# if an output binding is to an out_lit_var, than we need to change
 						# it to a simple lit_var.  This is so that later, we can look for
