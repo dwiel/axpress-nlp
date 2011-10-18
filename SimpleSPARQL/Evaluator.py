@@ -31,8 +31,8 @@ class Evaluator :
 		input_bindings = step['input_bindings']
 		output_bindings = step['output_bindings']
 		
-		#p('input_bindings',input_bindings)
-		#p('output_bindings',output_bindings)
+		p('input_bindings',input_bindings)
+		p('output_bindings',output_bindings)
 		
 		# substitute any values in the incoming bindings into the input_bindings
 		new_input_bindings = {}
@@ -43,7 +43,8 @@ class Evaluator :
 				new_input_bindings[var] = input_bindings[var]
 		input_bindings = new_input_bindings
 		
-		#p('input_bindings',input_bindings)
+		p('incoming_bindings',incoming_bindings)
+		p('input_bindings',input_bindings)
 		
 		ret = step['translation'][self.n.meta.function](input_bindings)
 		if ret is not None:

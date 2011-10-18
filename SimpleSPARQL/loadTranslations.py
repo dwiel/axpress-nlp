@@ -559,53 +559,11 @@ def loadTranslations(axpress, n) :
 		n.meta.constant_vars : ['pixel'],
 	})
 	
-	"""
-	create translation
-		input:
-			image[pil.image] = _pil_image
-		function: (compiled? read translate)
-			image.thumbnail(image, 1, 1) = thumb
-			image.pixel(thumb, 0, 0) = _color
-		output:
-			image[image.average_color] = _color
-	"""
-	def image_average_color(vars):
-		print 'vars',vars
-		# damn you says the logger and likely many others
-		ret = axpress.read_translate("""
-			image[pil.image] = pil_image
-			image.thumbnail(image, 1, 1) = thumb
-			image.pixel(thumb, 0, 0) = pixel
-			pixel[pil.color] = _color
-		""", vars)
-		return ret
-	axpress.register_translation({
-		n.meta.name : 'image average color',
-		n.meta.input : """
-			image[pil.image] = _pil_image
-		""",
-		n.meta.output : """
-			image[image.average_color] = _color
-		""",
-		n.meta.function : image_average_color,
-		n.meta.constant_vars : ['image'],
-	})
-	
-	
 	#axpress.register_translation({
 		#n.meta.name : 'image average color',
 		#n.meta.input : """
 			#image[pil.image] = _pil_image
 		#""",
-		##n.meta.output : """
-			##image[image.average_color] = _color
-			##### this needs true unification ... or does it?  I think this may be 
-			##### something else entirely
-			##image[pil.image] = pil_image
-			##image.thumbnail(image, 1, 1) = thumb
-			##image.pixel(thumb, 0, 0) = pixel
-			##pixel[pil.color] = _color
-		##""",
 		#n.meta.output : """
 			#image[image.average_color] = color
 			#image.thumbnail(image, 1, 1) = thumb
@@ -615,7 +573,7 @@ def loadTranslations(axpress, n) :
 		#n.meta.constant_vars : ['image', 'color', 'thumb', 'pixel', 'bnode1', 'bnode2'],
 		##n.meta.constant_vars : ['image'],
 	#})
-
+	
 	
 	
 	#def color_distance(vars):
@@ -957,6 +915,21 @@ def loadTranslations(axpress, n) :
 		n.meta.constant_vars : ['color'],
 		n.meta.function : red,
 	})
+	
+	"""
+	sum of %number% and %number%
+	fn : number + number
+	
+	x[axpress.is] = "sum of %number% and %number%"
+	=>
+	x[axpress.is] = _sum
+	
+	x[
+	
+	# there is how the strings percolate down through the translations
+	# and
+	# there is how the string is input from the user
+	"""
 	
 	def green(vars) :
 		vars['c'] = "00FF00"
