@@ -119,7 +119,6 @@ class Compiler :
 				else :
 					return True
 			elif is_out_lit_var(value) :
-				#print 'does this happen?',prettyquery(value),prettyquery(qvalue)
 				self.debugp('out_lit_var', value, qvalue)
 				# not often ... probably only in the if matches(q,v) or (v,q) ...
 				if is_lit_var(qvalue) :
@@ -128,6 +127,8 @@ class Compiler :
 					return False
 				else :
 					return True
+		elif is_out_lit_var(qvalue) :
+			return True
 		#if isstr(value) and isstr(qvalue) :
 			#if self.string_matches(value, qvalue) :
 				#return True
@@ -179,18 +180,60 @@ class Compiler :
 		
 		return bindings
 	
-	def conflicting_bindings(self, a, b) :
+	def merge_bindings(self, a, b) :
 		"""
 		a and b are dictionaries.  Returns True if there are keys which are in 
 		both a and b, but have different values.  Used in unification
 		"""
+		# WARNING: this should probably return the new binding so that is_out_lit_var
+		# never clobbers not is_any_var
+		new_bindings = Bindings()
 		for k, v in a.iteritems() :
 			if k in b and b[k] != v :
-				if self.values_match(b[k], v) or self.values_match(v, b[k]):
-					return True
-				return True
-		return False
+				if is_out_lit_var(b[k]) and not is_any_var(v) :
+					new_bindings[k] = v
+				elif not is_any_var(b[k]) and is_out_lit_var(v) :
+					new_bindings[k] = b[k]
+				else :
+					return False
+			else :
+				new_bindings[k] = v
+		
+		# add bindings whose keys are in b, but not a
+		for k, v in b.iteritems() :
+			if k not in new_bindings :
+				new_bindings[k] = v
+		
+		# if a or b are Bindings objects, merge their matches_reqd_fact values
+		new_bindings.matches_reqd_fact = (
+			(isinstance(a, Bindings) and a.matches_reqd_fact)
+			or
+			(isinstance(b, Bindings) and b.matches_reqd_fact)
+		)
+		
+		return new_bindings
 	
+	def merge_bindings_sets(self, a, b) :
+		# see if any of the next_bindings fit with the existing bindings
+		new_bindings = []
+		for bbinding in b :
+			for abinding in a :
+				new_binding = self.merge_bindings(abinding, bbinding)
+				if new_binding != False :
+					# WARNING: this isn't going to copy the values of the bindings!!!
+					if new_binding not in new_bindings :
+						new_bindings.append(new_binding)
+				elif new_binding == self.MAYBE :
+					# WARNING: this isn't going to copy the values of the bindings!!!
+					new_binding.possible = True
+					if new_binding not in new_bindings :
+						new_bindings.append(new_binding)
+					matches = self.MAYBE
+				else :
+					pass # binding conflicted
+		
+		return new_bindings
+
 	def bind_vars(self, translation, facts, reqd_facts, initial_bindings = {}) :
 		"""
 		@arg translation is a list of triples (the input part of the translation)
@@ -204,9 +247,6 @@ class Compiler :
 			bindings is a list of bindings for var to value
 		"""
 		matches = True
-		#p('translation',translation)
-		#p('facts',facts)
-		#p('reqd_facts',reqd_facts)
 		
 		# loop through each triple.  find possible bindings for each triple.  If 
 		# this triple's bindings conflict with previous triple's bindings then 
@@ -215,44 +255,26 @@ class Compiler :
 		# technically, there should be a split there so that we return both sets
 		# of possible bindings rather than just the first one.
 		# WARNING: likely bug,  See above comment
-		bindings = [Bindings(initial_bindings)]
+		bindings = [Bindings()]
 		for ttriple in translation :
 			possible_bindings = self.find_bindings_for_triple(ttriple, facts, reqd_facts)
 			
-			# see if any of the next_bindings fit with the existing bindings
-			new_bindings = []
-			found_binding = False
-			for pbinding in possible_bindings :
-				# if there are no values in bindings that already have some other 
-				# value in bindings 
-				for binding in bindings :
-					conflicting = self.conflicting_bindings(binding, pbinding)
-					if not conflicting :
-						# WARNING: this isn't going to copy the values of the bindings!!!
-						new_binding = copy.copy(binding)
-						new_binding.update(pbinding)
-						if new_binding not in new_bindings :
-							new_bindings.append(new_binding)
-							found_binding = True
-					elif conflicting == self.MAYBE :
-						# WARNING: this isn't going to copy the values of the bindings!!!
-						new_binding = Bindings(binding, possible = True)
-						new_binding.update(pbinding)
-						if new_binding not in new_bindings :
-							new_bindings.append(new_binding)
-							found_binding = True
-						matches = self.MAYBE
-					else :
-						pass # binding conflicted
+			new_bindings = self.merge_bindings_sets(bindings, possible_bindings)
 			
-			# in output unification reqd_facts will be False - in that case, we don't
-			# care if every triple binds
-			if reqd_facts != False and not found_binding :
-				return False, []
 			if len(new_bindings) > 0 :
 				bindings = new_bindings
+			else :
+				# in output unification reqd_facts will be False - in that case, we don't
+				# care if every triple binds
+				if reqd_facts != False :
+					return False, []
 		
-		# get a set of all vars
+		# merge with initial_bindings after collecting bindings from the facts.  It
+		# is more complex to start with the initial_bindings than to end with them
+		if initial_bindings :
+			bindings = self.merge_bindings_sets(bindings, [initial_bindings])
+		
+		# get a set of all vars used in the translation
 		vars = find_vars(translation)
 		
 		# if there are no vars, this does still match, but there are no bindings
@@ -265,12 +287,12 @@ class Compiler :
 		if reqd_facts != False:
 			bindings = [binding for binding in bindings if len(binding) == len(vars) and binding.matches_reqd_fact]
 		
-		# if there are no bindings (and there are vars), failed to find a match
+		# if there are no bindings, failed to find a match
 		if len(bindings) == 0 :
 			return False, []
 		
 		return matches, bindings
-		
+	
 	def contains(self, triples, value) :
 		for triple in triples :
 			for v in triple :
@@ -479,11 +501,16 @@ class Compiler :
 					# used in a couple places later on
 					output_lit_vars = find_vars(translation[n.meta.output], is_lit_var)
 					
+					p('input_bindings', input_bindings)
+					p('initial_bindings', initial_bindings)
+					
 					# unify output_triples with query
 					output_matches, output_bindings_set = self.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
 					if output_matches :
+						print 'output unification'
 						# TODO: fix this, we should iterate over output_bindings_sets
 						output_bindings = output_bindings_set[0]
+						p('output_bindings_set', output_bindings_set)
 						assert len(output_bindings_set) <= 1
 						
 						# if an output binding is to an out_lit_var, than we need to change
@@ -499,17 +526,29 @@ class Compiler :
 							#if is_out_lit_var(v) :
 								#output_bindings[k] = n.out_lit_var[k+'_out_'+str(self.next_num())]
 						
-						# if var is a lit var in the output_triples, then its output bindings
-						# must bind it to a new variable since it will be computed and set by
-						# the translation function and may not have the same value any more
-						# WARNING: I think this means that find_bindings might not do the 
-						# right thing if it thinks that it can bind whatever it wants to 
-						# lit_vars.  lit_vars for example shouldn't bind to literal values
-						for var in output_lit_vars :
-							output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
-						
+					else :
+						print "no output unification"
+						output_bindings = initial_bindings
+					
+					# if var is a lit var in the output_triples, then its output bindings
+					# must bind it to a new variable since it will be computed and set by
+					# the translation function and may not have the same value any more
+					# WARNING: I think this means that find_bindings might not do the 
+					# right thing if it thinks that it can bind whatever it wants to 
+					# lit_vars.  lit_vars for example shouldn't bind to literal values
+					for var in output_lit_vars :
+						output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
+					
+					p('output_bindings', output_bindings)
+					
+					for var in find_vars(translation[n.meta.output], is_var) :
+						print var
+						if var not in output_bindings :
+							output_bindings[var] = n.var[var+'_'+str(self.next_num())]
+					
 					# generate the new query by adding the output triples with 
 					# output bindings substituted in
+					p('output_bindings', output_bindings)
 					new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
 					new_query = copy.copy(query)
 					new_query.extend(new_triples)
@@ -528,6 +567,7 @@ class Compiler :
 						   var in translation[n.meta.constant_vars]
 					}
 					
+					p('new_triples', new_triples)
 					p('new_query', new_query)
 					p('output_bindings', output_bindings)
 					
@@ -675,8 +715,17 @@ class Compiler :
 					found_var_triples.append(triple)
 					fact_triples.append(ftriple)
 		
-		# make bindings just to the variable name not the full URI
-		bindings = dict([(var_name(var), var_name(value)) for var, value in bindings.iteritems()])
+		# make bindings just to the variable name not the full URI (if the value of
+		# the binding is a varialbe, make sure it is in the n.var namespace)
+		# at one point, just the variable name was used, but sometimes the compiler
+		# can actually find hard values for the bindings (no evaluation required)
+		# and so we must use a full uri
+		def normalize(value) :
+			if is_any_var(value) :
+				return n.var[var_name(value)]
+			else :
+				return value
+		bindings = dict([(var_name(var), normalize(value)) for var, value in bindings.iteritems()])
 		return bindings, found_var_triples, fact_triples
 	
 	#@logger
@@ -761,14 +810,16 @@ class Compiler :
 				found_solution = self.find_solution(var_triples, step['new_query'])
 				p('found_solution', found_solution)
 			else :
-				found_bindings, bindings_set = self.find_bindings(step['new_query'], var_triples, [], False)
+				initial_bindings = {var: n.var[var] for var in find_vars(var_triples, is_var)}
+				found_bindings, bindings_set = self.find_bindings(step['new_query'], var_triples, [], False, initial_bindings = initial_bindings)
 				p('bindings_set', bindings_set)
 				found_solution = False
 				if found_bindings :
 					for bindings in bindings_set :
 						found_bindings_for = set()
 						for k, v in bindings.iteritems() :
-							if is_lit_var(v) :
+							# bindings only count if they are a lit var, or a value
+							if is_lit_var(v) or not is_any_var(v) :
 								found_bindings_for.add(k)
 						if len(found_bindings_for) == len(self.reqd_bound_vars) :
 							found_solution = {n.var[name] : v for name, v in bindings.iteritems()}
@@ -795,6 +846,7 @@ class Compiler :
 			if found_solution :
 				compile_node['guaranteed'].append(step)
 				compile_node_found_solution = True
+				#break
 		
 		# don't follow the possible translations yet, just add then to a stack to
 		# follow once all guaranteed translations have been found

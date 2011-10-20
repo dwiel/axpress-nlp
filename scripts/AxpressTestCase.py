@@ -400,17 +400,17 @@ class AxpressTestCase(unittest.TestCase):
 	
 	def testSpecialUnification(self):
 		ret = self.axpress.read_translate("""
-			image[file.pattern] = "pictures/*.jpg"
-			image.thumbnail(image, 1, 1) = thumb
-			image.pixel(thumb, 0, 0) = pixel
-			pixel[pil.color] = _color
+			i[file.pattern] = "pictures/*.jpg"
+			image.thumbnail(i, 1, 1) = t
+			image.pixel(t, 0, 0) = p
+			p[pil.color] = _c
 		""")
-		#p('testUnification', ret)
+		p('testSpecialUnification', ret)
 		assert ret == [
 			{
-				u'color' : ( 16, 15, 15, ),
+				u'c' : ( 16, 15, 15, ),
 			}, {
-				u'color' : ( 139, 137, 145, ),
+				u'c' : ( 139, 137, 145, ),
 			},
 		]
 
@@ -420,6 +420,7 @@ class AxpressTestCase(unittest.TestCase):
 			x[test.p][test.p] = 1
 			x[test.q][test.q] = _one
 		""")
+		p('ret', ret)
 		assert ret == [
 			{
 				u'one' : 1

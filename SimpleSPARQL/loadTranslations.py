@@ -559,20 +559,20 @@ def loadTranslations(axpress, n) :
 		n.meta.constant_vars : ['pixel'],
 	})
 	
-	#axpress.register_translation({
-		#n.meta.name : 'image average color',
-		#n.meta.input : """
-			#image[pil.image] = _pil_image
-		#""",
-		#n.meta.output : """
-			#image[image.average_color] = color
-			#image.thumbnail(image, 1, 1) = thumb
-			#image.pixel(thumb, 0, 0) = pixel
-			#pixel[pil.color] = color
-		#""",
+	axpress.register_translation({
+		n.meta.name : 'image average color',
+		n.meta.input : """
+			image[pil.image] = _pil_image
+		""",
+		n.meta.output : """
+			image[image.average_color] = color
+			image.thumbnail(image, 1, 1) = thumb
+			image.pixel(thumb, 0, 0) = pixel
+			pixel[pil.color] = color
+		""",
+		n.meta.constant_vars : ['image'],
 		#n.meta.constant_vars : ['image'],
-		##n.meta.constant_vars : ['image'],
-	#})
+	})
 	
 	
 	
@@ -1145,11 +1145,12 @@ def loadTranslations(axpress, n) :
 		""",
 		n.meta.output : """
 			x[test.q][test.q] = y
+			x[test.q][test.r] = 10000
 		""",
 		# note that y isn't a constant var ... right now it is because y in the 
 		# input will likely be bound to a different variable than y in the output,
 		# so it isn't constant.  The value is constant, 
-		n.meta.constant_vars : ['x'],
+		n.meta.constant_vars : ['x', 'y'],
 	})
 
 	axpress.register_translation({

@@ -74,7 +74,9 @@ class Evaluator :
 					if is_any_var(output_bindings[var]) :
 						new_bindings[var_name(output_bindings[var])] = value
 					else :
-						print 'hmm should I do something?',output_bindings[var],value
+						assert output_bindings[var] == value
+						new_bindings[var] = value
+						print 'hmm should I do something?',var, output_bindings[var],value
 
 			#check to make sure everything was bound that was supposed to be
 			if len(new_bindings) != len(output_bindings) :
@@ -200,12 +202,15 @@ class Evaluator :
 				#p('combination_bindings_set after',combination_bindings_set)
 				#p('translation[partial_bindings]',translation['step']['partial_bindings'])
 			
-			#p('combination_bindings_set',combination_bindings_set)
-			#p('solution_bindings',solution_bindings)
+			p('combination_bindings_set',combination_bindings_set)
+			p('solution_bindings',solution_bindings)
 			for bindings in self.each_binding_set(combination_bindings_set) :
 				solution = {}
 				for var, binding in solution_bindings.iteritems() :
-					solution[var] = bindings[binding]
+					if is_var(binding) :
+						solution[var] = bindings[var_name(binding)]
+					else :
+						solution[var] = binding
 					#if is_var(binding) :
 						#solution[var_name(var)] = binding
 					#else :

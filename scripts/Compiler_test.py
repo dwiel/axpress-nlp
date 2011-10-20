@@ -23,6 +23,7 @@ n.bind('lastfm', '<http://dwiel.net/axpress/lastfm/0.1/>')
 n.bind('rdfs', '<http://www.w3.org/2000/01/rdf-schema#>')
 n.bind('test', '<http://dwiel.net/express/test/0.1/>')
 n.bind('bound_var', '<http://dwiel.net/axpress/bound_var/0.1/>')
+n.bind('foo', '<http://dwiel.net/express/foo/0.1/>')
 
 a = n.rdfs.type
 
@@ -187,16 +188,17 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 		#""", input = ['x'], output = ['div'])
 		#print 'ret',prettyquery(ret)
 	
-	def test_compile3(self):
-		ret = compiler.compile("""
-			image[file.filename] = "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"
-			thumb = image.thumbnail(image, 4, 4)
-			thumb_image = thumb[pil.image]
-		""", ['thumb_image'])
-		print 'ret',prettyquery(ret)
-		assert ret is not False
+	#def test_compile3(self):
+		#ret = compiler.compile("""
+			#image[file.filename] = "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"
+			#thumb = image.thumbnail(image, 4, 4)
+			#thumb_image = thumb[pil.image]
+		#""", ['thumb_image'])
+		#print 'ret',prettyquery(ret)
+		#assert ret is not False
 	
 	def test_find_bindings(self):
+		# standard find_bindings
 		query = [
 			[n.var.image, n.image.average_color, n.out_lit_var.color]
 		]
@@ -204,91 +206,165 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 			[n.var.image, n.image.average_color, n.var.color],
 			[n.var.image, n.image.new_property, n.var.new_color],
 		]
-		ret = compiler.find_bindings(query, output_triples, [], [])
+		ret = compiler.find_bindings(query, output_triples, [], False)
 		p('ret', ret)
-		ret = compiler.bind_vars(output_triples, query, [], {})
+		assert ret == (True, [
+			{
+				u'color' : n.out_lit_var.color,
+				u'image' : n.var.image,
+			},
+		])
+		ret = compiler.bind_vars(output_triples, query, False, {})
 		p('ret', ret)
+		assert ret == (True, [
+			{
+				u'color' : n.out_lit_var.color,
+				u'image' : n.var.image,
+			},
+		])
 	
-	def test_next_steps1(self):
-		compiler.reqd_bound_vars = [n.var.color]
-		ret = compiler.next_steps([
-				[ n.var.image, n.file.pattern, 'pictures/*.jpg', ],
-				[ n.var.bnode1, n.call.arg1, n.var.image, ],
-				[ n.var.bnode1, n.call.arg2, 1, ],
-				[ n.var.bnode1, n.call.arg3, 1, ],
-				[ n.var.bnode1, n.image.thumbnail, n.var.thumb, ],
-				[ n.var.bnode2, n.call.arg1, n.var.thumb, ],
-				[ n.var.bnode2, n.call.arg2, 0, ],
-				[ n.var.bnode2, n.call.arg3, 0, ],
-				[ n.var.bnode2, n.image.pixel, n.var.pixel, ],
-				[ n.var.pixel, n.pil.color, n.out_lit_var.color, ],
-				[ n.var.image, n.file.filename, n.lit_var.out_filename_out_1, ],
-				[ n.var.image, n.pil.image, n.lit_var.pil_image_out_7, ],
-				[ n.var.thumb, n.pil.image, n.lit_var.thumb_image_out_10, ],
-			],[],
-			[ u'color', ],
-			[
-				[ n.var.thumb, n.pil.image, n.lit_var.thumb_image_out_10, ],
-			],
-			False
-		)
-		p('ret', ret)
-		assert len(ret) == 2
-		assert ret[1] == []
-		assert ret[0][0] == {
-			'guaranteed' : [],
-			'input_bindings' : {
-				u'bnode1' : n.var.bnode2,
-				u'image' : n.var.thumb,
-				u'pil_image' : n.lit_var.thumb_image_out_10,
-				u'pixel' : n.var.pixel,
-				u'x' : 0,
-				u'y' : 0,
-			},
-			'new_query' : [
-				[ n.var.image, n.file.pattern, 'pictures/*.jpg', ],
-				[ n.var.bnode1, n.call.arg1, n.var.image, ],
-				[ n.var.bnode1, n.call.arg2, 1, ],
-				[ n.var.bnode1, n.call.arg3, 1, ],
-				[ n.var.bnode1, n.image.thumbnail, n.var.thumb, ],
-				[ n.var.bnode2, n.call.arg1, n.var.thumb, ],
-				[ n.var.bnode2, n.call.arg2, 0, ],
-				[ n.var.bnode2, n.call.arg3, 0, ],
-				[ n.var.bnode2, n.image.pixel, n.var.pixel, ],
-				[ n.var.pixel, n.pil.color, n.out_lit_var.color, ],
-				[ n.var.image, n.file.filename, n.lit_var.out_filename_out_1, ],
-				[ n.var.image, n.pil.image, n.lit_var.pil_image_out_7, ],
-				[ n.var.thumb, n.pil.image, n.lit_var.thumb_image_out_10, ],
-				[ n.var.pixel, n.pil.color, n.lit_var.color_out_3, ],
-			],
-			'new_triples' : [
-				[ n.var.pixel, n.pil.color, n.lit_var.color_out_3, ],
-			],
-			'output_bindings' : {
-				u'color' : n.lit_var.color_out_3,
-				u'pixel' : n.var.pixel,
-			},
-			'partial_bindings' : {
-			},
-			'partial_facts_triples' : [],
-			'partial_solution_triples' : [],
-			'possible' : [],
-			'translation' : {
-				n.meta.constant_vars : [ 'image', 'pixel', ],
-				n.meta.function : compiler.translations_by_name['image pixel'][n.meta.function],
-				n.meta.input : [
-					[ n.var.image, n.pil.image, n.lit_var.pil_image, ],
-					[ n.var.bnode1, n.call.arg1, n.var.image, ],
-					[ n.var.bnode1, n.call.arg2, n.lit_var.x, ],
-					[ n.var.bnode1, n.call.arg3, n.lit_var.y, ],
-					[ n.var.bnode1, n.image.pixel, n.var.pixel, ],
-				],
-				n.meta.name : 'image pixel',
-				n.meta.output : [
-					[ n.var.pixel, n.pil.color, n.lit_var.color, ],
-				],
-			},
+	def test_find_bindings2(self):
+		# try to find_bindings where we shouldn't be able to find any (given the 
+		# initial_bindings)
+		query = [
+			[n.var.x, n.foo.a, n.var.y],
+			[n.var.y, n.foo.b, n.var.z],
+		]
+		output_triples = [
+			[n.var.r, n.foo.a, n.var.s],
+			[n.var.s, n.foo.b, n.var.t],
+		]
+		initial_bindings = {
+			u'r' : n.var.y
 		}
+		ret = compiler.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
+		assert ret == (
+			False, []
+		)
+	
+	def test_bind_vars(self):
+		# try binding vars with extra data that doesn't need binding
+		translation = [
+			[ n.var.x, n.test.q, n.var.bnode1, ],
+			[ n.var.bnode1, n.test.q, n.var.y, ],
+			[ n.var.x, n.test.q, n.var.bnode2, ],
+			[ n.var.bnode2, n.test.r, 10000, ],
+		]
+		facts = [
+			[ n.var.x, n.test.p, n.var.bnode1, ],
+			[ n.var.bnode1, n.test.p, 1, ],
+			[ n.var.x, n.test.q, n.var.bnode2, ],
+			[ n.var.bnode2, n.test.q, n.out_lit_var.one, ],
+		]
+		reqd_facts = False
+		initial_bindings = {
+			u'x' : n.var.x,
+			u'y' : 1,
+		}
+		ret = compiler.bind_vars(translation, facts, reqd_facts, initial_bindings)
+		p('ret', ret)
+		assert ret == (True, [
+			{
+				u'bnode1' : n.var.bnode2,
+				u'bnode2' : n.var.bnode2,
+				u'x' : n.var.x,
+				u'y' : 1,
+			},
+		])
+
+
+	
+	def test_find_bindings_for_triple(self):
+		ttriple = [ n.var.bnode2, n.test.r, 10000, ]
+		facts = [
+			[ n.var.x, n.test.p, n.var.bnode1, ],
+			[ n.var.bnode1, n.test.p, 1, ],
+			[ n.var.x, n.test.q, n.var.bnode2, ],
+			[ n.var.bnode2, n.test.q, n.out_lit_var.one, ],
+		]
+		ret = compiler.find_bindings_for_triple(ttriple, facts, False)
+		assert ret == []
+	
+	#def test_next_steps1(self):
+		#compiler.reqd_bound_vars = [n.var.color]
+		#ret = compiler.next_steps([
+				#[ n.var.image, n.file.pattern, 'pictures/*.jpg', ],
+				#[ n.var.bnode1, n.call.arg1, n.var.image, ],
+				#[ n.var.bnode1, n.call.arg2, 1, ],
+				#[ n.var.bnode1, n.call.arg3, 1, ],
+				#[ n.var.bnode1, n.image.thumbnail, n.var.thumb, ],
+				#[ n.var.bnode2, n.call.arg1, n.var.thumb, ],
+				#[ n.var.bnode2, n.call.arg2, 0, ],
+				#[ n.var.bnode2, n.call.arg3, 0, ],
+				#[ n.var.bnode2, n.image.pixel, n.var.pixel, ],
+				#[ n.var.pixel, n.pil.color, n.out_lit_var.color, ],
+				#[ n.var.image, n.file.filename, n.lit_var.out_filename_out_1, ],
+				#[ n.var.image, n.pil.image, n.lit_var.pil_image_out_7, ],
+				#[ n.var.thumb, n.pil.image, n.lit_var.thumb_image_out_10, ],
+			#],[],
+			#[ u'color', ],
+			#[
+				#[ n.var.thumb, n.pil.image, n.lit_var.thumb_image_out_10, ],
+			#],
+			#False
+		#)
+		#p('ret', ret)
+		#assert len(ret) == 2
+		#assert ret[1] == []
+		#assert ret[0][0] == {
+			#'guaranteed' : [],
+			#'input_bindings' : {
+				#u'bnode1' : n.var.bnode2,
+				#u'image' : n.var.thumb,
+				#u'pil_image' : n.lit_var.thumb_image_out_10,
+				#u'pixel' : n.var.pixel,
+				#u'x' : 0,
+				#u'y' : 0,
+			#},
+			#'new_query' : [
+				#[ n.var.image, n.file.pattern, 'pictures/*.jpg', ],
+				#[ n.var.bnode1, n.call.arg1, n.var.image, ],
+				#[ n.var.bnode1, n.call.arg2, 1, ],
+				#[ n.var.bnode1, n.call.arg3, 1, ],
+				#[ n.var.bnode1, n.image.thumbnail, n.var.thumb, ],
+				#[ n.var.bnode2, n.call.arg1, n.var.thumb, ],
+				#[ n.var.bnode2, n.call.arg2, 0, ],
+				#[ n.var.bnode2, n.call.arg3, 0, ],
+				#[ n.var.bnode2, n.image.pixel, n.var.pixel, ],
+				#[ n.var.pixel, n.pil.color, n.out_lit_var.color, ],
+				#[ n.var.image, n.file.filename, n.lit_var.out_filename_out_1, ],
+				#[ n.var.image, n.pil.image, n.lit_var.pil_image_out_7, ],
+				#[ n.var.thumb, n.pil.image, n.lit_var.thumb_image_out_10, ],
+				#[ n.var.pixel, n.pil.color, n.lit_var.color_out_3, ],
+			#],
+			#'new_triples' : [
+				#[ n.var.pixel, n.pil.color, n.lit_var.color_out_3, ],
+			#],
+			#'output_bindings' : {
+				#u'color' : n.lit_var.color_out_3,
+				#u'pixel' : n.var.pixel,
+			#},
+			#'partial_bindings' : {
+			#},
+			#'partial_facts_triples' : [],
+			#'partial_solution_triples' : [],
+			#'possible' : [],
+			#'translation' : {
+				#n.meta.constant_vars : [ 'image', 'pixel', ],
+				#n.meta.function : compiler.translations_by_name['image pixel'][n.meta.function],
+				#n.meta.input : [
+					#[ n.var.image, n.pil.image, n.lit_var.pil_image, ],
+					#[ n.var.bnode1, n.call.arg1, n.var.image, ],
+					#[ n.var.bnode1, n.call.arg2, n.lit_var.x, ],
+					#[ n.var.bnode1, n.call.arg3, n.lit_var.y, ],
+					#[ n.var.bnode1, n.image.pixel, n.var.pixel, ],
+				#],
+				#n.meta.name : 'image pixel',
+				#n.meta.output : [
+					#[ n.var.pixel, n.pil.color, n.lit_var.color, ],
+				#],
+			#},
+		#}
 
 
 if __name__ == "__main__" :
