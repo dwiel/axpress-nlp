@@ -559,63 +559,21 @@ def loadTranslations(axpress, n) :
 		n.meta.constant_vars : ['pixel'],
 	})
 	
-	"""
-	create translation
-		input:
-			image[pil.image] = _pil_image
-		function: (compiled? read translate)
-			image.thumbnail(image, 1, 1) = thumb
-			image.pixel(thumb, 0, 0) = _color
-		output:
-			image[image.average_color] = _color
-	"""
-	def image_average_color(vars):
-		print 'vars',vars
-		# damn you says the logger and likely many others
-		ret = axpress.read_translate("""
-			image[pil.image] = pil_image
-			image.thumbnail(image, 1, 1) = thumb
-			image.pixel(thumb, 0, 0) = pixel
-			pixel[pil.color] = _color
-		""", vars)
-		return ret
 	axpress.register_translation({
 		n.meta.name : 'image average color',
 		n.meta.input : """
 			image[pil.image] = _pil_image
 		""",
 		n.meta.output : """
-			image[image.average_color] = _color
+			image[image.average_color] = color
+			image.thumbnail(image, 1, 1) = thumb
+			image.pixel(thumb, 0, 0) = pixel
+			pixel[pil.color] = color
 		""",
-		n.meta.function : image_average_color,
 		n.meta.constant_vars : ['image'],
+		#n.meta.constant_vars : ['image'],
 	})
 	
-	
-	#axpress.register_translation({
-		#n.meta.name : 'image average color',
-		#n.meta.input : """
-			#image[pil.image] = _pil_image
-		#""",
-		##n.meta.output : """
-			##image[image.average_color] = _color
-			##### this needs true unification ... or does it?  I think this may be 
-			##### something else entirely
-			##image[pil.image] = pil_image
-			##image.thumbnail(image, 1, 1) = thumb
-			##image.pixel(thumb, 0, 0) = pixel
-			##pixel[pil.color] = _color
-		##""",
-		#n.meta.output : """
-			#image[image.average_color] = color
-			#image.thumbnail(image, 1, 1) = thumb
-			#image.pixel(thumb, 0, 0) = pixel
-			#pixel[pil.color] = color
-		#""",
-		#n.meta.constant_vars : ['image', 'color', 'thumb', 'pixel', 'bnode1', 'bnode2'],
-		##n.meta.constant_vars : ['image'],
-	#})
-
 	
 	
 	#def color_distance(vars):
@@ -756,7 +714,7 @@ def loadTranslations(axpress, n) :
 		import glob
 		#vars['out_filename'] = glob.glob(vars['pattern'])
 		ret = [{'out_filename' : filename} for filename in glob.glob(vars['pattern'])]
-		print(vars['pattern'],ret)
+		#print(vars['pattern'],ret)
 		return ret
 	axpress.register_translation({
 		n.meta.name : 'glob glob',
@@ -958,6 +916,21 @@ def loadTranslations(axpress, n) :
 		n.meta.function : red,
 	})
 	
+	"""
+	sum of %number% and %number%
+	fn : number + number
+	
+	x[axpress.is] = "sum of %number% and %number%"
+	=>
+	x[axpress.is] = _sum
+	
+	x[
+	
+	# there is how the strings percolate down through the translations
+	# and
+	# there is how the string is input from the user
+	"""
+	
 	def green(vars) :
 		vars['c'] = "00FF00"
 	axpress.register_translation({
@@ -1074,6 +1047,33 @@ def loadTranslations(axpress, n) :
 		""",
 	})
 	
+	# STRING MUSINGS
+	"""
+	with this method, the output isn't so much an assertion that the output is
+	true given the input, but that it could be true and we should continue 
+	exploring with some new information to see if it is.
+	
+	it is possible that this kind of search will require that the compiler is more
+	precise than it currently is.  It might need to do possible cases, or it might
+	need to support quick fns, which are cheaper to evaluate during compilation 
+	than registering as possible and dealing with later.  These will obviously
+	need to also be free of side-effects
+	"""
+	axpress.register_translation({
+		n.meta.name : '',
+		n.meta.input : """
+			author[axpress.is] = "author of %book%"
+		""",
+		n.meta.output : """
+			# auto-created by above string match:
+			book[axpress.is] = "%book%"
+			# end auto-created by above string match:
+			book[freebase.type] = '/book/written_work'
+			book[freebase./book/written_work/author] = author
+		""",
+	})
+	
+	
 	axpress.register_translation({
 		n.meta.name : '',
 		n.meta.input : """
@@ -1145,11 +1145,12 @@ def loadTranslations(axpress, n) :
 		""",
 		n.meta.output : """
 			x[test.q][test.q] = y
+			x[test.q][test.r] = 10000
 		""",
 		# note that y isn't a constant var ... right now it is because y in the 
 		# input will likely be bound to a different variable than y in the output,
 		# so it isn't constant.  The value is constant, 
-		n.meta.constant_vars : ['x'],
+		n.meta.constant_vars : ['x', 'y'],
 	})
 
 	axpress.register_translation({

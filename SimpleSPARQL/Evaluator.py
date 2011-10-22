@@ -31,9 +31,10 @@ class Evaluator :
 		input_bindings = step['input_bindings']
 		output_bindings = step['output_bindings']
 		
-		p('input_bindings',input_bindings)
-		p('output_bindings',output_bindings)
-		p('incoming_bindings',incoming_bindings)
+		#p('step name', step['translation'][self.n.meta.name])
+		#p('input_bindings',input_bindings)
+		#p('output_bindings',output_bindings)
+		#p('incoming_bindings',incoming_bindings)
 		
 		# substitute any values in the incoming bindings into the input_bindings
 		new_input_bindings = {}
@@ -44,7 +45,7 @@ class Evaluator :
 				new_input_bindings[var] = input_bindings[var]
 		input_bindings = new_input_bindings
 		
-		#p('input_bindings',input_bindings)
+		#p('new_input_bindings',input_bindings)
 		
 		ret = step['translation'][self.n.meta.function](input_bindings)
 		if ret is not None:
@@ -73,7 +74,9 @@ class Evaluator :
 					if is_any_var(output_bindings[var]) :
 						new_bindings[var_name(output_bindings[var])] = value
 					else :
-						print 'hmm should I do something?',output_bindings[var],value
+						assert output_bindings[var] == value
+						new_bindings[var] = value
+						#print 'hmm should I do something?',var, output_bindings[var],value
 
 			#check to make sure everything was bound that was supposed to be
 			if len(new_bindings) != len(output_bindings) :
@@ -204,7 +207,10 @@ class Evaluator :
 			for bindings in self.each_binding_set(combination_bindings_set) :
 				solution = {}
 				for var, binding in solution_bindings.iteritems() :
-					solution[var] = bindings[binding]
+					if is_var(binding) :
+						solution[var] = bindings[var_name(binding)]
+					else :
+						solution[var] = binding
 					#if is_var(binding) :
 						#solution[var_name(var)] = binding
 					#else :
