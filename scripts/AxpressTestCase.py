@@ -84,20 +84,24 @@ class AxpressTestCase(unittest.TestCase):
 		#]
 	
 	def testTranslationReturnsMultipleValues(self):
+		""" note, at one time, thumb was included in the reqd_bound_vars, but
+		I'm not really sure why.  It doesn't really have any meaning.
+		"""
 		ret = self.axpress.read_translate("""
 			image[glob.glob] = "pictures/*.jpg"
 			thumb = image.thumbnail(image, 4, 4, image.antialias)
 			thumb[pil.image] = _thumb_image
-		""", reqd_bound_vars = ['thumb_image', 'thumb'])
-		print 'ret2',prettyquery(ret)
+		""", reqd_bound_vars = ['thumb_image'])
+		#""", reqd_bound_vars = ['thumb_image', 'thumb'])
+		#print 'ret2',prettyquery(ret)
 		for i, bindings in enumerate(ret) :
 			ret[i]['thumb_image'] = type(bindings['thumb_image'])
 		assert ret == [
 			{
-				'thumb' : n.out_var.thumb,
+				#'thumb' : n.out_var.thumb,
 				'thumb_image' : type_instance,
 			}, {
-				'thumb' : n.out_var.thumb,
+				#'thumb' : n.out_var.thumb,
 				'thumb_image' : type_instance,
 			}
 		]
@@ -389,7 +393,7 @@ class AxpressTestCase(unittest.TestCase):
 			image[file.pattern] = "pictures/*.jpg"
 			image[image.average_color] = _color
 		""")
-		p('testUnification', ret)
+		#p('testUnification', ret)
 		assert ret == [
 			{
 				u'color' : ( 16, 15, 15, ),
@@ -405,7 +409,7 @@ class AxpressTestCase(unittest.TestCase):
 			image.pixel(t, 0, 0) = p
 			p[pil.color] = _c
 		""")
-		p('testSpecialUnification', ret)
+		#p('testSpecialUnification', ret)
 		assert ret == [
 			{
 				u'c' : ( 16, 15, 15, ),
@@ -420,7 +424,7 @@ class AxpressTestCase(unittest.TestCase):
 			x[test.p][test.p] = 1
 			x[test.q][test.q] = _one
 		""")
-		p('ret', ret)
+		#p('ret', ret)
 		assert ret == [
 			{
 				u'one' : 1
@@ -474,7 +478,7 @@ class AxpressTestCase(unittest.TestCase):
 			#x[axpress.is] = "files matching pictures/*.jpg"
 			#x[display.html] = _html
 		#""")
-		##p('testStringQuery', ret)
+		#p('testStringQuery', ret)
 		#assert ret == [
 			#{
 				#u'_html' : "<ul><li>xxx.jpg<li>yyy.jpg</ul>"
@@ -486,7 +490,7 @@ class AxpressTestCase(unittest.TestCase):
 			color[axpress.is] = "red"
 			color[html.color] = _c
 		""")
-		p('testStringQuerySuperSimple', ret)
+		#p('testStringQuerySuperSimple', ret)
 		assert ret == [
 			{
 				u'c' : "FF0000"

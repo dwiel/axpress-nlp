@@ -714,7 +714,7 @@ def loadTranslations(axpress, n) :
 		import glob
 		#vars['out_filename'] = glob.glob(vars['pattern'])
 		ret = [{'out_filename' : filename} for filename in glob.glob(vars['pattern'])]
-		print(vars['pattern'],ret)
+		#print(vars['pattern'],ret)
 		return ret
 	axpress.register_translation({
 		n.meta.name : 'glob glob',

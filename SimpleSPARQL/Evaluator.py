@@ -31,10 +31,10 @@ class Evaluator :
 		input_bindings = step['input_bindings']
 		output_bindings = step['output_bindings']
 		
-		p('step name', step['translation'][self.n.meta.name])
-		p('input_bindings',input_bindings)
-		p('output_bindings',output_bindings)
-		p('incoming_bindings',incoming_bindings)
+		#p('step name', step['translation'][self.n.meta.name])
+		#p('input_bindings',input_bindings)
+		#p('output_bindings',output_bindings)
+		#p('incoming_bindings',incoming_bindings)
 		
 		# substitute any values in the incoming bindings into the input_bindings
 		new_input_bindings = {}
@@ -45,7 +45,7 @@ class Evaluator :
 				new_input_bindings[var] = input_bindings[var]
 		input_bindings = new_input_bindings
 		
-		p('new_input_bindings',input_bindings)
+		#p('new_input_bindings',input_bindings)
 		
 		ret = step['translation'][self.n.meta.function](input_bindings)
 		if ret is not None:
@@ -53,7 +53,7 @@ class Evaluator :
 		else :
 			result_bindings = input_bindings
 		
-		p('result_bindings',result_bindings)
+		#p('result_bindings',result_bindings)
 		
 		# bind the values resulting from the function call
 		# the translation might return a bindings_set so deal with that case
@@ -76,7 +76,7 @@ class Evaluator :
 					else :
 						assert output_bindings[var] == value
 						new_bindings[var] = value
-						print 'hmm should I do something?',var, output_bindings[var],value
+						#print 'hmm should I do something?',var, output_bindings[var],value
 
 			#check to make sure everything was bound that was supposed to be
 			if len(new_bindings) != len(output_bindings) :
@@ -202,8 +202,8 @@ class Evaluator :
 				#p('combination_bindings_set after',combination_bindings_set)
 				#p('translation[partial_bindings]',translation['step']['partial_bindings'])
 			
-			p('combination_bindings_set',combination_bindings_set)
-			p('solution_bindings',solution_bindings)
+			#p('combination_bindings_set',combination_bindings_set)
+			#p('solution_bindings',solution_bindings)
 			for bindings in self.each_binding_set(combination_bindings_set) :
 				solution = {}
 				for var, binding in solution_bindings.iteritems() :
