@@ -288,7 +288,7 @@ class Compiler :
 			bindings = self.merge_bindings_sets(bindings, [initial_bindings])
 		
 		# get a set of all vars used in the translation
-		vars = find_vars(translation).union(set([u'pattern']))
+		vars = find_vars(translation, find_string_vars = True)
 		
 		# if there are no vars, this does still match, but there are no bindings
 		if len(vars) == 0 :
@@ -503,7 +503,7 @@ class Compiler :
 					# input unification that must also hold true for output unification
 					# some of the initial_binding vars don't appear in the output triples
 					# so we can get rid of them
-					output_triple_vars = find_vars(translation[n.meta.output]).union([u'pattern'])
+					output_triple_vars = find_vars(translation[n.meta.output], find_string_vars = True)
 					output_triples = translation[n.meta.output]
 					initial_bindings = dict(
 						(unicode(name), bindings[name]) for name in translation[n.meta.constant_vars]

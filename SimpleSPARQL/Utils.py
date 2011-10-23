@@ -197,7 +197,7 @@ def sub_var_bindings_set(triples, bindings_set) :
 		yield sub_var_bindings(triples, bindings)
 
 
-def find_vars(query, is_a_var = is_any_var) :
+def find_vars(query, is_a_var = is_any_var, find_string_vars = False) :
 	"""
 	given a query, find the set of names of all vars, meta_vars and lit_vars
 	"""
@@ -206,11 +206,14 @@ def find_vars(query, is_a_var = is_any_var) :
 	except AttributeError :
 		if is_a_var(query) :
 			return set([var_name(query)])
+		elif find_string_vars and isstr(query) :
+			const, vars = split_string(query)
+			return set(unicode(v) for v in vars)
 		return set()
 	
 	vars = set()
 	for i in iter :
-		vars.update(find_vars(i, is_a_var))
+		vars.update(find_vars(i, is_a_var, find_string_vars))
 	return vars
 
 

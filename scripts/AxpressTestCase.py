@@ -481,8 +481,10 @@ class AxpressTestCase(unittest.TestCase):
 		p('testStringQuery', ret)
 		assert ret == [
 			{
-				
-			}
+				u'filename' : u'pictures/111.jpg',
+			}, {
+				u'filename' : u'pictures/foobar.jpg',
+			},
 		]
 	
 	#def testStringQuery(self):
