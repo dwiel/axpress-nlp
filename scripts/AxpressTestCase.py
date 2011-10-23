@@ -478,7 +478,7 @@ class AxpressTestCase(unittest.TestCase):
 			x[axpress.is] = "files matching pictures/*.jpg"
 			x[file.filename] = _filename
 		""")
-		p('testStringQuery', ret)
+		#p('testStringQuery', ret)
 		assert ret == [
 			{
 				u'filename' : u'pictures/111.jpg',

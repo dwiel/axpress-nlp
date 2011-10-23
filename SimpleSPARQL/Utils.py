@@ -97,14 +97,23 @@ def isstr(v) :
 import re
 
 def split_string(s) :
-  pat = '%[\w]+%'
-  return (
-    re.split(pat, s),
-    [p[1:-1] for p in re.findall(pat, s)]
-  )
+	"""
+	given a string, split it into two lists:
+	  the constant parts and the variables.  Here is an example:
+	  
+	split_string("abcd %xyz% efg") => (
+		["abcd ", " efg"], ['xyz']
+	)
+	"""
+	pat = '%[\w]+%'
+	return (
+		re.split(pat, s),
+		[p[1:-1] for p in re.findall(pat, s)]
+	)
 
 from itertools import izip_longest
 def merge_string(const, vars) :
+	""" merge_string operates oposite of split_string """
 	def interleave(const, vars) :
 		for c, v in izip_longest(const, vars, fillvalue='') :
 			yield c
