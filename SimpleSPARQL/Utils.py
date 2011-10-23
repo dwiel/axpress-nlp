@@ -91,9 +91,34 @@ def var(data) :
 		return data[len(n.var):]
 	return None
 
+def isstr(v) :
+	return isinstance(v, basestring) and not isinstance(v, URIRef)
+
+import re
+
+def split_string(s) :
+  pat = '%[\w]+%'
+  return (
+    re.split(pat, s),
+    [p[1:-1] for p in re.findall(pat, s)]
+  )
+
+from itertools import izip_longest
+def merge_string(const, vars) :
+	def interleave(const, vars) :
+		for c, v in izip_longest(const, vars, fillvalue='') :
+			yield c
+			yield v
+	return ''.join(interleave(const, vars))
+
 def sub_bindings_value(value, bindings) :
 	if is_any_var(value) and var_name(value) in bindings :
 		return bindings[var_name(value)]
+	elif isstr(value) :
+		# substitute bindings into string
+		const, vars = split_string(value)
+		vals = [bindings.get(var, '%'+var+'%') for var in vars]
+		return merge_string(const, vals)
 	return value
 	
 def sub_bindings_triple(triple, bindings) :

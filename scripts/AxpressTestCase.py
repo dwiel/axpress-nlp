@@ -471,8 +471,20 @@ class AxpressTestCase(unittest.TestCase):
 				u'ic' : "FF0000"
 			}
 		]
-
-
+	
+	
+	def testStringQuery(self):
+		ret = self.axpress.read_translate("""
+			x[axpress.is] = "files matching pictures/*.jpg"
+			x[file.filename] = _filename
+		""")
+		p('testStringQuery', ret)
+		assert ret == [
+			{
+				
+			}
+		]
+	
 	#def testStringQuery(self):
 		#ret = self.axpress.read_translate("""
 			#x[axpress.is] = "files matching pictures/*.jpg"

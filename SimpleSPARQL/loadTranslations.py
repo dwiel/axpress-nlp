@@ -424,7 +424,7 @@ def loadTranslations(axpress, n) :
 	})
 	
 	axpress.register_translation({
-		n.meta.name : '',
+		n.meta.name : 'string: images with tag',
 		n.meta.input : """
 			image[axpress.is] = "images tagged %tag%"
 		""",
@@ -437,7 +437,7 @@ def loadTranslations(axpress, n) :
 	def string_tag(vars):
 		vars['tag_out'] = vars['tag']
 	axpress.register_translation({
-		n.meta.name : '',
+		n.meta.name : 'string: tag?',
 		n.meta.input : """
 			tag[axpress.is] = "%tag%"
 		""",
@@ -453,9 +453,9 @@ def loadTranslations(axpress, n) :
 			file[axpress.is] = "files matching %pattern%"
 		""",
 		n.meta.output : """
-			file[glob.pattern] = "%pattern%"
+			file[glob.glob] = "%pattern%"
 		""",
-		n.meta.function : string_tag
+		n.meta.constant_vars : ['file', 'pattern']
 	})
 	
 	def display_html_filenames(vars) :
@@ -465,7 +465,7 @@ def loadTranslations(axpress, n) :
 		str += "</ul>"
 		return str
 	axpress.register_translation({
-		n.meta.name : '',
+		n.meta.name : 'filename as html',
 		n.meta.input : """
 			file[file.filename] = _filename
 		""",
