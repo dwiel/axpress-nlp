@@ -27,6 +27,7 @@ n.bind('bound_var', '<http://dwiel.net/axpress/bound_var/0.1/>')
 n.bind('flickr', '<http://dwiel.net/axpress/flickr/0.1/>')
 n.bind('amos', '<http://dwiel.net/axpress/amos/0.1/>')
 n.bind('test', '<http://dwiel.net/express/test/0.1/>')
+n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
 a = n.rdfs.type
 
 # for easy basic stupid matching type instance
@@ -478,12 +479,22 @@ class AxpressTestCase(unittest.TestCase):
 			x[axpress.is] = "files matching pictures/*.jpg"
 			x[file.filename] = _filename
 		""")
-		#p('testStringQuery', ret)
 		assert ret == [
 			{
 				u'filename' : u'pictures/111.jpg',
 			}, {
 				u'filename' : u'pictures/foobar.jpg',
+			},
+		]
+		
+	def testSimpleFreebaseStringQuery(self):
+		ret = self.axpress.read_translate("""
+			x[axpress.is] = "Gaviotas"
+			x[freebase.guid] = _guid
+		""")
+		assert ret == [
+			{
+				u'guid' : '9202a8c04000641f800000000c770bee'
 			},
 		]
 	

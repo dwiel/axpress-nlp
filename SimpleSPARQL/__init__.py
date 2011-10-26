@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from SimpleSPARQL import SimpleSPARQL
-from Axpress import Axpress
+from Axpress import Axpress, CompilerException
 from Translator import Translator
 from Compiler import Compiler
 from Evaluator import Evaluator

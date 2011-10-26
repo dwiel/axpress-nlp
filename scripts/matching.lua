@@ -164,13 +164,14 @@ function print_found_list(list)
 		return
 	end
 	for _, matchtype in ipairs(list.matchtypes) do
---		print("matchtype" .. _ .. ": '" .. matchtype .. "'")
+		print("matchtype" .. _ .. ": '" .. matchtype .. "'")
 	end
 end
 
 local function test()
 	print("matches 4 combinations")
 	local list = find_matches("abcXYdefXYghYZijYZkl", "%a%XY%a%YZ%a%")
+	print("list[1][1] " .. list[1][1])
 	print_found_list(list)
 	
 	print("matches 2 combinations")
@@ -218,7 +219,7 @@ local function test()
 	print_found_list(list)
 end
 
--- test()
+test()
 
 
 -- <root><query>emails from about 3 weeks ago</query><lastquery>emails</lastquery></root>

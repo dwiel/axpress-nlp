@@ -1029,23 +1029,23 @@ def loadTranslations(axpress, n) :
 		#""",
 	#})
 	
-	axpress.register_translation({
-		n.meta.name : '',
-		n.meta.input : """
-			# short hand
-			author[axpress.is] = "author of %book%"
-			# long hand
-			author[axpress.is] = "author of %s"
-			author[axpress.arg0] = book
-			# both require some kind of regexp ... the regexp will need to be testable
-			# through both the compiler and evaluator
-			book[freebase.mid] = _mid
-			book[freebase.type] = '/book/written_work'
-		""",
-		n.meta.output : """
-			book[freebase./book/written_work/author] = author
-		""",
-	})
+	#axpress.register_translation({
+		#n.meta.name : '',
+		#n.meta.input : """
+			## short hand
+			#author[axpress.is] = "author of %book%"
+			## long hand
+			#author[axpress.is] = "author of %s"
+			#author[axpress.arg0] = book
+			## both require some kind of regexp ... the regexp will need to be testable
+			## through both the compiler and evaluator
+			#book[freebase.mid] = _mid
+			#book[freebase.type] = '/book/written_work'
+		#""",
+		#n.meta.output : """
+			#book[freebase./book/written_work/author] = author
+		#""",
+	#})
 	
 	# STRING MUSINGS
 	"""
@@ -1060,19 +1060,61 @@ def loadTranslations(axpress, n) :
 	need to also be free of side-effects
 	"""
 	axpress.register_translation({
-		n.meta.name : '',
+		n.meta.name : 'author of book',
 		n.meta.input : """
-			author[axpress.is] = "author of %book%"
+			author[axpress.is] = "author of %book_str%"
 		""",
 		n.meta.output : """
-			# auto-created by above string match:
-			book[axpress.is] = "%book%"
-			# end auto-created by above string match:
+			# boilerplate
+			book[axpress.is] = "%book_str%"
+			
+			# think of this as a query rather than a set of facts (even though both
+			# are true)
+			book[freebase.type] = '/book/written_work'
+			book[freebase./book/written_work/author] = author
+			author[freebase.type] = '/book/author'
+		""",
+		n.meta.constant_vars : ['author', 'book_str'],
+	})
+	
+	def author_of_book(vars) :
+		vars['author_guid'] = "author" + vars['book_guid']
+	axpress.register_translation({
+		n.meta.name : 'author of book lookup',
+		n.meta.input : """
+			book[freebase.guid] = _book_guid
 			book[freebase.type] = '/book/written_work'
 			book[freebase./book/written_work/author] = author
 		""",
+		n.meta.output : """
+			author[freebase.type] = '/book/author'
+			author[freebase.guid] = _author_guid
+		""",
+		n.meta.constant_vars : ['author'],
+		n.meta.function : author_of_book
 	})
 	
+	def book_from_title(vars) :
+		if vars['title'] == 'Gaviotas' :
+			vars['guid'] = '9202a8c04000641f800000000c770bee'
+		else :
+			vars['guid'] = ''
+	def book_from_title_test(vars) :
+		if vars['title'] == 'Gaviotas' :
+			return True
+	axpress.register_translation({
+		n.meta.name : 'book from title',
+		n.meta.input : """
+			book[axpress.is] = "%title%"
+		""",
+		n.meta.input_function : book_from_title_test,
+		n.meta.output : """
+			book[freebase.guid] = _guid
+			book[freebase.type] = '/book/written_work'
+		""",
+		n.meta.function : book_from_title,
+		n.meta.constant_vars : ['book']
+	})
 	
 	axpress.register_translation({
 		n.meta.name : '',
