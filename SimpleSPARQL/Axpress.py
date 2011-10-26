@@ -5,6 +5,9 @@ from PrettyQuery import prettyquery
 
 import time, copy
 
+class CompilerException(Exception) :
+	pass
+
 class Axpress() :
 	def __init__(self, sparql, compiler, evaluator = None, multiline_parser = None, options = ['time']) :
 		self.sparql = sparql
@@ -61,7 +64,7 @@ class Axpress() :
 			if 'time' in self.options :
 				print 'compile time:',end_compile-begin_compile
 			if ret_comp == False :
-				raise Exception("Couldn't compile ... sorry I don't have more here")
+				raise CompilerException("Couldn't compile ... sorry I don't have more here")
 			begin_eval = time.time()
 			#for i in range(100) :
 			ret_eval = self.evaluator.evaluate(ret_comp)
