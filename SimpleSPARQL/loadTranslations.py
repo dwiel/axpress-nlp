@@ -1074,6 +1074,76 @@ def loadTranslations(axpress, n) :
 	})
 	
 	axpress.register_translation({
+		n.meta.name : 's albums by musician',
+		n.meta.input : """
+			album[axpress.is] = "albums by %artist_s%"
+		""",
+		n.meta.output : """
+			artist[axpress.is] = "%artist_s%"
+			album[freebase./music/album/artist] = artist
+			artist[freebase.type] = '/music/musical_group'
+		""",
+	})
+	
+	def lookup_albums_by_musician(vars) :
+		import freebase
+		result = freebase.mqlread({
+			"mid" : vars['mid'],
+			"type" : "/music/artist",
+			"album" : [{
+				"name" : None,
+				"mid" : None,
+			}]
+		})
+		print result
+		return result['album']
+	
+	axpress.register_translation({
+		n.meta.name : 'lookup albums by musician',
+		n.meta.input : """
+			artist[freebase.mid] = _mid
+			artist[freebase.type] = '/music/musical_group'
+			album[freebase./music/album/artist] = artist
+		""",
+		n.meta.output : """
+			album[freebase.mid] = _mid
+			album[freebase.name] = _name
+		""",
+		n.meta.function : lookup_albums_by_musician,
+	})
+	
+	def freebase_search(vars) :
+		import json
+		import urllib2, urllib
+		
+		ret = urllib2.urlopen("https://www.googleapis.com/freebase/v1/search", urllib.urlencode({
+			'query' : vars['title'],
+			'type' : vars['type'],
+			'html_escape' : 'false',
+			'html_encode' : 'false',
+			'limit' : 1})).read()
+		print ret
+		ret = json.loads(ret)
+		
+		if ret['status'] != '200 OK' :
+			raise Exception("freebase didn't work ...")
+		result = ret['result'][0]
+		if result['score'] > 30 :
+			vars['mid'] = result['mid']
+		
+	axpress.register_translation({
+		n.meta.name : 'freebase search',
+		n.meta.input : """
+			book[axpress.is] = "%title%"
+			book[freebase.type] = _type
+		""",
+		n.meta.output : """
+			book[freebase.mid] = _mid
+		""",
+		n.meta.function : freebase_search,
+	})
+	
+	axpress.register_translation({
 		n.meta.name : '',
 		n.meta.input : """
 			date_of_first_publication[axpress.is] = "first published %book_str%"

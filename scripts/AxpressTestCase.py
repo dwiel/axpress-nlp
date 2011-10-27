@@ -498,6 +498,26 @@ class AxpressTestCase(unittest.TestCase):
 			},
 		]
 	
+	def testSimpleFreebaseStringQuery2(self):
+		ret = self.axpress.read_translate("""
+			x[axpress.is] = "Nirvana"
+			x[freebase.type] = '/music/album'
+			x[freebase.mid] = _mid
+		""")
+		assert ret == [
+			{
+				u'mid' : '/m/01h89tx'
+			},
+		]
+	
+	def testSimpleFreebaseStringQuery3(self):
+		ret = self.axpress.read_translate("""
+			x[axpress.is] = "albums by nirvana"
+			x[freebase.mid] = _mid
+			x[freebase.name] = _name
+		""")
+		p('ret', ret)
+	
 	#def testStringQuery(self):
 		#ret = self.axpress.read_translate("""
 			#x[axpress.is] = "files matching pictures/*.jpg"
