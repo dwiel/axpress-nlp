@@ -58,7 +58,6 @@ def loadTranslations(axpress, n) :
 			'foo[test.sum] = _sum',
 		],
 		n.meta.function : _sum,
-		n.meta.constant_vars : ['foo'],
 	})
 	
 	def _add_one(vars) :
@@ -72,7 +71,6 @@ def loadTranslations(axpress, n) :
 			'foo[test.add_one] = _sum',
 		],
 		n.meta.function : _add_one,
-		n.meta.constant_vars : ['foo'],
 	})
 	
 	def _add_two(vars) :
@@ -86,7 +84,6 @@ def loadTranslations(axpress, n) :
 			'foo[test.add_two] = _sum',
 		],
 		n.meta.function : _add_two,
-		n.meta.constant_vars : ['foo'],
 	})
 	
 	"""
@@ -107,7 +104,6 @@ def loadTranslations(axpress, n) :
 			'uri[test.prod] = _prod',
 		],
 		n.meta.function : prod,
-		n.meta.constant_vars : ['uri'],
 	})
 	
 	def div(vars) :
@@ -122,7 +118,6 @@ def loadTranslations(axpress, n) :
 			'uri[test.div] = _div',
 		],
 		n.meta.function : div,
-		n.meta.constant_vars : ['uri'],
 	})
 
 	axpress.register_translation({
@@ -139,22 +134,21 @@ def loadTranslations(axpress, n) :
 		n.meta.expected_time : 0,
 	})
 	
-	# note: this doesn't actually work ...
-	# how could it?
-	def is_num(vars) :
-		vars['is_num'] = isinstance(vars['x'], (int, long, float))
-		print 'is_num:',vars['is_num']
-	axpress.register_translation({
-		n.meta.name : 'is_num',
-		n.meta.input : """
-			type.is_num(_x) = ?is_num
-		""",
-		n.meta.output : """
-			type.is_num(_x) = _is_num
-		""",
-		n.meta.function : is_num,
-		n.meta.constant_vars : ['x'],
-	})
+	## note: this doesn't actually work ...
+	## how could it?
+	#def is_num(vars) :
+		#vars['is_num'] = isinstance(vars['x'], (int, long, float))
+		#print 'is_num:',vars['is_num']
+	#axpress.register_translation({
+		#n.meta.name : 'is_num',
+		#n.meta.input : """
+			#type.is_num(_x) = ?is_num
+		#""",
+		#n.meta.output : """
+			#type.is_num(_x) = _is_num
+		#""",
+		#n.meta.function : is_num,
+	#})
 	
 		
 	## these compilations could translate into direct hashes writen to memory/disk
@@ -239,7 +233,6 @@ def loadTranslations(axpress, n) :
 		n.meta.scale : 100,
 		n.meta.expected_time : 1,
 		n.cache.expiration_length : 2678400, # 1 month in seconds
-		n.meta.constant_vars : ['artist', 'similar_artist'],
 	})
 	
 	def lastfm_user_recent_tracks(vars) :
@@ -299,7 +292,6 @@ def loadTranslations(axpress, n) :
 			#track[lastfm.date_uts] = _date_uts
 		#""",
 		#n.meta.function : lastfm_user_recent_tracks,
-		#n.meta.constant_vars : ['user', 'track', 'artist', 'album'],
 	#})
 	axpress.register_translation({
 		n.meta.name : "last.fm user's recent tracks",
@@ -315,7 +307,6 @@ def loadTranslations(axpress, n) :
 			track[lastfm.date_uts] = _date_uts
 		""",
 		n.meta.function : lastfm_user_recent_tracks,
-		n.meta.constant_vars : ['user', 'track', 'artist'],
 	})
 	
 	axpress.register_translation({
@@ -327,7 +318,6 @@ def loadTranslations(axpress, n) :
 		n.meta.output : """
 			track[lastfm.artist_name] = _artist_name
 		""",
-		n.meta.constant_vars : ['track'],
 	})
 	
 	axpress.register_translation({
@@ -338,7 +328,6 @@ def loadTranslations(axpress, n) :
 		n.meta.output : """
 			x[music.artist_name] = _name
 		""",
-		n.meta.constant_vars : ['x'],
 	})
 	
 	#axpress.register_translation({
@@ -350,7 +339,6 @@ def loadTranslations(axpress, n) :
 		#n.meta.output : """
 			#track[lastfm.artist_mbid] = _artist_mbid
 		#""",
-		#n.meta.constant_vars : ['track'],
 	#})
 	
 	#axpress.register_translation({
@@ -362,7 +350,6 @@ def loadTranslations(axpress, n) :
 		#n.meta.output : """
 			#track[lastfm.album_mbid] = _album_mbid
 		#""",
-		#n.meta.constant_vars : ['track'],
 	#})
 	
 	
@@ -420,7 +407,6 @@ def loadTranslations(axpress, n) :
 		n.meta.function : flickr_photos_search,
 		n.cache.expiration_length : 2678400,
 		n.meta.requires : 'flickrapi', # TODO: make this work
-		n.meta.constant_vars : ['image'],
 	})
 	
 	axpress.register_translation({
@@ -435,16 +421,16 @@ def loadTranslations(axpress, n) :
 	
 	# this terminates a string match and binds it as an output variable
 	def string_tag(vars):
-		vars['tag_out'] = vars['tag']
+		vars['tag_out'] = vars['tag_str']
 	axpress.register_translation({
 		n.meta.name : 'string: tag?',
 		n.meta.input : """
-			tag[axpress.is] = "%tag%"
+			tag[axpress.is] = "%tag_str%"
 		""",
 		n.meta.output : """
 			tag[axpress.is] = _tag_out
 		""",
-		n.meta.function : string_tag
+		n.meta.function : string_tag,
 	})
 	
 	axpress.register_translation({
@@ -455,7 +441,6 @@ def loadTranslations(axpress, n) :
 		n.meta.output : """
 			file[glob.glob] = "%pattern%"
 		""",
-		n.meta.constant_vars : ['file', 'pattern']
 	})
 	
 	def display_html_filenames(vars) :
@@ -489,7 +474,6 @@ def loadTranslations(axpress, n) :
 			image[pil.image] = _pil_image
 		""",
 		n.meta.function : load_image,
-		n.meta.constant_vars : ['image'],
 	})
 	
 	#def load_image2(vars) :
@@ -506,7 +490,6 @@ def loadTranslations(axpress, n) :
 			#image[pil.image2] = _pil_image
 		#""",
 		#n.meta.function : load_image2,
-		#n.meta.constant_vars : ['image'],
 	#})
 		
 	def image_thumbnail(vars) :
@@ -524,7 +507,6 @@ def loadTranslations(axpress, n) :
 			thumb[pil.image] = _thumb_image
 		""",
 		n.meta.function : image_thumbnail,
-		n.meta.constant_vars : ['image', 'thumb'],
 	})
 
 	def image_pixel(vars) :
@@ -541,7 +523,6 @@ def loadTranslations(axpress, n) :
 			pixel[pil.color] = _color
 		""",
 		n.meta.function : image_pixel,
-		n.meta.constant_vars : ['image', 'pixel'],
 	})
 	
 	def html_color(vars) :
@@ -556,7 +537,6 @@ def loadTranslations(axpress, n) :
 			pixel[html.color] = _html_color
 		""",
 		n.meta.function : html_color,
-		n.meta.constant_vars : ['pixel'],
 	})
 	
 	axpress.register_translation({
@@ -570,8 +550,6 @@ def loadTranslations(axpress, n) :
 			image.pixel(thumb, 0, 0) = pixel
 			pixel[pil.color] = color
 		""",
-		n.meta.constant_vars : ['image'],
-		#n.meta.constant_vars : ['image'],
 	})
 	
 	
@@ -590,7 +568,6 @@ def loadTranslations(axpress, n) :
 			#foo[type.number] = distance
 		#""",
 		#n.meta.function : color_distance,
-		#n.meta.constant_vars : ['foo'],
 	#})
 	
 	def color_distance_red(vars):
@@ -606,7 +583,6 @@ def loadTranslations(axpress, n) :
 			foo[type.number] = _distance
 		""",
 		n.meta.function : color_distance_red,
-		n.meta.constant_vars : ['foo'],
 	})
 	
 
@@ -725,7 +701,6 @@ def loadTranslations(axpress, n) :
 			glob[file.filename] = _out_filename
 		""",
 		n.meta.function : glob_glob,
-		n.meta.constant_vars : ['glob'],
 	})
 	
 	# TODO: allow define uriX == uriY or in this case glob.glob == file.pattern
@@ -738,7 +713,6 @@ def loadTranslations(axpress, n) :
 			glob[file.filename] = _out_filename
 		""",
 		n.meta.function : glob_glob,
-		n.meta.constant_vars : ['glob'],
 	})
 	
 	def glob_glob(vars):
@@ -753,7 +727,6 @@ def loadTranslations(axpress, n) :
 			foo[file.filename] = _out_filename
 		""",
 		n.meta.function : glob_glob,
-		n.meta.constant_vars : ['foo'],
 	})
 
 
@@ -771,7 +744,6 @@ def loadTranslations(axpress, n) :
 			file[file.filename] = _filename
 		""",
 		n.meta.function : download_tmp_file,
-		n.meta.constant_vars : ['file'],
 	})
 	
 
@@ -786,7 +758,6 @@ def loadTranslations(axpress, n) :
 			#file[file.url] = _url
 		#""",
 		#n.meta.function : filename_to_url,
-		#n.meta.constant_vars : [],
 	#})
 
 
@@ -817,7 +788,6 @@ def loadTranslations(axpress, n) :
 			image[html.html] = _html
 		""",
 		n.meta.function : html_img,
-		n.meta.constant_vars : ['image'],
 	})
 
 	## this is starting to get silly.  I vote for a python/js code block in MultilineParser
@@ -834,7 +804,6 @@ def loadTranslations(axpress, n) :
 			#div[html.html] _div_html
 		#""",
 		#n.meta.function : foo,
-		#n.meta.constant_vars : [],
 	#})
 
 
@@ -852,7 +821,6 @@ def loadTranslations(axpress, n) :
 			artist[music.artist_name] = _artist_name
 		""",
 		n.meta.function : get_amarok_artist,
-		n.meta.constant_vars : ['artist'],
 	})
 	
 	
@@ -869,7 +837,6 @@ def loadTranslations(axpress, n) :
 			foo[test.no_bindings_output] = _output
 		""",
 		n.meta.function : no_bindings,
-		n.meta.constant_vars : ['foo'],
 	})
 	
 	
@@ -899,7 +866,6 @@ def loadTranslations(axpress, n) :
 			search[yahoo.size] = _size
 		""",
 		n.meta.function : yahoo_search,
-		n.meta.constant_vars : ['search'],
 	})
 	
 	def red(vars) :
@@ -912,7 +878,6 @@ def loadTranslations(axpress, n) :
 		n.meta.output : """
 			color[html.color] = _c
 		""",
-		n.meta.constant_vars : ['color'],
 		n.meta.function : red,
 	})
 	
@@ -941,28 +906,26 @@ def loadTranslations(axpress, n) :
 		n.meta.output : """
 			color[html.color] = _c
 		""",
-		n.meta.constant_vars : ['color'],
 		n.meta.function : green,
 	})
 	
 	def invert_color(vars) :
-		vars['r'] = 255 - vars['r']
-		vars['g'] = 255 - vars['g']
-		vars['b'] = 255 - vars['b']
+		vars['rout'] = 255 - vars['rin']
+		vars['gout'] = 255 - vars['gin']
+		vars['bout'] = 255 - vars['bin']
 	axpress.register_translation({
 		n.meta.name : 'invert',
 		n.meta.input : """
-			color[html.color_red]   = _r
-			color[html.color_green] = _g
-			color[html.color_blue]  = _b
+			color[html.color_red]   = _rin
+			color[html.color_green] = _gin
+			color[html.color_blue]  = _bin
 			color[color.invert] = inverted_color
 		""",
 		n.meta.output : """
-			inverted_color[html.color_red]   = _r
-			inverted_color[html.color_green] = _g
-			inverted_color[html.color_blue]  = _b
+			inverted_color[html.color_red]   = _rout
+			inverted_color[html.color_green] = _gout
+			inverted_color[html.color_blue]  = _bout
 		""",
-		n.meta.constant_vars : ['color', 'inverted_color'],
 		n.meta.function : invert_color,
 	})
 	
@@ -981,7 +944,6 @@ def loadTranslations(axpress, n) :
 			color[html.color_green] = _green
 			color[html.color_blue] = _blue
 		""",
-		n.meta.constant_vars : ['color'],
 		n.meta.function : html_color_rgb,
 		n.meta.inverse_function : 'html rgb to color',
 	})
@@ -1001,7 +963,6 @@ def loadTranslations(axpress, n) :
 		n.meta.output : """
 			color[html.color] = _c
 		""",
-		n.meta.constant_vars : ['color'],
 		n.meta.function : html_rgb_color,
 		n.meta.inverse_function : 'html color to rgb',
 	})
@@ -1016,7 +977,6 @@ def loadTranslations(axpress, n) :
 			color[color.invert] = icolor
 			icolor[html.color] = _ic
 		""",
-		n.meta.constant_vars : ['color'],
 		n.meta.function : red,
 	})
 
@@ -1074,7 +1034,6 @@ def loadTranslations(axpress, n) :
 			book[freebase./book/written_work/author] = author
 			author[freebase.type] = '/book/author'
 		""",
-		n.meta.constant_vars : ['author', 'book_str'],
 	})
 	
 	def author_of_book(vars) :
@@ -1090,7 +1049,6 @@ def loadTranslations(axpress, n) :
 			author[freebase.type] = '/book/author'
 			author[freebase.guid] = _author_guid
 		""",
-		n.meta.constant_vars : ['author'],
 		n.meta.function : author_of_book
 	})
 	
@@ -1113,17 +1071,17 @@ def loadTranslations(axpress, n) :
 			book[freebase.type] = '/book/written_work'
 		""",
 		n.meta.function : book_from_title,
-		n.meta.constant_vars : ['book']
 	})
 	
 	axpress.register_translation({
 		n.meta.name : '',
 		n.meta.input : """
-			date_of_first_publication[axpress.is] = "first published %book%"
+			date_of_first_publication[axpress.is] = "first published %book_str%"
 			book[freebase.mid] = _mid
 			book[freebase.type] = '/book/written_work'
 		""",
 		n.meta.output : """
+			book[axpress.is] = "%book_str"
 			book[freebase./book/written_work/date_of_first_publication] = date_of_first_publication
 			# this next line might be implied by a more general rule (see following)
 			date_of_first_publication[freebase.type] = freebase.type/datetime
@@ -1165,7 +1123,6 @@ def loadTranslations(axpress, n) :
 		#n.meta.output : """
 		#""",
 		#n.meta.function : foo,
-		##n.meta.constant_vars : [],
 	#})
 
 	#def foo(vars):
@@ -1177,7 +1134,6 @@ def loadTranslations(axpress, n) :
 		#n.meta.output : """
 		#""",
 		#n.meta.function : foo,
-		#n.meta.constant_vars : [],
 	#})
 
 	axpress.register_translation({
@@ -1192,7 +1148,6 @@ def loadTranslations(axpress, n) :
 		# note that y isn't a constant var ... right now it is because y in the 
 		# input will likely be bound to a different variable than y in the output,
 		# so it isn't constant.  The value is constant, 
-		n.meta.constant_vars : ['x', 'y'],
 	})
 
 	axpress.register_translation({
@@ -1206,8 +1161,8 @@ def loadTranslations(axpress, n) :
 		""",
 		# note that y isn't a constant var ... right now it is because y in the 
 		# input will likely be bound to a different variable than y in the output,
-		# so it isn't constant.  The value is constant, 
-		n.meta.constant_vars : ['x'],
+		# so it isn't constant.  The value is constant,
+		# 2011-10-27: it is constant now ...
 	})
 
 """

@@ -105,7 +105,7 @@ def split_string(s) :
 		["abcd ", " efg"], ['xyz']
 	)
 	"""
-	pat = '%[\w]+%'
+	pat = '%[\w_]+%'
 	return (
 		re.split(pat, s),
 		[p[1:-1] for p in re.findall(pat, s)]
@@ -212,6 +212,11 @@ def find_vars(query, is_a_var = is_any_var, find_string_vars = False) :
 	"""
 	try :
 		iter = query.__iter__()
+		
+		vars = set()
+		for i in iter :
+			vars.update(find_vars(i, is_a_var, find_string_vars))
+		return vars
 	except AttributeError :
 		if is_a_var(query) :
 			return set([var_name(query)])
@@ -219,11 +224,6 @@ def find_vars(query, is_a_var = is_any_var, find_string_vars = False) :
 			const, vars = split_string(query)
 			return set(unicode(v) for v in vars)
 		return set()
-	
-	vars = set()
-	for i in iter :
-		vars.update(find_vars(i, is_a_var, find_string_vars))
-	return vars
 
 
 

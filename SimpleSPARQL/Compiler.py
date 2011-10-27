@@ -77,12 +77,16 @@ class Compiler :
 		if n.meta.function not in translation :
 			translation[n.meta.function] = lambda x:x
 		
-		if n.meta.constant_vars not in translation :
-			translation[n.meta.constant_vars] = []
-		
 		# parse any string expressions
-		translation[n.meta.input] = self.parser.parse_query(translation[n.meta.input])
-		translation[n.meta.output] = self.parser.parse_query(translation[n.meta.output])
+		translation[n.meta.input] = self.parser.parse_query(translation[n.meta.input], reset_bnodes=False)
+		translation[n.meta.output] = self.parser.parse_query(translation[n.meta.output], reset_bnodes=False)
+		
+		# figure out which variables are in both the input and output of the 
+		# translation
+		invars = find_vars(translation[n.meta.input], find_string_vars = True)
+		outvars = find_vars(translation[n.meta.output], find_string_vars = True)
+		constant_vars = list(invars.intersection(outvars))
+		translation[n.meta.constant_vars] = constant_vars
 		
 		self.translations.append(translation)
 		self.translations_by_name[translation[n.meta.name]] = translation
