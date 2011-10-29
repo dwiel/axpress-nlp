@@ -19,6 +19,9 @@
 #submit {
 	
 }
+ul {
+	list-style-type: none;
+}
 xmp {
 	margin: 0;
 }

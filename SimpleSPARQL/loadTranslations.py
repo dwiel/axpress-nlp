@@ -1359,7 +1359,7 @@ def loadTranslations(axpress, n) :
 	})
 	
 	def simple_render(vars) :
-		vars['html'] = "<img src='http://api.freebase.com/api/trans/image_thumb/%s?maxwidth=150'>%s" % (
+		vars['html'] = "<img src='http://api.freebase.com/api/trans/image_thumb/%s?maxwidth=150' style='width:150px;height:150px'>%s" % (
 			vars['mid'], vars['name']
 		)
 	axpress.register_translation({
@@ -1387,7 +1387,7 @@ def loadTranslations(axpress, n) :
 		# input will likely be bound to a different variable than y in the output,
 		# so it isn't constant.  The value is constant, 
 	})
-
+	
 	axpress.register_translation({
 		n.meta.name : 'test2',
 		n.meta.input : """
