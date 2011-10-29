@@ -26,6 +26,8 @@ def loadTranslations(axpress, n) :
 	n.bind('reference', '<http://dwiel.net/axpress/reference/0.1/>')
 	n.bind('display', '<http://dwiel.net/axpress/display/0.1/>')
 	n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
+	n.bind('wunderground', '<http://dwiel.net/axpress/wunderground/0.1/>')
+	n.bind('simple_display', '<http://dwiel.net/axpress/simple_display/0.1/>')
 		#n.bind('test', '<http://dwiel.net/axpress/test/0.1/>')
 	
 ## TODO: allow a 'function' to accept a variable number of arguments?
@@ -1203,7 +1205,7 @@ def loadTranslations(axpress, n) :
 	def lookup_birthplace(vars) :
 		import freebase
 		result = freebase.mqlread({
-			"mid" : vars['mid'],
+			"mid" : vars['person_mid'],
 			"type" : "/people/person",
 			"place_of_birth" : {
 				"mid" : None,
@@ -1216,7 +1218,7 @@ def loadTranslations(axpress, n) :
 	axpress.register_translation({
 		n.meta.name : 'lookup birthplace',
 		n.meta.input : """
-			person[freebase.mid] = _mid
+			person[freebase.mid] = _person_mid
 			person[freebase.type] = '/people/person'
 		""",
 		n.meta.output : """
@@ -1241,7 +1243,18 @@ def loadTranslations(axpress, n) :
 	})
 	
 	def lookup_current_weather(vars) :
-		# TODO
+		import json
+		import urllib2, urllib
+		
+		print "http://api.wunderground.com/api/648fbe96a3f5358d/conditions/q/%s,%s.json" % (
+			vars['lat'], vars['lon'])
+		ret = urllib2.urlopen("http://api.wunderground.com/api/648fbe96a3f5358d/conditions/q/%s,%s.json" % (
+			vars['lat'], vars['lon'])).read()
+		ret = json.loads(ret)
+		print ret['current_observation']
+		
+		return ret['current_observation']
+	
 	axpress.register_translation({
 		n.meta.name : 'lookup current weather',
 		n.meta.input : """
@@ -1252,12 +1265,36 @@ def loadTranslations(axpress, n) :
 			geo[freebase./location/geocode/longitude] = _lon
 		""",
 		n.meta.output : """
-			weather[wunderground.current_temperature] = _current_temperature
+			weather[wunderground.current_temperature] = _temp_f
 		""",
-		n.meta.function = lookup_current_weather,
+		n.meta.function : lookup_current_weather,
 	})
 	
-	# TODO: /location/location -> geo lat/lon
+	def lookup_location_lat_lon(vars) :
+		import freebase
+		result = freebase.mqlread({
+			"mid" : vars['mid'],
+			"type" : "/location/location",
+			"/location/location/geolocation" : {
+				"latitude" : None,
+				"longitude" : None,
+			},
+		})
+		return result['/location/location/geolocation']
+	
+	axpress.register_translation({
+		n.meta.name : 'lookup location lat lon',
+		n.meta.input : """
+			location[freebase.mid] = _mid
+			location[freebase.type] = '/location/location'
+		""",
+		n.meta.output : """
+			location[freebase./location/location/geolocation] = geo
+			geo[freebase./location/geocode/latitude] = _latitude
+			geo[freebase./location/geocode/longitude] = _longitude
+		""",
+		n.meta.function : lookup_location_lat_lon,
+	})
 	
 	def freebase_search(vars) :
 		import json
@@ -1321,38 +1358,22 @@ def loadTranslations(axpress, n) :
 		""",
 	})
 	
-	#axpress.register_translation({
-		#n.meta.name : '',
-		#n.meta.input : """
-		#""",
-		#n.meta.output : """
-		#""",
-	#})
+	def simple_render(vars) :
+		vars['html'] = "<img src='http://api.freebase.com/api/trans/image_thumb/%s?maxwidth=150'>%s" % (
+			vars['mid'], vars['name']
+		)
+	axpress.register_translation({
+		n.meta.name : 'simple render',
+		n.meta.input : """
+			x[freebase.name] = name
+			x[freebase.mid] = _mid
+		""",
+		n.meta.output : """
+			x[simple_display.text] = _html
+		""",
+		n.meta.function : simple_render,
+	})
 	
-	#axpress.register_translation({
-		#n.meta.name : 'sql test',
-		#n.meta.input : """
-			#query[sql.host] = _host
-			#query[sql.database] = _database
-			#query[sql.table] = _table
-			#query[sql.
-		#""",
-		#n.meta.output : """
-		#""",
-		#n.meta.function : foo,
-	#})
-
-	#def foo(vars):
-		#pass
-	#axpress.register_translation({
-		#n.meta.name : '',
-		#n.meta.input : """
-		#""",
-		#n.meta.output : """
-		#""",
-		#n.meta.function : foo,
-	#})
-
 	axpress.register_translation({
 		n.meta.name : 'test',
 		n.meta.input : """
@@ -1381,36 +1402,3 @@ def loadTranslations(axpress, n) :
 		# so it isn't constant.  The value is constant,
 		# 2011-10-27: it is constant now ...
 	})
-
-"""
-
-x[foo.foo][foo.foo] = 1
-x[foo.bar][foo.bar] = _one
-
-new_final_bindings [
-  [
-    [ n.var.image, n.file.filename, '/home/dwiel/AMOSvid/1065/20080821_083129.jpg', ],
-    [ n.var.bnode1, n.call.arg1, n.var.image, ],
-    [ n.var.bnode1, n.call.arg2, 4, ],
-    [ n.var.bnode1, n.call.arg3, 4, ],
-    [ n.var.bnode1, n.image.thumbnail, n.var.thumb, ],
-    [ n.var.image, n.pil.image, <PIL.JpegImagePlugin.JpegImageFile instance at 0x837d8cc>, ],
-    [ n.var.thumb, n.pil.image, <PIL.JpegImagePlugin.JpegImageFile instance at 0x837d8cc>, ],
-  ],
-]
-
-applying image thumbnail
-binding {
-  n.var._ : n.var.thumb,
-  n.var.bnode1 : n.var.bnode1,
-  n.var.image : <PIL.JpegImagePlugin.JpegImageFile instance at 0x837d8cc>,
-  n.var.thumb : n.var.thumb,
-  n.var.x : 4,
-  n.var.y : 4,
-}
-
-
-
-
-
-"""
