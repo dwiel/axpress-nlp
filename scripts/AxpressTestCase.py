@@ -518,6 +518,28 @@ class AxpressTestCase(unittest.TestCase):
 		""")
 		p('ret', ret)
 	
+	def testSimpleFreebaseStringQuery4(self):
+		ret = self.axpress.read_translate("""
+			x[axpress.is] = "members in Phish"
+			x[freebase.mid] = _mid
+			x[freebase.name] = _name
+		""")
+		p('ret', ret)
+	
+	def testSimpleFreebaseStringQuery5(self):
+		ret = self.axpress.read_translate("""
+			_x[axpress.is] = "The Queen's birthday"
+		""")
+		p('ret', ret)
+
+	def testSimpleFreebaseStringQuery6(self):
+		ret = self.axpress.read_translate("""
+			x[axpress.is] = "The Queen birthplace"
+			x[freebase.mid] = _mid
+			x[freebase.name] = _name
+		""")
+		p('ret', ret)
+	
 	#def testStringQuery(self):
 		#ret = self.axpress.read_translate("""
 			#x[axpress.is] = "files matching pictures/*.jpg"

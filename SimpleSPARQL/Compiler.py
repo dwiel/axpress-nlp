@@ -85,6 +85,9 @@ class Compiler :
 		# translation
 		invars = find_vars(translation[n.meta.input], find_string_vars = True)
 		outvars = find_vars(translation[n.meta.output], find_string_vars = True)
+		p(translation[n.meta.name])
+		p('invars', invars)
+		p('outvars', outvars)
 		constant_vars = list(invars.intersection(outvars))
 		translation[n.meta.constant_vars] = constant_vars
 		
@@ -343,9 +346,9 @@ class Compiler :
 		# check that all of the translation inputs match part of the query
 		if reqd_triples != False:
 			for triple in pattern :
-				self.debugp('find_triple_match', triple, facts)
+				#self.debugp('find_triple_match', triple, facts)
 				if not self.find_triple_match(triple, facts) :
-					self.debugp('False')
+					#self.debugp('False')
 					return False, None
 		
 		# find all possible bindings for the vars if any exist
@@ -465,7 +468,7 @@ class Compiler :
 					if inverse_function == translation[n.meta.name] :
 						continue
 			
-			self.debug('testing ' + translation[n.meta.name])
+			#self.debug('testing ' + translation[n.meta.name])
 			#p('testing', translation[n.meta.name])
 			matches, bindings_set = self.testtranslation(translation, query, output_vars, reqd_triples, root)
 			if matches :
@@ -517,6 +520,7 @@ class Compiler :
 					# so we can get rid of them
 					output_triple_vars = find_vars(translation[n.meta.output], find_string_vars = True)
 					output_triples = translation[n.meta.output]
+					#self.debugp('constant_vars', translation[n.meta.constant_vars])
 					initial_bindings = dict(
 						(unicode(name), bindings[name]) for name in translation[n.meta.constant_vars]
 							if name in bindings and 
@@ -530,6 +534,7 @@ class Compiler :
 					self.debugp('initial_bindings', initial_bindings)
 					
 					if n.meta.input_function in translation :
+						self.debugp('n.meta.input_function', translation[n.meta.input_function])
 						if not translation[n.meta.input_function](input_bindings) :
 							self.debugp('didnt pass input function')
 							continue
@@ -784,6 +789,7 @@ class Compiler :
 		"""
 		
 		self.debug_open_block('search')
+		self.debugp('query', query)
 		
 		compile_node = {
 			'guaranteed' : [],

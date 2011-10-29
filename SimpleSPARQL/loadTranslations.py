@@ -1112,6 +1112,153 @@ def loadTranslations(axpress, n) :
 		n.meta.function : lookup_albums_by_musician,
 	})
 	
+	axpress.register_translation({
+		n.meta.name : 's members in musical_group',
+		n.meta.input : """
+			member[axpress.is] = "members in %group_s%"
+		""",
+		n.meta.output : """
+			group[axpress.is] = "%group_s%"
+			group[freebase.type] = '/music/musical_group'
+			group[freebase./music/group_member] = member
+		""",
+	})
+	
+	def lookup_members_in_group(vars) :
+		# TODO: /music/musical_group/member doesn't have a name
+		import freebase
+		result = freebase.mqlread({
+			"mid" : vars['mid'],
+			"type" : '/music/musical_group',
+			"member" : [{
+				"/music/group_membership/member" : {
+					"mid" : None,
+					"name" : None,
+				}
+			}]
+		})
+		return [member[u'/music/group_membership/member'] for member in result['member']]
+	
+	axpress.register_translation({
+		n.meta.name : 'lookup members in group',
+		n.meta.input : """
+			group[freebase.mid] = _mid
+			group[freebase.type] = '/music/musical_group'
+			group[freebase./music/group_member] = member
+		""",
+		n.meta.output : """
+			member[freebase.mid] = _mid
+			member[freebase.name] = _name
+		""",
+		n.meta.function : lookup_members_in_group,
+	})
+	
+	#axpress.register_translation({
+		#n.meta.name : 's birthday',
+		#n.meta.input : """
+			#birthday[axpress.is] = "%person_s%'s birthday"
+		#""",
+		#n.meta.output : """
+			#person[axpress.is] = "%person_s%"
+			#person[freebase.type] = '/people/person'
+			#person[freebase./people/person/date_of_birth] = birthday
+		#""",
+	#})
+	
+	#def lookup_birthday(vars) :
+		#import freebase
+		#result = freebase.mqlread({
+			#"mid" : vars['mid'],
+			#"type" : "/people/person",
+			#"birthday" : None,
+		#})
+		#print result
+		#return result['birthday']
+	
+	#axpress.register_translation({
+		#n.meta.name : 'lookup birthday',
+		#n.meta.input : """
+			#person[freebase.mid] = _mid
+			#person[freebase.type] = '/people/person'
+		#""",
+		#n.meta.output : """
+			#person[freebase./people/person/date_of_birth] = _birthday
+		#""",
+		#n.meta.function : lookup_birthday
+	#})
+	
+	axpress.register_translation({
+		n.meta.name : 's birthplace',
+		n.meta.input : """
+			birthplace[axpress.is] = "%person_s% birthplace"
+		""",
+		n.meta.output : """
+			person[axpress.is] = "%person_s%"
+			person[freebase.type] = '/people/person'
+			person[freebase./people/person/place_of_birth] = birthplace
+			birthplace[freebase.type] = '/location/location'
+		""",
+	})
+	
+	def lookup_birthplace(vars) :
+		import freebase
+		result = freebase.mqlread({
+			"mid" : vars['mid'],
+			"type" : "/people/person",
+			"place_of_birth" : {
+				"mid" : None,
+				"name" : None,
+			},
+		})
+		print result
+		return result['place_of_birth']
+	
+	axpress.register_translation({
+		n.meta.name : 'lookup birthplace',
+		n.meta.input : """
+			person[freebase.mid] = _mid
+			person[freebase.type] = '/people/person'
+		""",
+		n.meta.output : """
+			person[freebase./people/person/place_of_birth] = birthplace
+			birthplace[freebase.mid] = _mid
+			birthplace[freebase.name] = _name
+		""",
+		n.meta.function : lookup_birthplace,
+	})
+	
+	
+	axpress.register_translation({
+		n.meta.name : 's current weather',
+		n.meta.input : """
+			weather[axpress.is] = "current weather in %location_s%"
+		""",
+		n.meta.output : """
+			location[axpress.is] = "%location_s%"
+			location[freebase.type] = '/location/location'
+			location[wunderground.weather] = weather
+		""",
+	})
+	
+	def lookup_current_weather(vars) :
+		# TODO
+	axpress.register_translation({
+		n.meta.name : 'lookup current weather',
+		n.meta.input : """
+			location[wunderground.weather] = weather
+			location[freebase.type] = '/location/location'
+			location[freebase./location/location/geolocation] = geo
+			geo[freebase./location/geocode/latitude] = _lat
+			geo[freebase./location/geocode/longitude] = _lon
+		""",
+		n.meta.output : """
+			weather[wunderground.current_temperature] = _current_temperature
+		""",
+		n.meta.function = lookup_current_weather,
+	})
+	
+	# TODO: /location/location -> geo lat/lon
+	
 	def freebase_search(vars) :
 		import json
 		import urllib2, urllib
