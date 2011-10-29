@@ -28,6 +28,7 @@ n.bind('flickr', '<http://dwiel.net/axpress/flickr/0.1/>')
 n.bind('amos', '<http://dwiel.net/axpress/amos/0.1/>')
 n.bind('test', '<http://dwiel.net/express/test/0.1/>')
 n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
+n.bind('wunderground', '<http://dwiel.net/axpress/wunderground/0.1/>')
 a = n.rdfs.type
 
 # for easy basic stupid matching type instance
@@ -537,6 +538,13 @@ class AxpressTestCase(unittest.TestCase):
 			x[axpress.is] = "The Queen birthplace"
 			x[freebase.mid] = _mid
 			x[freebase.name] = _name
+		""")
+		p('ret', ret)
+	
+	def testSimpleFreebaseStringQuery7(self):
+		ret = self.axpress.read_translate("""
+			weather[axpress.is] = "current weather in btown"
+			weather[wunderground.current_temperature] = _current_temperature
 		""")
 		p('ret', ret)
 	
