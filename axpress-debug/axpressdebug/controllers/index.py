@@ -13,13 +13,13 @@ log = logging.getLogger(__name__)
 class IndexController(BaseController):
 
 	def debug(self):
-		c.query = request.params.get('query') or ""
-		c.string_query = request.params.get('string_query') or ""
-		c.ret = ""
-		c.debug_html = ""
+		c.query = request.params.get('query') or u""
+		c.string_query = request.params.get('string_query') or u""
+		c.ret = u""
+		c.debug_html = u""
 		
 		if c.string_query :
-			c.query = """
+			c.query = u"""
 				x[axpress.is] = "%s"
 				x[simple_display.text] = _out
 			""" % c.string_query
@@ -29,13 +29,14 @@ class IndexController(BaseController):
 			try :
 				c.raw_ret = g.axpress.read_translate(c.query)
 				if c.raw_ret and 'out' in c.raw_ret[0] :
-					c.ret = '<ul>%s</ul>' % ''.join('<li>'+o['out'] for o in c.raw_ret)
+					c.ret = u'<ul>%s</ul>' % u''.join(u'<li>'+unicode(o['out']) for o in c.raw_ret)
 					c.ret_html = True
 				else :
 					c.ret = c.raw_ret
 					c.ret_html = False
 			except CompilerException, e :
 				c.ret = str(e)
+				c.ret_html = False
 			c.debug_html = g.axpress.compiler.debug_str
 		
 		return render('debug.mako')

@@ -1083,14 +1083,14 @@ def loadTranslations(axpress, n) :
 		n.meta.output : """
 			artist[axpress.is] = "%artist_s%"
 			album[freebase./music/album/artist] = artist
-			artist[freebase.type] = '/music/musical_group'
+			artist[freebase.type] = '/music/artist'
 		""",
 	})
 	
 	def lookup_albums_by_musician(vars) :
 		import freebase
 		result = freebase.mqlread({
-			"mid" : vars['mid'],
+			"mid" : vars['artist_mid'],
 			"type" : "/music/artist",
 			"album" : [{
 				"name" : None,
@@ -1103,8 +1103,8 @@ def loadTranslations(axpress, n) :
 	axpress.register_translation({
 		n.meta.name : 'lookup albums by musician',
 		n.meta.input : """
-			artist[freebase.mid] = _mid
-			artist[freebase.type] = '/music/musical_group'
+			artist[freebase.mid] = _artist_mid
+			artist[freebase.type] = '/music/artist'
 			album[freebase./music/album/artist] = artist
 		""",
 		n.meta.output : """
@@ -1296,17 +1296,27 @@ def loadTranslations(axpress, n) :
 		n.meta.function : lookup_location_lat_lon,
 	})
 	
+	from htmlentitydefs import name2codepoint
+	
 	def freebase_search(vars) :
 		import json
 		import urllib2, urllib
 		
-		ret = urllib2.urlopen("https://www.googleapis.com/freebase/v1/search", urllib.urlencode({
+		#print "https://www.googleapis.com/freebase/v1/search"+urllib.urlencode({
+			#'query' : vars['title'],
+			#'type' : vars['type'],
+			#'html_escape' : 'false',
+			#'html_encode' : 'false',
+			#'escape' : 'false',
+			#'limit' : 1})
+		req = urllib2.urlopen("https://www.googleapis.com/freebase/v1/search", urllib.urlencode({
 			'query' : vars['title'],
 			'type' : vars['type'],
 			'html_escape' : 'false',
 			'html_encode' : 'false',
-			'limit' : 1})).read()
-		print ret
+			'escape' : 'false',
+			'limit' : 1}))
+		ret = req.read().decode('<utf-8>')
 		ret = json.loads(ret)
 		
 		if ret['status'] != '200 OK' :
@@ -1315,6 +1325,7 @@ def loadTranslations(axpress, n) :
 		if result['score'] > 30 :
 			vars['mid'] = result['mid']
 		
+		#.encode("<utf-8>")
 	axpress.register_translation({
 		n.meta.name : 'freebase search',
 		n.meta.input : """
@@ -1359,9 +1370,42 @@ def loadTranslations(axpress, n) :
 	})
 	
 	def simple_render(vars) :
-		vars['html'] = "<img src='http://api.freebase.com/api/trans/image_thumb/%s?maxwidth=150' style='width:150px;height:150px'>%s" % (
-			vars['mid'], vars['name']
-		)
+		from mako.template import Template
+		
+		import freebase
+		result = freebase.mqlread({
+			"mid" : vars['mid'],
+			"/common/topic/article": [{
+				"id":       None,
+				"optional": True,
+				"limit":    1
+			}],
+		})
+		if result and result['/common/topic/article'] :
+			blurb_id = result['/common/topic/article'][0]['id']
+		
+			import urllib2
+			req = urllib2.urlopen(
+				"https://api.freebase.com/api/trans/blurb%s?maxlength=1200" % blurb_id
+			)
+			vars['blurb'] req.read().decode('<utf-8>')
+		else :
+			vars['blurb'] = u"no blurb"
+			
+		for k, v in vars.iteritems() :
+			print k, type(v)
+		vars['html'] = Template(u"""## -*- coding: utf-8 -*-
+		<div class="item">
+			<div class="image">
+				<img src='http://api.freebase.com/api/trans/image_thumb/${mid}?maxwidth=150' style='width:150px;height:150px'>
+			</div>
+			<div class="side">
+				<div class="title">${name}</div>
+				<div class="blurb">${blurb}</div>
+			</div>
+			<div class="clear" />
+		</div>
+		""").render_unicode(**vars)
 	axpress.register_translation({
 		n.meta.name : 'simple render',
 		n.meta.input : """

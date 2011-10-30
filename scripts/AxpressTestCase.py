@@ -81,7 +81,7 @@ class AxpressTestCase(unittest.TestCase):
 		##p('ret',ret)
 		#assert ret == [
 			#{
-				#u'sum' : 3,
+				#'sum' : 3,
 			#},
 		#]
 	
@@ -186,11 +186,11 @@ class AxpressTestCase(unittest.TestCase):
 		#print 'ret5',prettyquery(ret)
 		assert ret == [
 			{
-				u'filename' : 'pictures/111.jpg',
-				u'thumb_pixel_color' : (26, 24, 24),
+				'filename' : 'pictures/111.jpg',
+				'thumb_pixel_color' : (26, 24, 24),
 			}, {
-				u'filename' : 'pictures/foobar.jpg',
-				u'thumb_pixel_color' : (69, 68, 73),
+				'filename' : 'pictures/foobar.jpg',
+				'thumb_pixel_color' : (69, 68, 73),
 			},
 		]
 	
@@ -206,11 +206,11 @@ class AxpressTestCase(unittest.TestCase):
 		#print 'ret6',prettyquery(ret)
 		assert ret == [
 			{
-				u'distance' : 53593,
-				u'filename' : 'pictures/111.jpg',
+				'distance' : 53593,
+				'filename' : 'pictures/111.jpg',
 			}, {
-				u'distance' : 44549,
-				u'filename' : 'pictures/foobar.jpg',
+				'distance' : 44549,
+				'filename' : 'pictures/foobar.jpg',
 			},
 		]
 
@@ -226,11 +226,11 @@ class AxpressTestCase(unittest.TestCase):
 		#assert len(ret) == 2
 		#assert ret == [
 			#{
-				#u'color' : ( 71, 43, 85, ),
-				#u'filename' : '/home/dwiel/AMOSvid/20080804_080127.jpg',
+				#'color' : ( 71, 43, 85, ),
+				#'filename' : '/home/dwiel/AMOSvid/20080804_080127.jpg',
 			#}, {
-				#u'color' : ( 58, 25, 47, ),
-				#u'filename' : '/home/dwiel/AMOSvid/20080804_083127.jpg',
+				#'color' : ( 58, 25, 47, ),
+				#'filename' : '/home/dwiel/AMOSvid/20080804_083127.jpg',
 			#},
 		#]
 
@@ -256,8 +256,8 @@ class AxpressTestCase(unittest.TestCase):
 		#p('testMultipleNonDependentPaths',ret)
 		#assert ret ==  [
 			#{
-				#u'color' : ( 249, 255, 237, ),
-				#u'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" width="300" height="200"/>',
+				#'color' : ( 249, 255, 237, ),
+				#'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" width="300" height="200"/>',
 			#},
 		#]
 
@@ -270,7 +270,7 @@ class AxpressTestCase(unittest.TestCase):
 		#p('testOptionInputs',ret)
 		#assert ret ==  [
 			#{
-				#u'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" width="300"/>',
+				#'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" width="300"/>',
 			#},
 		#]
 
@@ -282,7 +282,7 @@ class AxpressTestCase(unittest.TestCase):
 		#p('testOptionInputs2',ret)
 		#assert ret ==  [
 			#{
-				#u'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" />',
+				#'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" />',
 			#},
 		#]
 	
@@ -352,8 +352,8 @@ class AxpressTestCase(unittest.TestCase):
 		#p('ret',ret)
 		assert ret == [
 			{
-				u'x' : 1,
-				u'sum' : 3,
+				'x' : 1,
+				'sum' : 3,
 			},
 		]
 	
@@ -366,8 +366,8 @@ class AxpressTestCase(unittest.TestCase):
 		#p('ret',ret)
 		assert ret == [
 			{
-				u'x' : 1,
-				u'sum' : 3,
+				'x' : 1,
+				'sum' : 3,
 			},
 		]
 	
@@ -398,9 +398,9 @@ class AxpressTestCase(unittest.TestCase):
 		#p('testUnification', ret)
 		assert ret == [
 			{
-				u'color' : ( 16, 15, 15, ),
+				'color' : ( 16, 15, 15, ),
 			}, {
-				u'color' : ( 139, 137, 145, ),
+				'color' : ( 139, 137, 145, ),
 			},
 		]
 	
@@ -414,9 +414,9 @@ class AxpressTestCase(unittest.TestCase):
 		#p('testSpecialUnification', ret)
 		assert ret == [
 			{
-				u'c' : ( 16, 15, 15, ),
+				'c' : ( 16, 15, 15, ),
 			}, {
-				u'c' : ( 139, 137, 145, ),
+				'c' : ( 139, 137, 145, ),
 			},
 		]
 
@@ -429,7 +429,7 @@ class AxpressTestCase(unittest.TestCase):
 		#p('ret', ret)
 		assert ret == [
 			{
-				u'one' : 1
+				'one' : 1
 			}
 		]
 	
@@ -441,9 +441,9 @@ class AxpressTestCase(unittest.TestCase):
 		""")
 		assert ret == [
 			{
-				u'color' : '000'
+				'color' : '000'
 			}, {
-				u'color' : '302'
+				'color' : '302'
 			}
 		]
 		
@@ -455,7 +455,7 @@ class AxpressTestCase(unittest.TestCase):
 		#p('testSimpleUnification', ret)
 		assert ret == [
 			{
-				u'c' : "FF0000"
+				'c' : "FF0000"
 			}
 		]
 	
@@ -470,7 +470,7 @@ class AxpressTestCase(unittest.TestCase):
 		#p('testInverseFunction', ret)
 		assert ret == [
 			{
-				u'ic' : "FF0000"
+				'ic' : "FF0000"
 			}
 		]
 	
@@ -482,9 +482,9 @@ class AxpressTestCase(unittest.TestCase):
 		""")
 		assert ret == [
 			{
-				u'filename' : u'pictures/111.jpg',
+				'filename' : 'pictures/111.jpg',
 			}, {
-				u'filename' : u'pictures/foobar.jpg',
+				'filename' : 'pictures/foobar.jpg',
 			},
 		]
 		
@@ -495,7 +495,7 @@ class AxpressTestCase(unittest.TestCase):
 		""")
 		assert ret == [
 			{
-				u'guid' : '9202a8c04000641f800000000c770bee'
+				'guid' : '9202a8c04000641f800000000c770bee'
 			},
 		]
 	
@@ -507,7 +507,7 @@ class AxpressTestCase(unittest.TestCase):
 		""")
 		assert ret == [
 			{
-				u'mid' : '/m/01h89tx'
+				'mid' : '/m/01h89tx'
 			},
 		]
 	
@@ -556,7 +556,7 @@ class AxpressTestCase(unittest.TestCase):
 		#p('testStringQuery', ret)
 		#assert ret == [
 			#{
-				#u'_html' : "<ul><li>xxx.jpg<li>yyy.jpg</ul>"
+				#'_html' : "<ul><li>xxx.jpg<li>yyy.jpg</ul>"
 			#}
 		#]
 	
@@ -568,7 +568,7 @@ class AxpressTestCase(unittest.TestCase):
 		#p('testStringQuerySuperSimple', ret)
 		assert ret == [
 			{
-				u'c' : "FF0000"
+				'c' : "FF0000"
 			}
 		]
 if __name__ == "__main__" :

@@ -16,11 +16,27 @@
 	margin-top: 0.5em;
 	line-height: 1.5em;
 }
-#submit {
-	
+#result {
+	width: 750px;
+}
+.item {
+	padding: 1em;
+}
+.item .side {
+	height: 150px;
+	margin-left: 1em;
+}
+.item img {
+	float: left;
+}
+.item .title {
+	font-weight: bold;
+	font-size: 125%;
+	padding-bottom: 0.5em;
 }
 ul {
 	list-style-type: none;
+	padding: 0px;
 }
 xmp {
 	margin: 0;
@@ -33,8 +49,6 @@ ${'<textarea class="advanced" name="query" rows=10 cols=70>' + c.query + '</text
 <input type="submit" id="submit" value="Send">
 <a href="javascript:advanced();">advanced</a>
 </form>
-
-<hr>
 
 <div id="result">
 ${c.ret | n}
