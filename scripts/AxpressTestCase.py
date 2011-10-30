@@ -183,7 +183,7 @@ class AxpressTestCase(unittest.TestCase):
 			pixel = image.pixel(thumb, 0, 0)
 			pixel[pil.color] = _thumb_pixel_color
 		""", reqd_bound_vars = ['filename','thumb_pixel_color'])
-		#print 'ret5',prettyquery(ret)
+		print 'ret5',prettyquery(ret)
 		assert ret == [
 			{
 				'filename' : 'pictures/111.jpg',

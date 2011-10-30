@@ -26,98 +26,143 @@ class Evaluator :
 					yield sub_item
 			else :
 				yield item
-
-	def evaluate_step_with_bindings(self, step, incoming_bindings) :
-		input_bindings = step['input_bindings']
-		output_bindings = step['output_bindings']
-		
-		#p('step name', step['translation'][self.n.meta.name])
-		#p('input_bindings',input_bindings)
-		#p('output_bindings',output_bindings)
-		#p('incoming_bindings',incoming_bindings)
-		
-		# substitute any values in the incoming bindings into the input_bindings
-		new_input_bindings = {}
-		for var, value in input_bindings.iteritems() :
-			if is_any_var(value) and var_name(value) in incoming_bindings :
-				new_input_bindings[var] = incoming_bindings[var_name(value)]
+	
+	def flatten(self, l) :
+		new_l = []
+		for i in l :
+			if isinstance(i, list) :
+				new_l += self.flatten(i)
 			else :
-				new_input_bindings[var] = input_bindings[var]
-		input_bindings = new_input_bindings
+				new_l.append(i)
+		return new_l
+	
+	def evaluate_step_with_bindings(self, step, incoming_bindings_set) :
+		#p('incoming_bindings_set', incoming_bindings_set)
 		
-		#p('new_input_bindings',input_bindings)
-		
-		ret = step['translation'][self.n.meta.function](input_bindings)
-		if ret is not None:
-			result_bindings = ret
-		else :
-			result_bindings = input_bindings
-		
-		#p('result_bindings',result_bindings)
-		
-		# bind the values resulting from the function call
-		# the translation might return a bindings_set so deal with that case
-		# list_later surrounds the return value with an extra list to represent that
-		# it has been exploded
-		list_later = False
-		if isinstance(result_bindings, list) :
-			list_later = True
-			result_bindings_set = result_bindings
-		else :
-			result_bindings_set = [result_bindings]
-		new_bindings_set = []
-		for result_bindings in result_bindings_set :
-			#p('result_bindings',result_bindings)
-			new_bindings = copy.copy(incoming_bindings)
-			for var, value in result_bindings.iteritems() :
-				if var in output_bindings :
-					if is_any_var(output_bindings[var]) :
-						new_bindings[var_name(output_bindings[var])] = value
-					else :
-						assert output_bindings[var] == value
-						new_bindings[var] = value
-						#print 'hmm should I do something?',var, output_bindings[var],value
-
-			#check to make sure everything was bound that was supposed to be
-			if len(new_bindings) != len(output_bindings) :
-				missing_variables = set(output_bindings) - set(result_bindings)
-				if missing_variables :
-					if len(missing_variables) > 1 :
-						variables = "variables"
-					else :
-						variables = "variable"
-					raise ValueError(
-						"%s %s didn't get bound by translation '%s'" % (
-							variables, ', '.join(
-								"'"+v+"'" for v in missing_variables
-							), step['translation'][self.n.meta.name]
-						)
-					)
+		input_bindings_set = []
+		for incoming_bindings in incoming_bindings_set :
+			if not isinstance(incoming_bindings, dict) :
+				print type(incoming_bindings), incoming_bindings
+			input_bindings = step['input_bindings']
+			output_bindings = step['output_bindings']
 			
-			new_bindings_set.append(new_bindings)
+			#p('step name', step['translation'][self.n.meta.name])
+			#p('input_bindings',input_bindings)
+			#p('output_bindings',output_bindings)
+			#p('incoming_bindings',incoming_bindings)
+			
+			# substitute any values in the incoming bindings into the input_bindings
+			new_input_bindings = {}
+			for var, value in input_bindings.iteritems() :
+				if is_any_var(value) and var_name(value) in incoming_bindings :
+					new_input_bindings[var] = incoming_bindings[var_name(value)]
+				else :
+					new_input_bindings[var] = input_bindings[var]
+			input_bindings = new_input_bindings
+			
+			#p('new_input_bindings',input_bindings)
+			input_bindings_set.append(input_bindings)
 		
-		#p('new_bindings_set',new_bindings_set)
-		new_exploded_bindings_set = []
-		for new_bindings in new_bindings_set :
-			new_exploded_bindings_set.extend(new_explode_bindings_set(new_bindings))
-		#if len(new_exploded_bindings_set) > 1 :
-			#new_exploded_bindings_set = [new_exploded_bindings_set]
-		if list_later :
-			new_exploded_bindings_set = [new_exploded_bindings_set]
+		result_bindings_set = []
+		for input_bindings in input_bindings_set :
+			ret = step['translation'][self.n.meta.function](input_bindings)
+			if ret is not None:
+				result_bindings_set.append(ret)
+			else :
+				result_bindings_set.append(input_bindings)
 		
-		#p('new_exploded_bindings_set',new_exploded_bindings_set)
-		return new_exploded_bindings_set
+		#p('result_bindings_set',result_bindings_set)
+		output_bindings_set = []
+		for result_bindings, incoming_bindings in zip(result_bindings_set, incoming_bindings_set) :
+			# bind the values resulting from the function call
+			# the translation might return a bindings_set so deal with that case
+			# list_later surrounds the return value with an extra list to represent that
+			# it has been exploded
+			list_later = False
+			if isinstance(result_bindings, list) :
+				list_later = True
+				result_bindings_set = result_bindings
+			else :
+				result_bindings_set = [result_bindings]
+			new_bindings_set = []
+			for result_bindings in result_bindings_set :
+				#p('result_bindings',result_bindings)
+				new_bindings = copy.copy(incoming_bindings)
+				for var, value in result_bindings.iteritems() :
+					if var in output_bindings :
+						if is_any_var(output_bindings[var]) :
+							new_bindings[var_name(output_bindings[var])] = value
+						else :
+							assert output_bindings[var] == value
+							new_bindings[var] = value
+							#print 'hmm should I do something?',var, output_bindings[var],value
+				
+				#check to make sure everything was bound that was supposed to be
+				if len(new_bindings) != len(output_bindings) :
+					missing_variables = set(output_bindings) - set(result_bindings)
+					if missing_variables :
+						if len(missing_variables) > 1 :
+							variables = "variables"
+						else :
+							variables = "variable"
+						raise ValueError(
+							"%s %s didn't get bound by translation '%s'" % (
+								variables, ', '.join(
+									"'"+v+"'" for v in missing_variables
+								), step['translation'][self.n.meta.name]
+							)
+						)
+				
+				new_bindings_set.append(new_bindings)
+			
+			#p('new_bindings_set',new_bindings_set)
+			new_exploded_bindings_set = []
+			for new_bindings in new_bindings_set :
+				new_exploded_bindings_set.extend(new_explode_bindings_set(new_bindings))
+			#if len(new_exploded_bindings_set) > 1 :
+				#new_exploded_bindings_set = [new_exploded_bindings_set]
+			if list_later :
+				new_exploded_bindings_set = [new_exploded_bindings_set]
+			
+			#p('new_exploded_bindings_set',new_exploded_bindings_set)
+			#return new_exploded_bindings_set
+			output_bindings_set.extend(new_exploded_bindings_set)
+		
+		return output_bindings_set
 
 	#@logger
 	def evaluate_step_with_bindings_set(self, step, incoming_bindings_set) :
+		"""
+		There was some confusion when I was porting this to allow trasnlation
+		functions to take all the bindings at once.
+		
+		The confusion arises from the distinction between a list of possibilities
+		which can happen together:
+		translation 1 returns: [{x:1}, {x:2}]
+		translation 2 returns; [{y:1}, {y:2}]
+		 
+		could mean all 4 combinations are possible, or that x1 and x2 can both 
+		happen but not simultaneously
+		"""
 		#p('evaluating',step['translation'][n.meta.name])
 		#p('incoming_bindings_set',incoming_bindings_set)
-		new_bindings_set = []
-		for incoming_bindings in incoming_bindings_set :
-			if isinstance(incoming_bindings, list) :
-				new_bindings_set.append(self.evaluate_step_with_bindings_set(step, incoming_bindings))
-			else :
-				new_bindings_set.extend(self.evaluate_step_with_bindings(step, incoming_bindings))
+		#new_bindings_set = []
+		#for incoming_bindings in incoming_bindings_set :
+			#if isinstance(incoming_bindings, list) :
+				#new_bindings_set.append(self.evaluate_step_with_bindings_set(step, incoming_bindings))
+			#else :
+				#new_bindings_set.extend(self.evaluate_step_with_bindings(step, incoming_bindings))
+		
+		islist = False
+		if isinstance(incoming_bindings_set, list) :
+			if incoming_bindings_set and isinstance(incoming_bindings_set[0], list) :
+				incoming_bindings_set = incoming_bindings_set[0]
+				islist = True
+		
+		new_bindings_set = self.evaluate_step_with_bindings(step, incoming_bindings_set)
+		
+		if islist :
+			new_bindings_set = [new_bindings_set]
 		
 		if new_bindings_set == [{}] :
 			new_bindings_set = []
