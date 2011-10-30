@@ -1362,43 +1362,35 @@ def loadTranslations(axpress, n) :
 		""",
 	})
 	
-	def simple_render(vars) :
+	def get_blurbs(mids) :
+		import urllib2
+		import freebase
+		
+		for mid in mids :
+			try :
+				yield freebase.blurb(mid).decode('<utf-8>')
+			except freebase.api.MetawebError :
+				yield u'no blurb'
+	
+	def simple_render(bindings_set) :
 		from mako.template import Template
 		
-		import freebase
-		result = freebase.mqlread({
-			"mid" : vars['mid'],
-			"/common/topic/article": [{
-				"id":       None,
-				"optional": True,
-				"limit":    1
-			}],
-		})
-		if result and result['/common/topic/article'] :
-			blurb_id = result['/common/topic/article'][0]['id']
+		blurbs = get_blurbs([b['mid'] for b in bindings_set])
 		
-			import urllib2
-			req = urllib2.urlopen(
-				"https://api.freebase.com/api/trans/blurb%s?maxlength=1200" % blurb_id
-			)
-			vars['blurb'] = req.read().decode('<utf-8>')
-		else :
-			vars['blurb'] = u"no blurb"
-			
-		for k, v in vars.iteritems() :
-			print k, type(v)
-		vars['html'] = Template(u"""## -*- coding: utf-8 -*-
-		<div class="item">
-			<div class="image">
-				<img src='http://api.freebase.com/api/trans/image_thumb/${mid}?maxwidth=150' style='width:150px;height:150px'>
+		for vars, blurb in zip(bindings_set, blurbs) :
+			vars['html'] = Template(u"""## -*- coding: utf-8 -*-
+			<div class="item">
+				<div class="image">
+					<img src='http://api.freebase.com/api/trans/image_thumb/${mid}?maxwidth=150' style='width:150px;height:150px'>
+				</div>
+				<div class="side">
+					<div class="title"><a href="freebase.com/view${mid}">${name}</a></div>
+					<div class="blurb">${blurb}</div>
+				</div>
+				<div class="clear" />
 			</div>
-			<div class="side">
-				<div class="title"><a href="freebase.com/view${mid}">${name}</a></div>
-				<div class="blurb">${blurb}</div>
-			</div>
-			<div class="clear" />
-		</div>
-		""").render_unicode(**vars)
+			""").render_unicode(blurb = blurb, **vars)
+	
 	axpress.register_translation({
 		n.meta.name : 'simple render',
 		n.meta.input : """
@@ -1408,7 +1400,7 @@ def loadTranslations(axpress, n) :
 		n.meta.output : """
 			x[simple_display.text] = _html
 		""",
-		n.meta.function : simple_render,
+		n.meta.multi_function : simple_render,
 	})
 	
 	axpress.register_translation({

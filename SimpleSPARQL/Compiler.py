@@ -75,7 +75,8 @@ class Compiler :
 			raise Exception('translation is missing keys: %s' % prettyquery(missing))
 		
 		if n.meta.function not in translation :
-			translation[n.meta.function] = lambda x:x
+			if n.meta.multi_function not in translation :
+				translation[n.meta.function] = lambda x:x
 		
 		# parse any string expressions
 		translation[n.meta.input] = self.parser.parse_query(translation[n.meta.input], reset_bnodes=False)

@@ -63,13 +63,22 @@ class Evaluator :
 			#p('new_input_bindings',input_bindings)
 			input_bindings_set.append(input_bindings)
 		
-		result_bindings_set = []
-		for input_bindings in input_bindings_set :
-			ret = step['translation'][self.n.meta.function](input_bindings)
+		if self.n.meta.function in step['translation'] :
+			result_bindings_set = []
+			for input_bindings in input_bindings_set :
+				ret = step['translation'][self.n.meta.function](input_bindings)
+				if ret is not None:
+					result_bindings_set.append(ret)
+				else :
+					result_bindings_set.append(input_bindings)
+		elif self.n.meta.multi_function in step['translation'] :
+			ret = step['translation'][self.n.meta.multi_function](input_bindings_set)
 			if ret is not None:
-				result_bindings_set.append(ret)
+				result_bindings_set = ret
 			else :
-				result_bindings_set.append(input_bindings)
+				result_bindings_set = input_bindings_set
+		else :
+			raise Exception("translation doesn't have a function ...")
 		
 		#p('result_bindings_set',result_bindings_set)
 		output_bindings_set = []
