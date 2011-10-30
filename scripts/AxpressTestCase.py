@@ -543,7 +543,7 @@ class AxpressTestCase(unittest.TestCase):
 	
 	def testSimpleFreebaseStringQuery7(self):
 		ret = self.axpress.read_translate("""
-			weather[axpress.is] = "current weather in btown"
+			weather[axpress.is] = "current weather in bloomington, indiana"
 			weather[wunderground.current_temperature] = _current_temperature
 		""")
 		p('ret', ret)

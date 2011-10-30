@@ -21,6 +21,7 @@
 }
 .item {
 	padding: 1em;
+	overflow: hidden;
 }
 .item .side {
 	height: 150px;

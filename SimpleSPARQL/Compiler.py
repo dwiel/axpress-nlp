@@ -85,9 +85,9 @@ class Compiler :
 		# translation
 		invars = find_vars(translation[n.meta.input], find_string_vars = True)
 		outvars = find_vars(translation[n.meta.output], find_string_vars = True)
-		p(translation[n.meta.name])
-		p('invars', invars)
-		p('outvars', outvars)
+		#p(translation[n.meta.name])
+		#p('invars', invars)
+		#p('outvars', outvars)
 		constant_vars = list(invars.intersection(outvars))
 		translation[n.meta.constant_vars] = constant_vars
 		

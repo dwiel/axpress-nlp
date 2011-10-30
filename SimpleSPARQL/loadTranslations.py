@@ -1302,13 +1302,6 @@ def loadTranslations(axpress, n) :
 		import json
 		import urllib2, urllib
 		
-		#print "https://www.googleapis.com/freebase/v1/search"+urllib.urlencode({
-			#'query' : vars['title'],
-			#'type' : vars['type'],
-			#'html_escape' : 'false',
-			#'html_encode' : 'false',
-			#'escape' : 'false',
-			#'limit' : 1})
 		req = urllib2.urlopen("https://www.googleapis.com/freebase/v1/search", urllib.urlencode({
 			'query' : vars['title'],
 			'type' : vars['type'],
@@ -1388,7 +1381,7 @@ def loadTranslations(axpress, n) :
 			req = urllib2.urlopen(
 				"https://api.freebase.com/api/trans/blurb%s?maxlength=1200" % blurb_id
 			)
-			vars['blurb'] req.read().decode('<utf-8>')
+			vars['blurb'] = req.read().decode('<utf-8>')
 		else :
 			vars['blurb'] = u"no blurb"
 			
@@ -1400,7 +1393,7 @@ def loadTranslations(axpress, n) :
 				<img src='http://api.freebase.com/api/trans/image_thumb/${mid}?maxwidth=150' style='width:150px;height:150px'>
 			</div>
 			<div class="side">
-				<div class="title">${name}</div>
+				<div class="title"><a href="freebase.com/view${mid}">${name}</a></div>
 				<div class="blurb">${blurb}</div>
 			</div>
 			<div class="clear" />
