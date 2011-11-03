@@ -26,6 +26,9 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 	def test1(self):
 		assert self.parser.parse_expression("image[flickr.tag] = 'sunset'") == [[n.var.image, n.flickr.tag, 'sunset']]
 	
+	def test1b(self):
+		assert self.parser.parse_expression("image[flickr.tag] = 'sunset' | 'sunrise'") == [[n.var.image, n.flickr.tag, ['sunset', 'sunrise']]]
+	
 	def test2(self):
 		assert self.parser.parse_expression("image[flickr:tag] = 1.5") == [[n.var.image, n.flickr.tag, 1.5]]
 	
@@ -257,7 +260,17 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 			[n.var['x'], n.test['test'], n.var['bnode1']],
 			[n.var['bnode1'], n.test['test'], 1]
 		]
-
+	
+	def test_multiLineOr(self):
+		query = """
+			i[flickr.tag] = 'sunset' |
+			                'sunrise'
+		"""
+		p('query', self.parser.parse_query(query))
+		assert self.parser.parse_query(query) == [
+			[n.var['i'], n['flickr']['tag'], ['sunset', 'sunrise']],
+		]
+	
 if __name__ == "__main__" :
 	unittest.main()
 
