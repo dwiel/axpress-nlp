@@ -113,10 +113,28 @@ class Parser() :
 		given a string with multiple lines, split it up, remove any leading or 
 		trailing space, and remove any blank lines
 		"""
+		prepend_to_next_line = ''
 		for line in string.strip().split('\n') :
 			line = line.strip()
-			if line is not '' :
-				yield line
+			
+			if line is '' :
+				continue
+			
+			line = prepend_to_next_line + line
+			
+			# look for a pipe character at the end of the line
+			g = re.search("\|\s*$", line)
+			if g :
+				prepend_to_next_line = line
+				continue
+			else :
+				prepend_to_next_line = ''
+			
+			yield line
+		
+		# if there was a pipe at the end of the last line, it is an error
+		if prepend_to_next_line :
+			raise Exception('the last line of a query cant have a | at the end')
 	
 	def convert_strings_to_vars(self, expression) :
 		"""
@@ -128,21 +146,43 @@ class Parser() :
 		str_num = 0
 		new_expression = ""
 		i = 0
+		pipe = False
 		# loop through each character, if it is either of the quotes, start quoting
 		# if its a triple quote though, start a long triple quote.
 		while i < len(expression) :
 			letter = expression[i]
 			if letter in "'\"" :
+				# check for triple quote
 				if expression[i+1:i+3] == letter * 2 :
 					letter *= 3
+				
+				# extract out the string
 				g = re.search("(.*?[^\\\\])"+letter, expression[i+len(letter):])
 				if g is None :
 					raise Exception("Parse Error: unclosed quote (%s): %s" % (letter, expression))
 				string = g.group(1)
-				new_expression += '__str' + str(str_num)
-				str_bindings[str(str_num)] = string
-				str_num += 1
+				
+				# if this is an or list (> 1 string seperated by |) bind to the list of strings
+				if pipe :
+					existing = str_bindings[str(str_num-1)]
+					if isinstance(existing, basestring) :
+						str_bindings[str(str_num-1)] = [existing, string]
+					else :
+						str_bindings[str(str_num)].append(string)
+				else :
+					new_expression += '__str' + str(str_num)
+					str_bindings[str(str_num)] = string
+					str_num += 1
+				# move on to the rest of the expression
 				i += len(string) + (len(letter) * 2) - 1
+				
+				# look for a | connector
+				g = re.search("""(\s*\|\s*)['"]""", expression[i:])
+				if g :
+					i += len(g.group(1))
+					pipe = True
+				else :
+					pipe = False
 			else :
 				new_expression += letter
 			i += 1
@@ -295,6 +335,7 @@ class Parser() :
 			#p('re_var', expression)
 			return 'n.var["%s"]' % expression
 		
+		# number (or other python expressions?)
 		#p('just expression', expression)
 		return expression
 		
