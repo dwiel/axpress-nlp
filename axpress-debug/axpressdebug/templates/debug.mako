@@ -56,11 +56,11 @@ ${c.ret | n}
 </div>
 
 <div class="advanced" id="debug">
-% if c.ret_html :
+<!-- % if c.ret_html : -->
 	${c.debug_html | n}
-% else :
-	${c.debug_html}
-% endif
+<!-- % else : -->
+<!-- 	${c.debug_html} -->
+<!-- % endif -->
 </div>
 
 <script>

@@ -37,6 +37,7 @@ class IndexController(BaseController):
 			except CompilerException, e :
 				c.ret = str(e)
 				c.ret_html = False
+				c.debug_html = g.axpress.compiler.debug_str
 		else :
 			c.ret_html = False
 			c.debug_html = g.axpress.compiler.debug_str
