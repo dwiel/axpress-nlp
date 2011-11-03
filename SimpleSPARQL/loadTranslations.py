@@ -1243,8 +1243,8 @@ def loadTranslations(axpress, n) :
 		n.meta.name : 's current weather',
 		n.meta.input : """
 			#weather[axpress.is] = "current weather in %location_s%"
-			weather[axpress.is] = "current weather in %location_s%" | "current temperature in %location_s%"
-			#weather[axpress.is] = "(the |)(current |)(weather|temperature) (in |at |near |by |near by |)%location_s%( now|)"
+			#weather[axpress.is] = "current weather in %location_s%" | "current temperature in %location_s%"
+			weather[axpress.is] = "(the |)(current |)(weather|temperature|temp) (in |at |near |by |near by |)%location_s%( right now| now|)"
 		""",
 		n.meta.output : """
 			location[axpress.is] = "%location_s%"
