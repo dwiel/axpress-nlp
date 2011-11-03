@@ -9,7 +9,7 @@ from Bindings import Bindings
 
 from rdflib import URIRef
 
-from itertools import izip
+from itertools import izip, imap
 import copy, time, random
 
 def isstr(v) :
@@ -96,20 +96,15 @@ class Compiler :
 		self.translations_by_name[translation[n.meta.name]] = translation
 	
 	def find_matches(self, value, qvalue) :
-		import lua
-		lua.require('matching')
-		find_matches = lua.globals()['find_matches']
-		ret = find_matches(qvalue, value)
-		return ret
+		const, vars = split_string(value)
+		regex = merge_string(const, ['(?P<%s>.+)' % var for var in vars])
+		g = re.search(regex, qvalue)
+		
+		if g :
+			return {var : g.group(var) for var in vars}
 	
 	def string_matches(self, value, qvalue) :
-		import lua
-		lua.require('matching')
-		find_matches = lua.globals()['find_matches']
-		qvalue = lua.eval(lua_repr(qvalue))
-		value  = lua.eval(lua_repr(value ))
-		ret = find_matches(qvalue, value)
-		return ret[1] != None
+		return self.find_matches(value, qvalue) != None
 	
 	#@logger
 	def values_match(self, value, qvalue) :
@@ -143,6 +138,9 @@ class Compiler :
 					return True
 		elif is_out_lit_var(qvalue) :
 			return True
+		elif isinstance(value, list) :
+			ret = any(imap(lambda v : self.values_match(v, qvalue), value))
+			return ret
 		
 		if isstr(value) and isstr(qvalue) :
 			if self.string_matches(value, qvalue) :
@@ -180,10 +178,17 @@ class Compiler :
 				# pattern this will only return the first
 				self.debugp(str(t), str(q))
 				ret = self.find_matches(str(t), str(q))
-				if ret[1] :
-					for i in range(1, len(ret[1])+1) :
-						binding[unicode(ret['matchtypes'][i])] = unicode(ret[1][i])
-						#if unicode(ret['matchtypes'][i]) == 
+				if ret :
+					for name, value in ret.iteritems() :
+						binding[unicode(name)] = unicode(value)
+			elif isinstance(t, list) :
+				# NOTE: copy and paste from above ...
+				self.debugp(str(t), str(q))
+				for ti in t :
+					ret = self.find_matches(str(ti), str(q))
+					if ret :
+						for name, value in ret.iteritems() :
+							binding[unicode(name)] = unicode(value)
 			elif t != q :
 				return Bindings()
 		return binding
@@ -266,10 +271,10 @@ class Compiler :
 			bindings is a list of bindings for var to value
 		"""
 		
-		#p('translation', translation)
-		#p('facts', facts)
-		#p('reqd_facts', reqd_facts)
-		#p('initial_bindings', initial_bindings)
+		self.debugp('translation', translation)
+		self.debugp('facts', facts)
+		self.debugp('reqd_facts', reqd_facts)
+		self.debugp('initial_bindings', initial_bindings)
 		
 		matches = True
 		
@@ -380,7 +385,7 @@ class Compiler :
 		#p('reqd_triples', reqd_triples)
 		if not self.partial_match_exists(translation[self.n.meta.input], reqd_triples) :
 			return False, None
-		
+			
 		matches, bindings = self.find_bindings(query, translation[self.n.meta.input], output_vars, reqd_triples, root)
 		
 		if matches :

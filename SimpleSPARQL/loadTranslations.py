@@ -1229,11 +1229,22 @@ def loadTranslations(axpress, n) :
 		n.meta.function : lookup_birthplace,
 	})
 	
+	axpress.register_translation({
+		n.meta.name : 'remove the',
+		n.meta.input : """
+			x[axpress.is] = "the %anything%"
+		""",
+		n.meta.output : """
+			x[axpress.is] = "%anything%"
+		"""
+	})
 	
 	axpress.register_translation({
 		n.meta.name : 's current weather',
 		n.meta.input : """
-			weather[axpress.is] = "current weather in %location_s%"
+			#weather[axpress.is] = "current weather in %location_s%"
+			weather[axpress.is] = "current weather in %location_s%" | "current temperature in %location_s%"
+			#weather[axpress.is] = "(the |)(current |)(weather|temperature) (in |at |near |by |near by |)%location_s%( now|)"
 		""",
 		n.meta.output : """
 			location[axpress.is] = "%location_s%"
@@ -1331,36 +1342,36 @@ def loadTranslations(axpress, n) :
 		n.meta.function : freebase_search,
 	})
 	
-	axpress.register_translation({
-		n.meta.name : '',
-		n.meta.input : """
-			date_of_first_publication[axpress.is] = "first published %book_str%"
-			book[freebase.mid] = _mid
-			book[freebase.type] = '/book/written_work'
-		""",
-		n.meta.output : """
-			book[axpress.is] = "%book_str"
-			book[freebase./book/written_work/date_of_first_publication] = date_of_first_publication
-			# this next line might be implied by a more general rule (see following)
-			date_of_first_publication[freebase.type] = freebase.type/datetime
-		""",
-	})
+	#axpress.register_translation({
+		#n.meta.name : '',
+		#n.meta.input : """
+			#date_of_first_publication[axpress.is] = "first published %book_str%"
+			#book[freebase.mid] = _mid
+			#book[freebase.type] = '/book/written_work'
+		#""",
+		#n.meta.output : """
+			#book[axpress.is] = "%book_str"
+			#book[freebase./book/written_work/date_of_first_publication] = date_of_first_publication
+			## this next line might be implied by a more general rule (see following)
+			#date_of_first_publication[freebase.type] = freebase.type/datetime
+		#""",
+	#})
 	
-	# this translation shows only that properties of type freebase./book/wri...
-	# must have values which have the freebase.type freebase.type/datetime
-	# this kind of rule should be automatically generated/translated from the 
-	# freebase database of properties soon, perhpas using axpress
-	axpress.register_translation({
-		n.meta.name : '',
-		n.meta.input : """
-			book[freebase./book/written_work/date_of_first_publication] = date_of_first_publication
-		""",
-		n.meta.output : """
-			date_of_first_publication[freebase.type] = freebase.type/datetime
-			# and maybe even something like :
-			date_of_first_publication[axpress.constraint] = axpress.unique
-		""",
-	})
+	## this translation shows only that properties of type freebase./book/wri...
+	## must have values which have the freebase.type freebase.type/datetime
+	## this kind of rule should be automatically generated/translated from the 
+	## freebase database of properties soon, perhpas using axpress
+	#axpress.register_translation({
+		#n.meta.name : '',
+		#n.meta.input : """
+			#book[freebase./book/written_work/date_of_first_publication] = date_of_first_publication
+		#""",
+		#n.meta.output : """
+			#date_of_first_publication[freebase.type] = freebase.type/datetime
+			## and maybe even something like :
+			#date_of_first_publication[axpress.constraint] = axpress.unique
+		#""",
+	#})
 	
 	def get_blurbs(mids) :
 		import urllib2
@@ -1402,6 +1413,19 @@ def loadTranslations(axpress, n) :
 		""",
 		n.meta.multi_function : simple_render,
 	})
+	
+	axpress.register_translation({
+		n.meta.name : 'simple render temp',
+		n.meta.input : """
+			x[wunderground.current_temperature] = _out
+		""",
+		n.meta.output : """
+			x[simple_display.text] = _out
+		""",
+	})
+	
+	
+
 	
 	axpress.register_translation({
 		n.meta.name : 'test',
