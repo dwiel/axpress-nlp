@@ -1,7 +1,22 @@
 # -*- coding: utf-8 -*-
 from SimpleSPARQL import *
-import os, random, re
+import os
+import random
+import re
 from itertools import izip
+import urllib
+import urllib2
+import time
+import xml.etree.ElementTree
+#import flickrapi
+from PIL import Image
+import glob
+import freebase
+from mako.template import Template
+
+from htmlentitydefs import name2codepoint
+# for some reason, python 2.5.2 doesn't have this one (apostrophe)
+name2codepoint['#39'] = 39
 
 def loadTranslations(axpress, n) :
 	n.bind('rdfs', '<http://www.w3.org/2000/01/rdf-schema#>')
@@ -174,10 +189,6 @@ def loadTranslations(axpress, n) :
 			#}
 		#])
 	
-	from htmlentitydefs import name2codepoint
-	# for some reason, python 2.5.2 doesn't have this one (apostrophe)
-	name2codepoint['#39'] = 39
-	
 	def unescape(s):
 			"unescape HTML code refs; c.f. http://wiki.python.org/moin/EscapingHtml"
 			return re.sub('&(%s);' % '|'.join(name2codepoint),
@@ -187,7 +198,6 @@ def loadTranslations(axpress, n) :
 	# set of bindings.  (If the artist is not in lastfm - or if there is no inet?)
 	re_lastfm_similar = re.compile('(.*?),(.*?),(.+)')
 	def lastfm_similar(vars) :
-		import os, urllib, time
 		if not os.path.exists('.lastfmcache') :
 			os.mkdir('.lastfmcache')
 		filename = '.lastfmcache/artist_%s_similar' % urllib.quote(vars['artist_name'])
@@ -238,9 +248,6 @@ def loadTranslations(axpress, n) :
 	})
 	
 	def lastfm_user_recent_tracks(vars) :
-		import urllib2, urllib
-		import xml.etree.ElementTree
-		
 		filename = '/home/dwiel/.lastfmcache/user_%s_recent_tracks' % urllib.quote(vars['user_name'])
 		filename = filename.replace('%','_')
 		# use the cached version if it exists and is no more than 10 mins old
@@ -384,7 +391,6 @@ def loadTranslations(axpress, n) :
 						(photo.attrib['farm'], photo.attrib['server'], photo.attrib['id'], photo.attrib['secret'], 'b')
 	
 	def flickr_photos_search(vars) :
-		import flickrapi
 		flickr = flickrapi.FlickrAPI('91a5290443e54ec0ff7bcd26328963cd', format='etree')
 		photos = flickr.photos_search(tags=[vars['tag']])
 		urls = []
@@ -463,7 +469,6 @@ def loadTranslations(axpress, n) :
 	})
 
 	def load_image(vars) :
-		from PIL import Image
 		im = Image.open(vars['filename'])
 		im.load() # force the data to be loaded (Image.open is lazy)
 		vars['pil_image'] = im
@@ -479,7 +484,6 @@ def loadTranslations(axpress, n) :
 	})
 	
 	#def load_image2(vars) :
-		#from PIL import Image
 		#im = Image.open(vars['filename'])
 		#im.load() # force the data to be loaded (Image.open is lazy)
 		#vars['pil_image'] = im
@@ -495,7 +499,6 @@ def loadTranslations(axpress, n) :
 	#})
 		
 	def image_thumbnail(vars) :
-		from PIL import Image
 		im = vars['pil_image']
 		im.thumbnail((int(vars['x']), int(vars['y'])), Image.ANTIALIAS)
 		vars['thumb_image'] = im
@@ -512,7 +515,6 @@ def loadTranslations(axpress, n) :
 	})
 
 	def image_pixel(vars) :
-		from PIL import Image
 		im = vars['pil_image']
 		vars['color'] = im.getpixel((int(vars['x']), int(vars['y'])))
 	axpress.register_translation({
@@ -689,7 +691,6 @@ def loadTranslations(axpress, n) :
 	
 	
 	def glob_glob(vars):
-		import glob
 		#vars['out_filename'] = glob.glob(vars['pattern'])
 		ret = [{'out_filename' : filename} for filename in glob.glob(vars['pattern'])]
 		#print(vars['pattern'],ret)
@@ -718,7 +719,6 @@ def loadTranslations(axpress, n) :
 	})
 	
 	def glob_glob(vars):
-		import glob
 		vars['out_filename'] = glob.glob(vars['pattern'])
 	axpress.register_translation({
 		n.meta.name : 'glob glob',
@@ -1088,7 +1088,6 @@ def loadTranslations(axpress, n) :
 	})
 	
 	def lookup_albums_by_musician(vars) :
-		import freebase
 		result = freebase.mqlread({
 			"mid" : vars['artist_mid'],
 			"type" : "/music/artist",
@@ -1128,7 +1127,6 @@ def loadTranslations(axpress, n) :
 	
 	def lookup_members_in_group(vars) :
 		# TODO: /music/musical_group/member doesn't have a name
-		import freebase
 		result = freebase.mqlread({
 			"mid" : vars['mid'],
 			"type" : '/music/musical_group',
@@ -1168,7 +1166,6 @@ def loadTranslations(axpress, n) :
 	#})
 	
 	#def lookup_birthday(vars) :
-		#import freebase
 		#result = freebase.mqlread({
 			#"mid" : vars['mid'],
 			#"type" : "/people/person",
@@ -1203,7 +1200,6 @@ def loadTranslations(axpress, n) :
 	})
 	
 	def lookup_birthplace(vars) :
-		import freebase
 		result = freebase.mqlread({
 			"mid" : vars['person_mid'],
 			"type" : "/people/person",
@@ -1252,9 +1248,6 @@ def loadTranslations(axpress, n) :
 	})
 	
 	def lookup_current_weather(vars) :
-		import json
-		import urllib2
-		
 		return json.loads(
 			urllib2.urlopen(
 				"http://api.wunderground.com/api/648fbe96a3f5358d/conditions/q/%s,%s.json" % (
@@ -1279,7 +1272,6 @@ def loadTranslations(axpress, n) :
 	})
 	
 	def lookup_location_lat_lon(vars) :
-		import freebase
 		result = freebase.mqlread({
 			"mid" : vars['mid'],
 			"type" : "/location/location",
@@ -1304,12 +1296,7 @@ def loadTranslations(axpress, n) :
 		n.meta.function : lookup_location_lat_lon,
 	})
 	
-	from htmlentitydefs import name2codepoint
-	
 	def freebase_search(vars) :
-		import json
-		import urllib2, urllib
-		
 		req = urllib2.urlopen("https://www.googleapis.com/freebase/v1/search", urllib.urlencode({
 			'query' : vars['title'],
 			'type' : vars['type'],
@@ -1371,9 +1358,6 @@ def loadTranslations(axpress, n) :
 	#})
 	
 	def get_blurbs(mids) :
-		import urllib2
-		import freebase
-		
 		for mid in mids :
 			try :
 				yield freebase.blurb(mid).decode('<utf-8>')
@@ -1381,8 +1365,6 @@ def loadTranslations(axpress, n) :
 				yield u'no blurb'
 	
 	def simple_render(bindings_set) :
-		from mako.template import Template
-		
 		blurbs = get_blurbs([b['mid'] for b in bindings_set])
 		
 		for vars, blurb in zip(bindings_set, blurbs) :
