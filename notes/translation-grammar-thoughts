@@ -1,0 +1,87 @@
+name : 's current weather'
+input
+  weather[axpress.is] = "(the |)(current |)(weather|temperature|temp) (in |at |near |by |near by |)%location_s%( right now| now|)"
+output
+  location[axpress.is] = "%location_s%"
+  location[freebase.type] = '/location/location'
+  location[wunderground.weather] = weather
+  
+name : 'lookup current weather'
+input
+	use freebase as .
+	location{
+		wunderground.weather = weather
+		.type = '/location/location'
+		./location/location/geolocation{
+			./location/geocode/latitude = _lat
+			./location/geocode/longitude = _lon
+		}
+output
+	weather[wunderground.current_temperature] = _temp_f
+function/python
+	import json
+	import urllib2
+	
+	return json.loads(
+		urllib2.urlopen(
+			"http://api.wunderground.com/api/648fbe96a3f5358d/conditions/q/%s,%s.json" % (
+				vars['lat'], vars['lon']
+			)
+		).read()
+	)['current_observation']
+
+
+
+
+
+
+
+
+
+# a TODO list app
+
+input-string add %item% (to |)(my |)todo( list|)
+fn
+	f = open('~/axpress/todolist', 'w')
+	print >>f, item
+	f.close()
+
+input-string (show |)(my |)todo( list|)
+function
+	f = open('~/axpress/todolist', 'r')
+	lines = f.read().split('\n')
+	f.close()
+	return lines
+output
+	# note depends on a list renderer
+	x[.type] = 'list'
+	x[.item] = _item
+# alternatively:
+mako all (items)
+	<ul>
+		<% for item in items %>
+			<li><%= item %>
+		<% endfor %>
+	</ul>
+
+input-string remove %item% (from |)(my |)todo( list|)
+function
+	f = open('~/axpress/todolist', 'r')
+	lines = f.read().split('\n')
+	f.close()
+	
+	if item not in lines :
+		return say("%s was not in your todo list" % item)
+	
+	f = open('~/axpress/todolist', 'r')
+	for line in lines :
+		print >>f, line
+	f.close()
+output-string ok
+
+
+
+
+
+
+

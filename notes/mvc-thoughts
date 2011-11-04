@@ -1,0 +1,58 @@
+# slightly less verbose than current system
+
+_[circle.radius] = _radius
+=>
+_[circle.circumfrance] = 2 * math.pi * r
+
+_[circle.radius] = _radius
+=>
+_[circle.area] = math.pi * r ** 2
+
+--------------
+
+# this syntax is nice, but it seems maybe only for small types like circle
+type circle
+  # model
+  circumfrance = 2 * math.pi * radius
+  area = math.pi * radius ** 2
+  diameter = radius * 2
+  radius = diameter / 2
+  radius = circumfrance / 2 / math.pi
+  radius = math.sqrt(area / math.pi)
+  
+  # english/controller ?
+  _[axpress.is] = "area of circle radius %radius%"
+  =>
+  c[.radius] = radius
+  _[axpress.is] = c[.area]
+  _[axpress.describes] = c
+  c[rdfs.type] = .circle
+  
+  # view
+  ## not much to view here ... could draw a circle with radius 4
+  ## otherwise default rendering of the number 4 should work
+
+# it isn't that these words don't have meaning, but that they sometimes (often)
+# don't in this context.
+
+what is %any%
+gimmie %any%
+display %any%
+the %any%
+...
+
+area [of] [a] circle [with a] radius [=] [of] %radius%
+/area_of_a_circle?radius=%radius%
+
+I think the way that this system is going to evolve (english and translation) is
+by defining seemingly simple and strict definitions and phrasings and then later
+coming through and finding commonalities and unifying multiple paradigms.  
+Trying to write the whole thing from scratch is too difficult 
+
+That sounds like something that would need to be centralized ... or maybe
+federated ... not wikid though ... how would you ever decide when to unify?
+I'm getting ahead of myself.
+
+When I simplify the syntax, I do start to get worried that I am reinventing the
+wheel here.  The thing is, at this point almost all languages are reinventing 
+the wheel in that everything that is possible in one is possible in another.

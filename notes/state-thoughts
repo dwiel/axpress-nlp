@@ -1,0 +1,51 @@
+It looks like if there is going to be some kind of redesign, it might be worth
+considering debugging as a more intigral element of the design.  I wonder if the
+debugger could be implemented as something like a filter (that never makes any
+filtering decisions)
+It would be helpful to put at the end of the filter, or inbetween lots of 
+filters to see where the search has gone and what stopped it.  However, it might
+also be helpful to include the information deeper too, like which filter stops
+which translation, when.  We need to know where the compiler got 'stuck'
+
+
+At the moment, this isn't too important for clean code ...  Would probably be 
+best for now to just keep cleaning up here and there
+
+different kinds of heuristics or search filters:
+
+history:
+  * its primary purpose is to filter the set of next steps
+  * it touches next_translation by avoiding the case where you match on a function
+  and then match on its inverse immediately after
+  
+def history_filter(state, step, history) :
+  
+  step_key = [step['translation'], step['input_bindings']]
+  
+  if step_key not in history :
+    history = copy.copy(history)
+    
+    # add this step to the history
+    history.append([step['translation'], copy.copy(step['input_bindings'])])
+    
+    return True, history
+  else :
+    return False
+
+"""
+state - current search state
+step - the details about the step through the search space we are considering taking
+history - the custom state used by this filter
+
+this function returns False if the step should not be taken, or it returns a 
+list [True, new_custom_state].  The new_custom_state will be the custom state 
+passed into this filter when we are considering steps from the next_state.  The
+next_state is the state that we will be in if we do take this step.
+"""
+
+What other kinds of filters are there?
+	partial match
+		this filter needs to know which triples changed in the last step and then
+		only look test translations which take these new data into account.  If they
+		aren't used in this step, then we should have already traveled that step 
+		earlier.
