@@ -1242,8 +1242,6 @@ def loadTranslations(axpress, n) :
 	axpress.register_translation({
 		n.meta.name : 's current weather',
 		n.meta.input : """
-			#weather[axpress.is] = "current weather in %location_s%"
-			#weather[axpress.is] = "current weather in %location_s%" | "current temperature in %location_s%"
 			weather[axpress.is] = "(the |)(current |)(weather|temperature|temp) (in |at |near |by |near by |)%location_s%( right now| now|)"
 		""",
 		n.meta.output : """
@@ -1255,16 +1253,15 @@ def loadTranslations(axpress, n) :
 	
 	def lookup_current_weather(vars) :
 		import json
-		import urllib2, urllib
+		import urllib2
 		
-		print "http://api.wunderground.com/api/648fbe96a3f5358d/conditions/q/%s,%s.json" % (
-			vars['lat'], vars['lon'])
-		ret = urllib2.urlopen("http://api.wunderground.com/api/648fbe96a3f5358d/conditions/q/%s,%s.json" % (
-			vars['lat'], vars['lon'])).read()
-		ret = json.loads(ret)
-		print ret['current_observation']
-		
-		return ret['current_observation']
+		return json.loads(
+			urllib2.urlopen(
+				"http://api.wunderground.com/api/648fbe96a3f5358d/conditions/q/%s,%s.json" % (
+					vars['lat'], vars['lon']
+				)
+			).read()
+		)['current_observation']
 	
 	axpress.register_translation({
 		n.meta.name : 'lookup current weather',
@@ -1455,3 +1452,9 @@ def loadTranslations(axpress, n) :
 		# so it isn't constant.  The value is constant,
 		# 2011-10-27: it is constant now ...
 	})
+
+
+######### TODO APP
+
+
+
