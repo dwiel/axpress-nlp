@@ -35,26 +35,27 @@ a = n.rdfs.type
 class X():pass
 type_instance = type(X())
 
+compiler = Compiler(n)
+evaluator = Evaluator(n)
+
+axpress = Axpress(
+  sparql = sparql,
+  compiler = compiler,
+  evaluator = evaluator
+)
+loadTranslations(axpress, n)
+
+
 class AxpressTestCase(unittest.TestCase):
-	def setUp(self):
-		self.compiler = Compiler(n)
-		self.evaluator = Evaluator(n)
-		
-		self.axpress = Axpress(
-			sparql = sparql,
-			compiler = self.compiler,
-			evaluator = self.evaluator
-		)
-		loadTranslations(self.axpress, n)
-		
-		# TODO: load a test set of data into the sparql point
-	
+	#def setUp(self):
+    #pass
+
 	# depends on Joseki
 	#def testIncomingBindings(self):
 		#def is_num(x):
 			#return isinstance(x, (int, long, float))
 		
-		#bindings_set = self.axpress.read_sparql("""
+		#bindings_set = axpress.read_sparql("""
 			#foo[test.x] = x
 			#foo[test.y] = y
 		#""")
@@ -73,7 +74,7 @@ class AxpressTestCase(unittest.TestCase):
 		#bindings_set = new_bindings_set
 		##print 'bindings_set',prettyquery(bindings_set)
 		
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#foo[test.x] = x
 			#foo[test.y] = y
 			#foo[test.sum] = _sum
@@ -89,7 +90,7 @@ class AxpressTestCase(unittest.TestCase):
 		""" note, at one time, thumb was included in the reqd_bound_vars, but
 		I'm not really sure why.  It doesn't really have any meaning.
 		"""
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[glob.glob] = "pictures/*.jpg"
 			thumb = image.thumbnail(image, 4, 4, image.antialias)
 			thumb[pil.image] = _thumb_image
@@ -109,7 +110,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	def testQueryLimitLessThanAvailable(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[glob.glob] = "pictures/*.jpg"
 			thumb = image.thumbnail(image, 4, 4, image.antialias)
 			thumb[pil.image] = _thumb_image
@@ -124,7 +125,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	def testQueryLimitSameAsAvailable(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[glob.glob] = "pictures/*.jpg"
 			thumb = image.thumbnail(image, 4, 4, image.antialias)
 			thumb[pil.image] = _thumb_image
@@ -141,7 +142,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	def testQueryLimitMoreThanAvailable(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[glob.glob] = "pictures/*.jpg"
 			thumb = image.thumbnail(image, 4, 4, image.antialias)
 			thumb[pil.image] = _thumb_image
@@ -159,7 +160,7 @@ class AxpressTestCase(unittest.TestCase):
 	
 	# warning this test requires the internet and will ping flickr.  Don't do alot
 	#def test3(self) :
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#image[flickr.tag] = 'floor'
 			#image[file.url] = _url
 		#""", reqd_bound_vars = ['url'])
@@ -167,7 +168,7 @@ class AxpressTestCase(unittest.TestCase):
 	
 	# warning this test requires the internet and will ping flickr.  Don't do alot
 	#def test4(self) :
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#image[flickr.tag] = 'wall'
 			#thumb = image.thumbnail(image, 4, 4, image.antialias)
 			#thumb[pil.image] = _thumb_image
@@ -176,7 +177,7 @@ class AxpressTestCase(unittest.TestCase):
 		#print 'ret',prettyquery(ret)
 	
 	def test5(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[glob.glob] = "pictures/*.jpg"
 			image[file.filename] = _filename
 			thumb = image.thumbnail(image, 4, 4, image.antialias)
@@ -195,7 +196,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	def test6(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[glob.glob] = "pictures/*.jpg"
 			image[file.filename] = _filename
 			thumb = image.thumbnail(image, 4, 4, image.antialias)
@@ -215,7 +216,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 
 	#def test7(self):
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#image[glob.glob] = "/home/dwiel/AMOSvid/*.jpg"
 			#thumb = image.thumbnail(image, 1, 1)
 			#pix = image.pixel(thumb, 0, 0)
@@ -236,7 +237,7 @@ class AxpressTestCase(unittest.TestCase):
 
 	
 	def testBasicExample(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			foo[test.x] = 1
 			foo[test.y] = 10
 			foo[test.sum] = _sum
@@ -245,7 +246,7 @@ class AxpressTestCase(unittest.TestCase):
 		assert ret == [{'sum' : 11}]
 
 	#def testMultipleNonDependentPaths(self):
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#image[file.filename] = "/home/dwiel/AMOSvid/20080804_080127.jpg"
 			#pix = image.pixel(image, 0, 0)
 			#pix[pil.color] = _color
@@ -262,7 +263,7 @@ class AxpressTestCase(unittest.TestCase):
 		#]
 
 	#def testOptionInputs(self):
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#image[file.filename] = "/home/dwiel/AMOSvid/20080804_080127.jpg"
 			#image[html.width] = 300
 			#image[html.html] = _html
@@ -275,7 +276,7 @@ class AxpressTestCase(unittest.TestCase):
 		#]
 
 	#def testOptionInputs2(self):
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#image[file.filename] = "/home/dwiel/AMOSvid/20080804_080127.jpg"
 			#image[html.html] = _html
 		#""")
@@ -288,7 +289,7 @@ class AxpressTestCase(unittest.TestCase):
 	
 	## only works when amarok is playing music
 	#def testAmarok(self):
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
  			#amarok.amarok[amarok.artist] = artist
 			#artist[music.artist_name] = _name
 		#""")
@@ -296,7 +297,7 @@ class AxpressTestCase(unittest.TestCase):
 		#assert len(ret) == 1 and len(ret[0]) == 1 and 'name' in ret[0] and isinstance(ret[0]['name'], basestring)
 
 	def testTranslationReturnsListOfBindings(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			qartist[music.artist_name] = 'Neil Young'
 			qartist[lastfm.similar_to] = qsimilar_artist
 			qsimilar_artist[lastfm.artist_name] = _name
@@ -310,7 +311,7 @@ class AxpressTestCase(unittest.TestCase):
 
 	## only works when amarok is playing music
 	#def testTranslationReturnsListOfBindings2(self):
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#amarok.amarok[amarok.artist] = artist
 			#artist[lastfm.similar_to] = similar_artist
 			#similar_artist[lastfm.name] = _name
@@ -323,28 +324,28 @@ class AxpressTestCase(unittest.TestCase):
 			#assert isinstance(bindings['name'], basestring)
 	
 	def testNoBindingsFromTranslation(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[glob.glob] = '/no/files/here/*.jpg'
 			image[file.filename] = _filename
 		""")
 		assert len(ret) == 0
 
 	def testNoBindingsFromTranslation2(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			foo[test.no_bindings_input] = "input string"
 			foo[test.no_bindings_output] = _output
 		""")
 		assert len(ret) == 0
 	
 	def testGeneral(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[glob.glob] = '/home/dwiel/AMOSvid/1065/*.nothing'
 			image[file.filename] = _filename
 		""")
 		assert ret == []
 
 	def testIncomingOutgoingBindings(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			foo[test.x] = x
 			foo[test.y] = y
 			foo[test.sum] = _sum
@@ -358,7 +359,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	def testIncomingOutgoingBindings2(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			foo[test.x] = _x
 			foo[test.y] = y
 			foo[test.sum] = _sum
@@ -372,7 +373,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	#def testMultipleInputObjects(self) :
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#user[lastfm.user_name] = 'dwiel'
 			#user[lastfm.recent_track] = track
 			#track[lastfm.album] = album
@@ -383,7 +384,7 @@ class AxpressTestCase(unittest.TestCase):
 		
 	##depends on Joseki
 	#def testLongCount(self) :
-	#	ret = self.axpress.read_sparql("""
+	#	ret = axpress.read_sparql("""
 	#		x[y] = z
 	#		query.query[query.count] = _count		
 	#	""")
@@ -391,7 +392,7 @@ class AxpressTestCase(unittest.TestCase):
 	
 	## test a translation which requires a relatively complex unification
 	def testUnification(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[file.pattern] = "pictures/*.jpg"
 			image[image.average_color] = _color
 		""")
@@ -405,7 +406,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	def testSpecialUnification(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			i[file.pattern] = "pictures/*.jpg"
 			image.thumbnail(i, 1, 1) = t
 			image.pixel(t, 0, 0) = p
@@ -422,7 +423,7 @@ class AxpressTestCase(unittest.TestCase):
 
 	
 	def testSimplestUnification(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			x[test.p][test.p] = 1
 			x[test.q][test.q] = _one
 		""")
@@ -434,7 +435,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	def testSimpleQuery(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			image[file.pattern] = "/home/dwiel/axpress/scripts/pictures/*.jpg"
 			image.pixel(image, 1, 1) = pixel
 			pixel[html.color] = _color
@@ -448,7 +449,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 		
 	def testSimpleUnification(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			color[axpress.is] = "red"
 			color[html.color] = _c
 		""")
@@ -462,7 +463,7 @@ class AxpressTestCase(unittest.TestCase):
 	def testInverseFunction(self):
 		""" this would go into an infinite loop if it weren't for inverse functions
 		    being explicitly defined."""
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			color[html.color] = "00FFFF"
 			color[color.invert] = icolor
 			icolor[html.color] = _ic
@@ -476,7 +477,7 @@ class AxpressTestCase(unittest.TestCase):
 	
 	
 	def testStringQuery(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			x[axpress.is] = "files matching pictures/*.jpg"
 			x[file.filename] = _filename
 		""")
@@ -489,7 +490,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 		
 	def testSimpleFreebaseStringQuery(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			x[axpress.is] = "Gaviotas"
 			x[freebase.guid] = _guid
 		""")
@@ -500,7 +501,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	def testSimpleFreebaseStringQuery2(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			x[axpress.is] = "Nirvana"
 			x[freebase.type] = '/music/album'
 			x[freebase.mid] = _mid
@@ -512,7 +513,7 @@ class AxpressTestCase(unittest.TestCase):
 		]
 	
 	def testSimpleFreebaseStringQuery3(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			x[axpress.is] = "albums by nirvana"
 			x[freebase.mid] = _mid
 			x[freebase.name] = _name
@@ -520,7 +521,7 @@ class AxpressTestCase(unittest.TestCase):
 		p('ret', ret)
 	
 	def testSimpleFreebaseStringQuery4(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			x[axpress.is] = "members in Phish"
 			x[freebase.mid] = _mid
 			x[freebase.name] = _name
@@ -528,13 +529,13 @@ class AxpressTestCase(unittest.TestCase):
 		p('ret', ret)
 	
 	def testSimpleFreebaseStringQuery5(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			_x[axpress.is] = "The Queen's birthday"
 		""")
 		p('ret', ret)
 
 	def testSimpleFreebaseStringQuery6(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			x[axpress.is] = "The Queen birthplace"
 			x[freebase.mid] = _mid
 			x[freebase.name] = _name
@@ -542,14 +543,14 @@ class AxpressTestCase(unittest.TestCase):
 		p('ret', ret)
 	
 	def testSimpleFreebaseStringQuery7(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			weather[axpress.is] = "current weather in bloomington, indiana"
 			weather[wunderground.current_temperature] = _current_temperature
 		""")
 		p('ret', ret)
 	
 	#def testStringQuery(self):
-		#ret = self.axpress.read_translate("""
+		#ret = axpress.read_translate("""
 			#x[axpress.is] = "files matching pictures/*.jpg"
 			#x[display.html] = _html
 		#""")
@@ -561,7 +562,7 @@ class AxpressTestCase(unittest.TestCase):
 		#]
 	
 	def testStringQuerySuperSimple(self):
-		ret = self.axpress.read_translate("""
+		ret = axpress.read_translate("""
 			color[axpress.is] = "red"
 			color[html.color] = _c
 		""")
