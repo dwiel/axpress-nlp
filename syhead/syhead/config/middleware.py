@@ -8,7 +8,7 @@ from pylons.middleware import ErrorHandler, StatusCodeRedirect
 from pylons.wsgiapp import PylonsApp
 from routes.middleware import RoutesMiddleware
 
-from axpressdebug.config.environment import load_environment
+from syhead.config.environment import load_environment
 
 def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     """Create a Pylons WSGI application and return it
@@ -39,7 +39,7 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     # The Pylons WSGI app
     app = PylonsApp(config=config)
 
-    # Routing/Session Middleware
+    # Routing/Session/Cache Middleware
     app = RoutesMiddleware(app, config['routes.map'], singleton=False)
     app = SessionMiddleware(app, config)
 

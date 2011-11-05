@@ -3,6 +3,7 @@ from mako.template import Template
 def loadTranslations(axpress, n) :
   n.bind('display', '<http://dwiel.net/axpress/display/0.1/>')
   n.bind('simple_display', '<http://dwiel.net/axpress/simple_display/0.1/>')
+  n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
 
   def display_html_filenames(vars) :
     str = "<ul>"

@@ -4,7 +4,7 @@ import logging
 from pylons import request, response, session, tmpl_context as c, url, app_globals as g
 from pylons.controllers.util import abort, redirect
 
-from axpressdebug.lib.base import BaseController, render
+from syhead.lib.base import BaseController, render
 
 from SimpleSPARQL import p, CompilerException
 
@@ -14,9 +14,11 @@ class IndexController(BaseController):
 
 	def debug(self):
 		c.query = request.params.get('query') or u""
-		c.string_query = request.params.get('string_query') or u""
+		c.string_query = request.params.get('string_query', u'')
 		c.ret = u""
 		c.debug_html = u""
+		
+		print "string_query", c.string_query
 		
 		if c.string_query :
 			c.query = u"""

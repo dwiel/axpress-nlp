@@ -5,9 +5,9 @@ from mako.lookup import TemplateLookup
 from pylons.configuration import PylonsConfig
 from pylons.error import handle_mako_error
 
-import axpressdebug.lib.app_globals as app_globals
-import axpressdebug.lib.helpers
-from axpressdebug.config.routing import make_map
+import syhead.lib.app_globals as app_globals
+import syhead.lib.helpers
+from syhead.config.routing import make_map
 
 def load_environment(global_conf, app_conf):
     """Configure the Pylons environment via the ``pylons.config``
@@ -23,11 +23,11 @@ def load_environment(global_conf, app_conf):
                  templates=[os.path.join(root, 'templates')])
 
     # Initialize config with the basic options
-    config.init_app(global_conf, app_conf, package='axpressdebug', paths=paths)
+    config.init_app(global_conf, app_conf, package='syhead', paths=paths)
 
     config['routes.map'] = make_map(config)
     config['pylons.app_globals'] = app_globals.Globals(config)
-    config['pylons.h'] = axpressdebug.lib.helpers
+    config['pylons.h'] = syhead.lib.helpers
     
     # Setup cache object as early as possible
     import pylons

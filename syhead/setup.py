@@ -6,7 +6,7 @@ except ImportError:
     from setuptools import setup, find_packages
 
 setup(
-    name='axpress-debug',
+    name='syhead',
     version='0.1',
     description='',
     author='',
@@ -19,8 +19,8 @@ setup(
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
     test_suite='nose.collector',
-    package_data={'axpressdebug': ['i18n/*/LC_MESSAGES/*.mo']},
-    #message_extractors={'axpressdebug': [
+    package_data={'syhead': ['i18n/*/LC_MESSAGES/*.mo']},
+    #message_extractors={'syhead': [
     #        ('**.py', 'python', None),
     #        ('templates/**.mako', 'mako', {'input_encoding': 'utf-8'}),
     #        ('public/**', 'ignore', None)]},
@@ -28,7 +28,7 @@ setup(
     paster_plugins=['PasteScript', 'Pylons'],
     entry_points="""
     [paste.app_factory]
-    main = axpressdebug.config.middleware:make_app
+    main = syhead.config.middleware:make_app
 
     [paste.app_install]
     main = pylons.util:PylonsInstaller

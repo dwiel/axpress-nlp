@@ -1,16 +1,16 @@
-This file is for you to describe the axpress-debug application. Typically
+This file is for you to describe the syhead application. Typically
 you would include information such as the information below:
 
 Installation and Setup
 ======================
 
-Install ``axpress-debug`` using easy_install::
+Install ``syhead`` using easy_install::
 
-    easy_install axpress-debug
+    easy_install syhead
 
 Make a config file as follows::
 
-    paster make-config axpress-debug config.ini
+    paster make-config syhead config.ini
 
 Tweak the config file as appropriate and then setup the application::
 

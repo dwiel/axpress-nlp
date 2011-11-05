@@ -10,8 +10,6 @@ import json
 import glob
 
 def loadTranslations(axpress, n) :
-  n.bind('math', '<http://dwiel.net/express/math/0.1/>')
-  n.bind('flickr', '<http://dwiel.net/express/flickr/0.1/>')
   n.bind('file', '<http://dwiel.net/express/file/0.1/>')
   n.bind('html', '<http://dwiel.net/express/html/0.1/>')
   n.bind('test', '<http://dwiel.net/express/test/0.1/>')
