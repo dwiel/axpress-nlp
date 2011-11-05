@@ -30,6 +30,7 @@ class IndexController(BaseController):
 		if c.query :
 			try :
 				c.raw_ret = g.axpress.read_translate(c.query)
+				c.debug_html = g.axpress.compiler.debug_str
 				if c.raw_ret and 'out' in c.raw_ret[0] :
 					c.ret = u'<ul>%s</ul>' % u''.join(u'<li>'+unicode(o['out']) for o in c.raw_ret)
 					c.ret_html = True

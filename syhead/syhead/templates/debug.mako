@@ -55,12 +55,8 @@ ${'<textarea class="advanced" name="query" rows=10 cols=70>' + c.query + '</text
 ${c.ret | n}
 </div>
 
-<div class="advanced" id="debug">
-<!-- % if c.ret_html : -->
+<div id="debug">
 	${c.debug_html | n}
-<!-- % else : -->
-<!-- 	${c.debug_html} -->
-<!-- % endif -->
 </div>
 
 <script>

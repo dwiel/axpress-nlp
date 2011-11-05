@@ -222,6 +222,7 @@ def loadTranslations(axpress, n) :
     n.meta.function : lookup_birthplace,
   })
   
+  # NOTE: this seems to always get matched
   axpress.register_translation({
     n.meta.name : 'remove the',
     n.meta.input : """
