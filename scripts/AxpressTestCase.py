@@ -47,540 +47,540 @@ loadTranslations(axpress, n)
 
 
 class AxpressTestCase(unittest.TestCase):
-	#def setUp(self):
+  #def setUp(self):
     #pass
 
-	# depends on Joseki
-	#def testIncomingBindings(self):
-		#def is_num(x):
-			#return isinstance(x, (int, long, float))
-		
-		#bindings_set = axpress.read_sparql("""
-			#foo[test.x] = x
-			#foo[test.y] = y
-		#""")
-		
-		## reduce bindings to those whose x and y values are numbers
-		## I'd like this functionality to exist, but I don't think this is the right
-		## way to get at it, or think about it.  For one, the type should take care
-		## of most of this kind of thing - though I know that it shouldn't be relied
-		## on ...
-		##bindings_set = [x for x in bindings_set]
-		##print 'bindings_set',prettyquery(bindings_set)
-		#new_bindings_set = []
-		#for bindings in bindings_set :
-			#if is_num(bindings['x']) and is_num(bindings['y']) :
-				#new_bindings_set.append(bindings)
-		#bindings_set = new_bindings_set
-		##print 'bindings_set',prettyquery(bindings_set)
-		
-		#ret = axpress.read_translate("""
-			#foo[test.x] = x
-			#foo[test.y] = y
-			#foo[test.sum] = _sum
-		#""", reqd_bound_vars = ['sum'], bindings_set = bindings_set)
-		##p('ret',ret)
-		#assert ret == [
-			#{
-				#'sum' : 3,
-			#},
-		#]
-	
-	def testTranslationReturnsMultipleValues(self):
-		""" note, at one time, thumb was included in the reqd_bound_vars, but
-		I'm not really sure why.  It doesn't really have any meaning.
-		"""
-		ret = axpress.read_translate("""
-			image[glob.glob] = "pictures/*.jpg"
-			thumb = image.thumbnail(image, 4, 4, image.antialias)
-			thumb[pil.image] = _thumb_image
-		""", reqd_bound_vars = ['thumb_image'])
-		#""", reqd_bound_vars = ['thumb_image', 'thumb'])
-		#print 'ret2',prettyquery(ret)
-		for i, bindings in enumerate(ret) :
-			ret[i]['thumb_image'] = type(bindings['thumb_image'])
-		assert ret == [
-			{
-				#'thumb' : n.out_var.thumb,
-				'thumb_image' : type_instance,
-			}, {
-				#'thumb' : n.out_var.thumb,
-				'thumb_image' : type_instance,
-			}
-		]
-	
-	def testQueryLimitLessThanAvailable(self):
-		ret = axpress.read_translate("""
-			image[glob.glob] = "pictures/*.jpg"
-			thumb = image.thumbnail(image, 4, 4, image.antialias)
-			thumb[pil.image] = _thumb_image
-			query.query[query.limit] = 1
-		""", reqd_bound_vars = ['thumb_image'])
-		#print 'ret test2_1',prettyquery(ret)
-		ret = [{'thumb_image' : type(bindings['thumb_image'])} for bindings in ret]
-		assert ret == [
-			{
-				'thumb_image' : type_instance,
-			}
-		]
-	
-	def testQueryLimitSameAsAvailable(self):
-		ret = axpress.read_translate("""
-			image[glob.glob] = "pictures/*.jpg"
-			thumb = image.thumbnail(image, 4, 4, image.antialias)
-			thumb[pil.image] = _thumb_image
-			query.query[query.limit] = 2
-		""", reqd_bound_vars = ['thumb_image'])
-		#print 'ret2_2',prettyquery(ret)
-		ret = [{'thumb_image' : type(bindings['thumb_image'])} for bindings in ret]
-		assert ret == [
-			{
-				'thumb_image' : type_instance,
-			}, {
-				'thumb_image' : type_instance,
-			}
-		]
-	
-	def testQueryLimitMoreThanAvailable(self):
-		ret = axpress.read_translate("""
-			image[glob.glob] = "pictures/*.jpg"
-			thumb = image.thumbnail(image, 4, 4, image.antialias)
-			thumb[pil.image] = _thumb_image
-			query.query[query.limit] = 3
-		""", reqd_bound_vars = ['thumb_image'])
-		#print 'ret2_3',prettyquery(ret)
-		ret = [{'thumb_image' : type(bindings['thumb_image'])} for bindings in ret]
-		assert ret == [
-			{
-				'thumb_image' : type_instance,
-			}, {
-				'thumb_image' : type_instance,
-			}
-		]
-	
-	# warning this test requires the internet and will ping flickr.  Don't do alot
-	#def test3(self) :
-		#ret = axpress.read_translate("""
-			#image[flickr.tag] = 'floor'
-			#image[file.url] = _url
-		#""", reqd_bound_vars = ['url'])
-		#print 'ret',prettyquery(ret)
-	
-	# warning this test requires the internet and will ping flickr.  Don't do alot
-	#def test4(self) :
-		#ret = axpress.read_translate("""
-			#image[flickr.tag] = 'wall'
-			#thumb = image.thumbnail(image, 4, 4, image.antialias)
-			#thumb[pil.image] = _thumb_image
-			#query.query[query.limit] = 1
-		#""", reqd_bound_vars = ['thumb_image'])
-		#print 'ret',prettyquery(ret)
-	
-	def test5(self):
-		ret = axpress.read_translate("""
-			image[glob.glob] = "pictures/*.jpg"
-			image[file.filename] = _filename
-			thumb = image.thumbnail(image, 4, 4, image.antialias)
-			pixel = image.pixel(thumb, 0, 0)
-			pixel[pil.color] = _thumb_pixel_color
-		""", reqd_bound_vars = ['filename','thumb_pixel_color'])
-		print 'ret5',prettyquery(ret)
-		assert ret == [
-			{
-				'filename' : 'pictures/111.jpg',
-				'thumb_pixel_color' : (26, 24, 24),
-			}, {
-				'filename' : 'pictures/foobar.jpg',
-				'thumb_pixel_color' : (69, 68, 73),
-			},
-		]
-	
-	def test6(self):
-		ret = axpress.read_translate("""
-			image[glob.glob] = "pictures/*.jpg"
-			image[file.filename] = _filename
-			thumb = image.thumbnail(image, 4, 4, image.antialias)
-			pixel = image.pixel(thumb, 0, 0)
-			dist[type.number] = color.distance(color.red, pixel)
-			dist[type.number] = _distance
-		""", reqd_bound_vars = ['filename','distance'])
-		#print 'ret6',prettyquery(ret)
-		assert ret == [
-			{
-				'distance' : 53593,
-				'filename' : 'pictures/111.jpg',
-			}, {
-				'distance' : 44549,
-				'filename' : 'pictures/foobar.jpg',
-			},
-		]
+  # depends on Joseki
+  #def testIncomingBindings(self):
+    #def is_num(x):
+      #return isinstance(x, (int, long, float))
+    
+    #bindings_set = axpress.read_sparql("""
+      #foo[test.x] = x
+      #foo[test.y] = y
+    #""")
+    
+    ## reduce bindings to those whose x and y values are numbers
+    ## I'd like this functionality to exist, but I don't think this is the right
+    ## way to get at it, or think about it.  For one, the type should take care
+    ## of most of this kind of thing - though I know that it shouldn't be relied
+    ## on ...
+    ##bindings_set = [x for x in bindings_set]
+    ##print 'bindings_set',prettyquery(bindings_set)
+    #new_bindings_set = []
+    #for bindings in bindings_set :
+      #if is_num(bindings['x']) and is_num(bindings['y']) :
+        #new_bindings_set.append(bindings)
+    #bindings_set = new_bindings_set
+    ##print 'bindings_set',prettyquery(bindings_set)
+    
+    #ret = axpress.read_translate("""
+      #foo[test.x] = x
+      #foo[test.y] = y
+      #foo[test.sum] = _sum
+    #""", reqd_bound_vars = ['sum'], bindings_set = bindings_set)
+    ##p('ret',ret)
+    #assert ret == [
+      #{
+        #'sum' : 3,
+      #},
+    #]
+  
+  def testTranslationReturnsMultipleValues(self):
+    """ note, at one time, thumb was included in the reqd_bound_vars, but
+    I'm not really sure why.  It doesn't really have any meaning.
+    """
+    ret = axpress.read_translate("""
+      image[glob.glob] = "pictures/*.jpg"
+      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb[pil.image] = _thumb_image
+    """, reqd_bound_vars = ['thumb_image'])
+    #""", reqd_bound_vars = ['thumb_image', 'thumb'])
+    #print 'ret2',prettyquery(ret)
+    for i, bindings in enumerate(ret) :
+      ret[i]['thumb_image'] = type(bindings['thumb_image'])
+    assert ret == [
+      {
+        #'thumb' : n.out_var.thumb,
+        'thumb_image' : type_instance,
+      }, {
+        #'thumb' : n.out_var.thumb,
+        'thumb_image' : type_instance,
+      }
+    ]
+  
+  def testQueryLimitLessThanAvailable(self):
+    ret = axpress.read_translate("""
+      image[glob.glob] = "pictures/*.jpg"
+      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb[pil.image] = _thumb_image
+      query.query[query.limit] = 1
+    """, reqd_bound_vars = ['thumb_image'])
+    #print 'ret test2_1',prettyquery(ret)
+    ret = [{'thumb_image' : type(bindings['thumb_image'])} for bindings in ret]
+    assert ret == [
+      {
+        'thumb_image' : type_instance,
+      }
+    ]
+  
+  def testQueryLimitSameAsAvailable(self):
+    ret = axpress.read_translate("""
+      image[glob.glob] = "pictures/*.jpg"
+      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb[pil.image] = _thumb_image
+      query.query[query.limit] = 2
+    """, reqd_bound_vars = ['thumb_image'])
+    #print 'ret2_2',prettyquery(ret)
+    ret = [{'thumb_image' : type(bindings['thumb_image'])} for bindings in ret]
+    assert ret == [
+      {
+        'thumb_image' : type_instance,
+      }, {
+        'thumb_image' : type_instance,
+      }
+    ]
+  
+  def testQueryLimitMoreThanAvailable(self):
+    ret = axpress.read_translate("""
+      image[glob.glob] = "pictures/*.jpg"
+      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb[pil.image] = _thumb_image
+      query.query[query.limit] = 3
+    """, reqd_bound_vars = ['thumb_image'])
+    #print 'ret2_3',prettyquery(ret)
+    ret = [{'thumb_image' : type(bindings['thumb_image'])} for bindings in ret]
+    assert ret == [
+      {
+        'thumb_image' : type_instance,
+      }, {
+        'thumb_image' : type_instance,
+      }
+    ]
+  
+  # warning this test requires the internet and will ping flickr.  Don't do alot
+  #def test3(self) :
+    #ret = axpress.read_translate("""
+      #image[flickr.tag] = 'floor'
+      #image[file.url] = _url
+    #""", reqd_bound_vars = ['url'])
+    #print 'ret',prettyquery(ret)
+  
+  # warning this test requires the internet and will ping flickr.  Don't do alot
+  #def test4(self) :
+    #ret = axpress.read_translate("""
+      #image[flickr.tag] = 'wall'
+      #thumb = image.thumbnail(image, 4, 4, image.antialias)
+      #thumb[pil.image] = _thumb_image
+      #query.query[query.limit] = 1
+    #""", reqd_bound_vars = ['thumb_image'])
+    #print 'ret',prettyquery(ret)
+  
+  def test5(self):
+    ret = axpress.read_translate("""
+      image[glob.glob] = "pictures/*.jpg"
+      image[file.filename] = _filename
+      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      pixel = image.pixel(thumb, 0, 0)
+      pixel[pil.color] = _thumb_pixel_color
+    """, reqd_bound_vars = ['filename','thumb_pixel_color'])
+    print 'ret5',prettyquery(ret)
+    assert ret == [
+      {
+        'filename' : 'pictures/111.jpg',
+        'thumb_pixel_color' : (26, 24, 24),
+      }, {
+        'filename' : 'pictures/foobar.jpg',
+        'thumb_pixel_color' : (69, 68, 73),
+      },
+    ]
+  
+  def test6(self):
+    ret = axpress.read_translate("""
+      image[glob.glob] = "pictures/*.jpg"
+      image[file.filename] = _filename
+      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      pixel = image.pixel(thumb, 0, 0)
+      dist[type.number] = color.distance(color.red, pixel)
+      dist[type.number] = _distance
+    """, reqd_bound_vars = ['filename','distance'])
+    #print 'ret6',prettyquery(ret)
+    assert ret == [
+      {
+        'distance' : 53593,
+        'filename' : 'pictures/111.jpg',
+      }, {
+        'distance' : 44549,
+        'filename' : 'pictures/foobar.jpg',
+      },
+    ]
 
-	#def test7(self):
-		#ret = axpress.read_translate("""
-			#image[glob.glob] = "/home/dwiel/AMOSvid/*.jpg"
-			#thumb = image.thumbnail(image, 1, 1)
-			#pix = image.pixel(thumb, 0, 0)
-			#pix[pil.color] = _color
-			#image[file.filename] = _filename
-		#""")
-		##print 'ret7',prettyquery(ret)
-		#assert len(ret) == 2
-		#assert ret == [
-			#{
-				#'color' : ( 71, 43, 85, ),
-				#'filename' : '/home/dwiel/AMOSvid/20080804_080127.jpg',
-			#}, {
-				#'color' : ( 58, 25, 47, ),
-				#'filename' : '/home/dwiel/AMOSvid/20080804_083127.jpg',
-			#},
-		#]
+  #def test7(self):
+    #ret = axpress.read_translate("""
+      #image[glob.glob] = "/home/dwiel/AMOSvid/*.jpg"
+      #thumb = image.thumbnail(image, 1, 1)
+      #pix = image.pixel(thumb, 0, 0)
+      #pix[pil.color] = _color
+      #image[file.filename] = _filename
+    #""")
+    ##print 'ret7',prettyquery(ret)
+    #assert len(ret) == 2
+    #assert ret == [
+      #{
+        #'color' : ( 71, 43, 85, ),
+        #'filename' : '/home/dwiel/AMOSvid/20080804_080127.jpg',
+      #}, {
+        #'color' : ( 58, 25, 47, ),
+        #'filename' : '/home/dwiel/AMOSvid/20080804_083127.jpg',
+      #},
+    #]
 
-	
-	def testBasicExample(self):
-		ret = axpress.read_translate("""
-			foo[test.x] = 1
-			foo[test.y] = 10
-			foo[test.sum] = _sum
-		""")
-		#p('ret8',ret)
-		assert ret == [{'sum' : 11}]
+  
+  def testBasicExample(self):
+    ret = axpress.read_translate("""
+      foo[test.x] = 1
+      foo[test.y] = 10
+      foo[test.sum] = _sum
+    """)
+    #p('ret8',ret)
+    assert ret == [{'sum' : 11}]
 
-	#def testMultipleNonDependentPaths(self):
-		#ret = axpress.read_translate("""
-			#image[file.filename] = "/home/dwiel/AMOSvid/20080804_080127.jpg"
-			#pix = image.pixel(image, 0, 0)
-			#pix[pil.color] = _color
-			#image[html.height] = 200
-			#image[html.width] = 300
-			#image[html.html] = _html
-		#""")
-		#p('testMultipleNonDependentPaths',ret)
-		#assert ret ==  [
-			#{
-				#'color' : ( 249, 255, 237, ),
-				#'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" width="300" height="200"/>',
-			#},
-		#]
+  #def testMultipleNonDependentPaths(self):
+    #ret = axpress.read_translate("""
+      #image[file.filename] = "/home/dwiel/AMOSvid/20080804_080127.jpg"
+      #pix = image.pixel(image, 0, 0)
+      #pix[pil.color] = _color
+      #image[html.height] = 200
+      #image[html.width] = 300
+      #image[html.html] = _html
+    #""")
+    #p('testMultipleNonDependentPaths',ret)
+    #assert ret ==  [
+      #{
+        #'color' : ( 249, 255, 237, ),
+        #'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" width="300" height="200"/>',
+      #},
+    #]
 
-	#def testOptionInputs(self):
-		#ret = axpress.read_translate("""
-			#image[file.filename] = "/home/dwiel/AMOSvid/20080804_080127.jpg"
-			#image[html.width] = 300
-			#image[html.html] = _html
-		#""")
-		#p('testOptionInputs',ret)
-		#assert ret ==  [
-			#{
-				#'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" width="300"/>',
-			#},
-		#]
+  #def testOptionInputs(self):
+    #ret = axpress.read_translate("""
+      #image[file.filename] = "/home/dwiel/AMOSvid/20080804_080127.jpg"
+      #image[html.width] = 300
+      #image[html.html] = _html
+    #""")
+    #p('testOptionInputs',ret)
+    #assert ret ==  [
+      #{
+        #'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" width="300"/>',
+      #},
+    #]
 
-	#def testOptionInputs2(self):
-		#ret = axpress.read_translate("""
-			#image[file.filename] = "/home/dwiel/AMOSvid/20080804_080127.jpg"
-			#image[html.html] = _html
-		#""")
-		#p('testOptionInputs2',ret)
-		#assert ret ==  [
-			#{
-				#'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" />',
-			#},
-		#]
-	
-	## only works when amarok is playing music
-	#def testAmarok(self):
-		#ret = axpress.read_translate("""
- 			#amarok.amarok[amarok.artist] = artist
-			#artist[music.artist_name] = _name
-		#""")
-		##p('ret10',ret)
-		#assert len(ret) == 1 and len(ret[0]) == 1 and 'name' in ret[0] and isinstance(ret[0]['name'], basestring)
+  #def testOptionInputs2(self):
+    #ret = axpress.read_translate("""
+      #image[file.filename] = "/home/dwiel/AMOSvid/20080804_080127.jpg"
+      #image[html.html] = _html
+    #""")
+    #p('testOptionInputs2',ret)
+    #assert ret ==  [
+      #{
+        #'html' : '<img src="/home/AMOSvid/20080804_080127.jpg" />',
+      #},
+    #]
+  
+  ## only works when amarok is playing music
+  #def testAmarok(self):
+    #ret = axpress.read_translate("""
+      #amarok.amarok[amarok.artist] = artist
+      #artist[music.artist_name] = _name
+    #""")
+    ##p('ret10',ret)
+    #assert len(ret) == 1 and len(ret[0]) == 1 and 'name' in ret[0] and isinstance(ret[0]['name'], basestring)
 
-	def testTranslationReturnsListOfBindings(self):
-		ret = axpress.read_translate("""
-			qartist[music.artist_name] = 'Neil Young'
-			qartist[lastfm.similar_to] = qsimilar_artist
-			qsimilar_artist[lastfm.artist_name] = _name
-		""")
-		#p('ret11',ret)
-		assert len(ret) == 10
-		for bindings in ret :
-			assert len(bindings) == 1
-			assert 'name' in bindings
-			assert isinstance(bindings['name'], basestring)
+  def testTranslationReturnsListOfBindings(self):
+    ret = axpress.read_translate("""
+      qartist[music.artist_name] = 'Neil Young'
+      qartist[lastfm.similar_to] = qsimilar_artist
+      qsimilar_artist[lastfm.artist_name] = _name
+    """)
+    #p('ret11',ret)
+    assert len(ret) == 10
+    for bindings in ret :
+      assert len(bindings) == 1
+      assert 'name' in bindings
+      assert isinstance(bindings['name'], basestring)
 
-	## only works when amarok is playing music
-	#def testTranslationReturnsListOfBindings2(self):
-		#ret = axpress.read_translate("""
-			#amarok.amarok[amarok.artist] = artist
-			#artist[lastfm.similar_to] = similar_artist
-			#similar_artist[lastfm.name] = _name
-		#""")
-		##p('ret12',ret)
-		#assert len(ret) == 10
-		#for bindings in ret :
-			#assert len(bindings) == 1
-			#assert 'name' in bindings
-			#assert isinstance(bindings['name'], basestring)
-	
-	def testNoBindingsFromTranslation(self):
-		ret = axpress.read_translate("""
-			image[glob.glob] = '/no/files/here/*.jpg'
-			image[file.filename] = _filename
-		""")
-		assert len(ret) == 0
+  ## only works when amarok is playing music
+  #def testTranslationReturnsListOfBindings2(self):
+    #ret = axpress.read_translate("""
+      #amarok.amarok[amarok.artist] = artist
+      #artist[lastfm.similar_to] = similar_artist
+      #similar_artist[lastfm.name] = _name
+    #""")
+    ##p('ret12',ret)
+    #assert len(ret) == 10
+    #for bindings in ret :
+      #assert len(bindings) == 1
+      #assert 'name' in bindings
+      #assert isinstance(bindings['name'], basestring)
+  
+  def testNoBindingsFromTranslation(self):
+    ret = axpress.read_translate("""
+      image[glob.glob] = '/no/files/here/*.jpg'
+      image[file.filename] = _filename
+    """)
+    assert len(ret) == 0
 
-	def testNoBindingsFromTranslation2(self):
-		ret = axpress.read_translate("""
-			foo[test.no_bindings_input] = "input string"
-			foo[test.no_bindings_output] = _output
-		""")
-		assert len(ret) == 0
-	
-	def testGeneral(self):
-		ret = axpress.read_translate("""
-			image[glob.glob] = '/home/dwiel/AMOSvid/1065/*.nothing'
-			image[file.filename] = _filename
-		""")
-		assert ret == []
+  def testNoBindingsFromTranslation2(self):
+    ret = axpress.read_translate("""
+      foo[test.no_bindings_input] = "input string"
+      foo[test.no_bindings_output] = _output
+    """)
+    assert len(ret) == 0
+  
+  def testGeneral(self):
+    ret = axpress.read_translate("""
+      image[glob.glob] = '/home/dwiel/AMOSvid/1065/*.nothing'
+      image[file.filename] = _filename
+    """)
+    assert ret == []
 
-	def testIncomingOutgoingBindings(self):
-		ret = axpress.read_translate("""
-			foo[test.x] = x
-			foo[test.y] = y
-			foo[test.sum] = _sum
-		""", bindings_set = [{'x' : 1, 'y' : 2}], reqd_bound_vars=['x', 'sum'])
-		#p('ret',ret)
-		assert ret == [
-			{
-				'x' : 1,
-				'sum' : 3,
-			},
-		]
-	
-	def testIncomingOutgoingBindings2(self):
-		ret = axpress.read_translate("""
-			foo[test.x] = _x
-			foo[test.y] = y
-			foo[test.sum] = _sum
-		""", bindings_set = [{'x' : 1, 'y' : 2}])
-		#p('ret',ret)
-		assert ret == [
-			{
-				'x' : 1,
-				'sum' : 3,
-			},
-		]
-	
-	#def testMultipleInputObjects(self) :
-		#ret = axpress.read_translate("""
-			#user[lastfm.user_name] = 'dwiel'
-			#user[lastfm.recent_track] = track
-			#track[lastfm.album] = album
-			#track[lastfm.artist] = artist
-			#artist[lastfm.artist_name] = _name
-		#""")
-		#p('ret',ret)
-		
-	##depends on Joseki
-	#def testLongCount(self) :
-	#	ret = axpress.read_sparql("""
-	#		x[y] = z
-	#		query.query[query.count] = _count		
-	#	""")
-	#	assert ret == [{'count' : 0}]
-	
-	## test a translation which requires a relatively complex unification
-	def testUnification(self):
-		ret = axpress.read_translate("""
-			image[file.pattern] = "pictures/*.jpg"
-			image[image.average_color] = _color
-		""")
-		#p('testUnification', ret)
-		assert ret == [
-			{
-				'color' : ( 16, 15, 15, ),
-			}, {
-				'color' : ( 139, 137, 145, ),
-			},
-		]
-	
-	def testSpecialUnification(self):
-		ret = axpress.read_translate("""
-			i[file.pattern] = "pictures/*.jpg"
-			image.thumbnail(i, 1, 1) = t
-			image.pixel(t, 0, 0) = p
-			p[pil.color] = _c
-		""")
-		#p('testSpecialUnification', ret)
-		assert ret == [
-			{
-				'c' : ( 16, 15, 15, ),
-			}, {
-				'c' : ( 139, 137, 145, ),
-			},
-		]
+  def testIncomingOutgoingBindings(self):
+    ret = axpress.read_translate("""
+      foo[test.x] = x
+      foo[test.y] = y
+      foo[test.sum] = _sum
+    """, bindings_set = [{'x' : 1, 'y' : 2}], reqd_bound_vars=['x', 'sum'])
+    #p('ret',ret)
+    assert ret == [
+      {
+        'x' : 1,
+        'sum' : 3,
+      },
+    ]
+  
+  def testIncomingOutgoingBindings2(self):
+    ret = axpress.read_translate("""
+      foo[test.x] = _x
+      foo[test.y] = y
+      foo[test.sum] = _sum
+    """, bindings_set = [{'x' : 1, 'y' : 2}])
+    #p('ret',ret)
+    assert ret == [
+      {
+        'x' : 1,
+        'sum' : 3,
+      },
+    ]
+  
+  #def testMultipleInputObjects(self) :
+    #ret = axpress.read_translate("""
+      #user[lastfm.user_name] = 'dwiel'
+      #user[lastfm.recent_track] = track
+      #track[lastfm.album] = album
+      #track[lastfm.artist] = artist
+      #artist[lastfm.artist_name] = _name
+    #""")
+    #p('ret',ret)
+    
+  ##depends on Joseki
+  #def testLongCount(self) :
+  #	ret = axpress.read_sparql("""
+  #		x[y] = z
+  #		query.query[query.count] = _count		
+  #	""")
+  #	assert ret == [{'count' : 0}]
+  
+  ## test a translation which requires a relatively complex unification
+  def testUnification(self):
+    ret = axpress.read_translate("""
+      image[file.pattern] = "pictures/*.jpg"
+      image[image.average_color] = _color
+    """)
+    #p('testUnification', ret)
+    assert ret == [
+      {
+        'color' : ( 16, 15, 15, ),
+      }, {
+        'color' : ( 139, 137, 145, ),
+      },
+    ]
+  
+  def testSpecialUnification(self):
+    ret = axpress.read_translate("""
+      i[file.pattern] = "pictures/*.jpg"
+      image.thumbnail(i, 1, 1) = t
+      image.pixel(t, 0, 0) = p
+      p[pil.color] = _c
+    """)
+    #p('testSpecialUnification', ret)
+    assert ret == [
+      {
+        'c' : ( 16, 15, 15, ),
+      }, {
+        'c' : ( 139, 137, 145, ),
+      },
+    ]
 
-	
-	def testSimplestUnification(self):
-		ret = axpress.read_translate("""
-			x[test.p][test.p] = 1
-			x[test.q][test.q] = _one
-		""")
-		#p('ret', ret)
-		assert ret == [
-			{
-				'one' : 1
-			}
-		]
-	
-	def testSimpleQuery(self):
-		ret = axpress.read_translate("""
-			image[file.pattern] = "/home/dwiel/axpress/scripts/pictures/*.jpg"
-			image.pixel(image, 1, 1) = pixel
-			pixel[html.color] = _color
-		""")
-		assert ret == [
-			{
-				'color' : '000'
-			}, {
-				'color' : '302'
-			}
-		]
-		
-	def testSimpleUnification(self):
-		ret = axpress.read_translate("""
-			color[axpress.is] = "red"
-			color[html.color] = _c
-		""")
-		#p('testSimpleUnification', ret)
-		assert ret == [
-			{
-				'c' : "FF0000"
-			}
-		]
-	
-	def testInverseFunction(self):
-		""" this would go into an infinite loop if it weren't for inverse functions
-		    being explicitly defined."""
-		ret = axpress.read_translate("""
-			color[html.color] = "00FFFF"
-			color[color.invert] = icolor
-			icolor[html.color] = _ic
-		""")
-		#p('testInverseFunction', ret)
-		assert ret == [
-			{
-				'ic' : "FF0000"
-			}
-		]
-	
-	
-	def testStringQuery(self):
-		ret = axpress.read_translate("""
-			x[axpress.is] = "files matching pictures/*.jpg"
-			x[file.filename] = _filename
-		""")
-		assert ret == [
-			{
-				'filename' : 'pictures/111.jpg',
-			}, {
-				'filename' : 'pictures/foobar.jpg',
-			},
-		]
-		
-	def testSimpleFreebaseStringQuery(self):
-		ret = axpress.read_translate("""
-			x[axpress.is] = "Gaviotas"
-			x[freebase.guid] = _guid
-		""")
-		assert ret == [
-			{
-				'guid' : '9202a8c04000641f800000000c770bee'
-			},
-		]
-	
-	def testSimpleFreebaseStringQuery2(self):
-		ret = axpress.read_translate("""
-			x[axpress.is] = "Nirvana"
-			x[freebase.type] = '/music/album'
-			x[freebase.mid] = _mid
-		""")
-		assert ret == [
-			{
-				'mid' : '/m/01h89tx'
-			},
-		]
-	
-	def testSimpleFreebaseStringQuery3(self):
-		ret = axpress.read_translate("""
-			x[axpress.is] = "albums by nirvana"
-			x[freebase.mid] = _mid
-			x[freebase.name] = _name
-		""")
-		p('ret', ret)
-	
-	def testSimpleFreebaseStringQuery4(self):
-		ret = axpress.read_translate("""
-			x[axpress.is] = "members in Phish"
-			x[freebase.mid] = _mid
-			x[freebase.name] = _name
-		""")
-		p('ret', ret)
-	
-	def testSimpleFreebaseStringQuery5(self):
-		ret = axpress.read_translate("""
-			_x[axpress.is] = "The Queen's birthday"
-		""")
-		p('ret', ret)
+  
+  def testSimplestUnification(self):
+    ret = axpress.read_translate("""
+      x[test.p][test.p] = 1
+      x[test.q][test.q] = _one
+    """)
+    #p('ret', ret)
+    assert ret == [
+      {
+        'one' : 1
+      }
+    ]
+  
+  def testSimpleQuery(self):
+    ret = axpress.read_translate("""
+      image[file.pattern] = "/home/dwiel/axpress/scripts/pictures/*.jpg"
+      image.pixel(image, 1, 1) = pixel
+      pixel[html.color] = _color
+    """)
+    assert ret == [
+      {
+        'color' : '000'
+      }, {
+        'color' : '302'
+      }
+    ]
+    
+  def testSimpleUnification(self):
+    ret = axpress.read_translate("""
+      color[axpress.is] = "red"
+      color[html.color] = _c
+    """)
+    #p('testSimpleUnification', ret)
+    assert ret == [
+      {
+        'c' : "FF0000"
+      }
+    ]
+  
+  def testInverseFunction(self):
+    """ this would go into an infinite loop if it weren't for inverse functions
+        being explicitly defined."""
+    ret = axpress.read_translate("""
+      color[html.color] = "00FFFF"
+      color[color.invert] = icolor
+      icolor[html.color] = _ic
+    """)
+    #p('testInverseFunction', ret)
+    assert ret == [
+      {
+        'ic' : "FF0000"
+      }
+    ]
+  
+  
+  def testStringQuery(self):
+    ret = axpress.read_translate("""
+      x[axpress.is] = "files matching pictures/*.jpg"
+      x[file.filename] = _filename
+    """)
+    assert ret == [
+      {
+        'filename' : 'pictures/111.jpg',
+      }, {
+        'filename' : 'pictures/foobar.jpg',
+      },
+    ]
+    
+  def testSimpleFreebaseStringQuery(self):
+    ret = axpress.read_translate("""
+      x[axpress.is] = "Gaviotas"
+      x[freebase.guid] = _guid
+    """)
+    assert ret == [
+      {
+        'guid' : '9202a8c04000641f800000000c770bee'
+      },
+    ]
+  
+  def testSimpleFreebaseStringQuery2(self):
+    ret = axpress.read_translate("""
+      x[axpress.is] = "Nirvana"
+      x[freebase.type] = '/music/album'
+      x[freebase.mid] = _mid
+    """)
+    assert ret == [
+      {
+        'mid' : '/m/01h89tx'
+      },
+    ]
+  
+  def testSimpleFreebaseStringQuery3(self):
+    ret = axpress.read_translate("""
+      x[axpress.is] = "albums by nirvana"
+      x[freebase.mid] = _mid
+      x[freebase.name] = _name
+    """)
+    p('ret', ret)
+  
+  def testSimpleFreebaseStringQuery4(self):
+    ret = axpress.read_translate("""
+      x[axpress.is] = "members in Phish"
+      x[freebase.mid] = _mid
+      x[freebase.name] = _name
+    """)
+    p('ret', ret)
+  
+  def testSimpleFreebaseStringQuery5(self):
+    ret = axpress.read_translate("""
+      _x[axpress.is] = "The Queen's birthday"
+    """)
+    p('ret', ret)
 
-	def testSimpleFreebaseStringQuery6(self):
-		ret = axpress.read_translate("""
-			x[axpress.is] = "The Queen birthplace"
-			x[freebase.mid] = _mid
-			x[freebase.name] = _name
-		""")
-		p('ret', ret)
-	
-	def testSimpleFreebaseStringQuery7(self):
-		ret = axpress.read_translate("""
-			weather[axpress.is] = "current weather in bloomington, indiana"
-			weather[wunderground.current_temperature] = _current_temperature
-		""")
-		p('ret', ret)
-	
-	def testStringQuery(self):
+  def testSimpleFreebaseStringQuery6(self):
+    ret = axpress.read_translate("""
+      x[axpress.is] = "The Queen birthplace"
+      x[freebase.mid] = _mid
+      x[freebase.name] = _name
+    """)
+    p('ret', ret)
+  
+  def testSimpleFreebaseStringQuery7(self):
+    ret = axpress.read_translate("""
+      weather[axpress.is] = "current weather in bloomington, indiana"
+      weather[wunderground.current_temperature] = _current_temperature
+    """)
+    p('ret', ret)
+  
+  def testStringQuery(self):
           ret = axpress.read_translate("""
               x[axpress.is] = "add library to todo list"
               x[simple_display.text] = _out
           """)
-	
-	#def testStringQuery(self):
-		#ret = axpress.read_translate("""
-			#x[axpress.is] = "files matching pictures/*.jpg"
-			#x[display.html] = _html
-		#""")
-		#p('testStringQuery', ret)
-		#assert ret == [
-			#{
-				#'_html' : "<ul><li>xxx.jpg<li>yyy.jpg</ul>"
-			#}
-		#]
-	
-	def testStringQuerySuperSimple(self):
-		ret = axpress.read_translate("""
-			color[axpress.is] = "red"
-			color[html.color] = _c
-		""")
-		#p('testStringQuerySuperSimple', ret)
-		assert ret == [
-			{
-				'c' : "FF0000"
-			}
-		]
+  
+  #def testStringQuery(self):
+    #ret = axpress.read_translate("""
+      #x[axpress.is] = "files matching pictures/*.jpg"
+      #x[display.html] = _html
+    #""")
+    #p('testStringQuery', ret)
+    #assert ret == [
+      #{
+        #'_html' : "<ul><li>xxx.jpg<li>yyy.jpg</ul>"
+      #}
+    #]
+  
+  def testStringQuerySuperSimple(self):
+    ret = axpress.read_translate("""
+      color[axpress.is] = "red"
+      color[html.color] = _c
+    """)
+    #p('testStringQuerySuperSimple', ret)
+    assert ret == [
+      {
+        'c' : "FF0000"
+      }
+    ]
 if __name__ == "__main__" :
-	#print '<root>'
-	unittest.main()
-	#print '</root>'
+  #print '<root>'
+  unittest.main()
+  #print '</root>'
 
 
