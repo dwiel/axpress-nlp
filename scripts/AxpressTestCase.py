@@ -549,6 +549,12 @@ class AxpressTestCase(unittest.TestCase):
 		""")
 		p('ret', ret)
 	
+	def testStringQuery(self):
+          ret = axpress.read_translate("""
+              x[axpress.is] = "add library to todo list"
+              x[simple_display.text] = _out
+          """)
+	
 	#def testStringQuery(self):
 		#ret = axpress.read_translate("""
 			#x[axpress.is] = "files matching pictures/*.jpg"

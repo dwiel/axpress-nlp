@@ -173,8 +173,8 @@ class Evaluator :
 		if islist :
 			new_bindings_set = [new_bindings_set]
 		
-		if new_bindings_set == [{}] :
-			new_bindings_set = []
+		#if new_bindings_set == [{}] :
+			#new_bindings_set = []
 		
 		#p('new_bindings_set',new_bindings_set)
 		return new_bindings_set
