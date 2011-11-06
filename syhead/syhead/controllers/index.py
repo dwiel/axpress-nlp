@@ -35,7 +35,7 @@ class IndexController(BaseController):
 					c.ret = u'<ul>%s</ul>' % u''.join(u'<li>'+unicode(o['out']) for o in c.raw_ret)
 					c.ret_html = True
 				else :
-					c.ret = c.raw_ret
+					c.ret = repr(c.raw_ret)
 					c.ret_html = False
 			except CompilerException, e :
 				c.ret = str(e)
