@@ -54,12 +54,6 @@ def loadTranslations(axpress, n) :
     n.meta.function : _add_two,
   })
   
-  """
-  uri[test.sum] = x + y
-  uri[test.x] = x
-  uri[test.y] = y
-  """
-  
   def prod(vars) :
     vars['prod'] = float(vars['sum']) * vars['z']
   axpress.register_translation({
@@ -87,44 +81,6 @@ def loadTranslations(axpress, n) :
     ],
     n.meta.function : div,
   })
-
-  ## note: this doesn't actually work ...
-  ## how could it?
-  #def is_num(vars) :
-    #vars['is_num'] = isinstance(vars['x'], (int, long, float))
-    #print 'is_num:',vars['is_num']
-  #axpress.register_translation({
-    #n.meta.name : 'is_num',
-    #n.meta.input : """
-      #type.is_num(_x) = ?is_num
-    #""",
-    #n.meta.output : """
-      #type.is_num(_x) = _is_num
-    #""",
-    #n.meta.function : is_num,
-  #})
-  
-    
-  ## these compilations could translate into direct hashes writen to memory/disk
-  ## these should basically be able to act like globally (or not) referencable
-  ## garbage collected variables.
-  ##   garbage collection would require some way to define when somethign expires
-  #def pre(vars) :
-    #vars['getlastime'] = sparql.compile_single_number([
-      #{
-        #n.hash.namespace : n.lastfm,
-        #n.hash.key : 'lastfm-lasttime',
-        #n.hash.value : None
-      #}
-    #])
-    
-    #vars['setlasttime'] = sparql.compile_write([
-      #{
-        #n.hash.namespace : n.lastfm,
-        #n.hash.key : 'lastfm-lasttime',
-        #n.hash.value : None,
-      #}
-    #])
     
   def html_img(vars):
     web_filename = vars['filename'].replace('/home/dwiel', '/home')
@@ -184,9 +140,3 @@ def loadTranslations(axpress, n) :
     # so it isn't constant.  The value is constant,
     # 2011-10-27: it is constant now ...
   })
-
-
-######### TODO APP
-
-
-
