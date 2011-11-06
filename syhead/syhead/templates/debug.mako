@@ -9,38 +9,38 @@
   background-color: #ccc;
 }
 #string_query {
-	width: 50em;
-	font-size: 18;
-	padding-left: 0.3em;
-	margin-left: 1em;
-	margin-top: 0.5em;
-	line-height: 1.5em;
+  width: 50em;
+  font-size: 18;
+  padding-left: 0.3em;
+  margin-left: 1em;
+  margin-top: 0.5em;
+  line-height: 1.5em;
 }
 #result {
-	width: 750px;
+  width: 750px;
 }
 .item {
-	padding: 1em;
-	overflow: hidden;
+  padding: 1em;
+  overflow: hidden;
 }
 .item .side {
-	height: 150px;
-	margin-left: 1em;
+  height: 150px;
+  margin-left: 1em;
 }
 .item img {
-	float: left;
+  float: left;
 }
 .item .title {
-	font-weight: bold;
-	font-size: 125%;
-	padding-bottom: 0.5em;
+  font-weight: bold;
+  font-size: 125%;
+  padding-bottom: 0.5em;
 }
 ul {
-	list-style-type: none;
-	padding: 0px;
+  list-style-type: none;
+  padding: 0px;
 }
 xmp {
-	margin: 0;
+  margin: 0;
 }
 </style>
 
@@ -52,25 +52,25 @@ ${'<textarea class="advanced" name="query" rows=10 cols=70>' + c.query + '</text
 </form>
 
 <div id="result">
-${c.ret | n}
+  ${c.ret | n}
 </div>
 
 <div id="debug">
-	${c.debug_html | n}
+  ${c.debug_html | n}
 </div>
 
 <script>
-	$(function () {
+  $(function () {
     $('.logblock-title').live('click', function() {
       $(this).next('.logblock-body').toggle();
     });
     
     $('.advanced').hide();
     $('.simple').show();
-	});
-	
-	function advanced() {
-		$('.advanced').toggle();
-		$('.simple').toggle();
-	}
+  });
+
+  function advanced() {
+    $('.advanced').toggle();
+    $('.simple').toggle();
+  }
 </script>
