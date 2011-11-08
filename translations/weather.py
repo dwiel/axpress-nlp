@@ -13,6 +13,30 @@ How to selectively show the dew point, along with the rest of the forecast.
 
 generating just the susinct answer is different than generating other relevant
 information.  Ideally, the former problem is a subset of the later.
+
+What is the dew point is a good example of this problem.  We should show the
+dew point, but we probably want to show more than just the dew point.  Maybe
+this weeks weather, or predicted future dew points, or a comparison to historic
+...
+
+One Idea:
+
+x[a.is] = "the dew point in %location%"
+=>
+x[wunderground.dew_point] = _dew_point
+x[simple_display.related][a.is] = "weather in %location%"
+
+This could spawn the weather translation in the same translation, or maybe the
+simple_display could catch the text and call it seperately.  This way, it could
+be streamed to the user.  Are there any other benefits to doing it that way?
+
+It does raise an interesting idea which is how axpress might deal with streaming
+I guess one easy way is to compile the query and then stream results through 
+it ... Not really the same.  I think something like above where part of a query 
+is a callback of sorts.
+
+!! This also seems to make optional or priority translations important.  Not 
+all translations are going to have related information to display.
 """
 
 def loadTranslations(axpress, n) :
@@ -95,7 +119,7 @@ def loadTranslations(axpress, n) :
   # Simple Display
   def render_weather(vars) :
     vars['out'] = Template(u"""## -*- coding: utf-8 -*-
-      <div id="weather" style="width:378px">
+      <div id="weather" style="width:400px">
         <div id="today" style="margin:auto;width:220px">
           <div id="temp" style="font-size:350%;float:left;padding-left:0em;padding-right:0.5em">
             ${temp}° F
