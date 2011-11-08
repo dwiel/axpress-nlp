@@ -22,93 +22,18 @@ compiler-thoughts
 			'test.u[test.div] = div',
 		], input = ['x'], output = ['div'])
 
-what kind of information is/might be necessary to describe the input and output
-variables, x and div in this case?
-
-can the query describe everything?
-what can the query not describe?
-
 Core assumptions made and information about translations needed for the compiler
 to operate correctly:
 * all input varialbes will be substituted for a literal value
-* all input varialbes will not be substituted for a complex value (literal plus more triples involving it)
-	aka. there will not be any more triples added to the query after it is compiled
-* translations can not be allowed to add triples not in the output description
+* translations can not add triples which aren't already in the output description
+  * NOTE: you can have a triple which is all varialbes, but this slows down the
+          compilation step
 
-if an input variable is bound in the input and output of a  translation, the 
-variable will be changed between the input and output.
-
-how might these assertions change?
+Ff an input variable is bound in the input and output of a translation, the 
+variable might be changed between the input and output.
 
 some input variables might be deemed optional. (no value)  only if all triples
 which use those variables are also optional ... I think
-
-
-
-
-how is the compiler matching different from the evaluation matching?
-* an input variable matches with a literal
-* instead of calling a function when a translation [might] match, add the 
-	translation to the returned set of [possible] paths through the translation 
-	space.
-	rename all bound variables which are not constant to express the change that 
-	may have been made if the function were called
-* compiler doesn't worry about case where there are multiple bindings returned
-	by a translation.
-* does the compiler need to worry about the cases where there are mutliple ways
-	a translation could be bound?  Yes, they are all *possible* or *guaranteed*
-	translations, like any other.  No need for explosions of sets though
-* two variable could be the same or different ...
-	situation in the middle of compiling:
-	
-	query w/ bindings
-	image1[prop.prop1] = im
-	image2[prop.prop2] = 2
-	
-	translation:
-	image[prop.prop1] = _im
-	image[prop.prop2] = _number
-	=>
-	image[prop.prop3] = _out
-	
-	this translation *might* match, if image1 and image2 are the same.  In
-	the unification step (conflicting_bindings()) two input_vars *might* match
-	
-	
-	* what is the name for (input variable?) intermediate variable in compile stage
-	which has been derived from the output of a translation?
-		it needs to describe what it may contain:
-		* _name => a literal value
-		* ?name => a variable value
-		* Just like the types used in translations
-	
-	How to express in the translation which variables might change and which 
-	definitely wont?
-	* define list of variables which are constant:
-			n.meta.constant_vars : ['x', 'y']
-		this seems a bit clunky ...
-	
-	note: these could be automatically filled in by an IDE or editor by looking at
-		simple code.  though not necessarily well.  However, with debug mode enabled,
-		these assertions could be tested.  Assertions like this that look to be true
-		over time might also be detected by a debugging/profiling system.
-
-
-
-
-Compile to what?
-How can we be sure that the translations that are compiled with still exist at
-execution time?
-Can these compilations be saved?
-Or do they become useless after each change to the set of translations?
-This gets complicated.  Need a higher order, 'does this change to the language
-change the way this is compiled?' and similar queries answered.
-Also keep in mind that all we mean by compiling is to do some preprocessing 
-without actually evaluating the answer.  At this point compiling could always 
-happen every execution and never stored or planned for persistance.
-The compiler can also avoid latency in execution if a query is known about 
-before it needs to be executed
-
 
 
 
@@ -133,8 +58,7 @@ step := {
 	'possible' : [<step>],
 }
 
-triplelist : [<triple>]
-
+triplelist := [<triple>]
 
 What is needed to execute a compiled path?
 
@@ -142,7 +66,6 @@ follow guaranteed paths first
 
 for translation :
 	translation(vars = translation['input-bindings']
-	
 
 
 
@@ -163,43 +86,6 @@ for translation :
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-check out the results right now:
-	new_query [
-		[ n.test.u, n.test.x, 1, ],
-		[ n.test.u, n.test.x, 2, ],
-		[ n.test.u, n.test.y, 10, ],
-		[ n.test.u, n.test.sum, n.meta_var.sum, ],
-		[ n.test.u, n.test.sum, n.lit_var.sum, ],
-	]
-
-[ n.test.u, n.test.sum, n.var.sum, ] is the triple from the input query that is
-being searched for
-[ n.test.u, n.test.sum, n.lit_var.sum, ] is the triple generated after following
-one iteration of guaranteed translations.
-these match? how to tell the two apart?  Does there need to be a different input
-variable namespace for the initial var.sum?
-
-note: right now, the compiler and interpreter lack a mechanism to actually 
-return a set of bindings as the result (needed), and also no way to determine
-if a set of triples sufficiently matches the input query to result in a new
-set of matched bindings.
-
-Q: does a search stop once matched bindings are found?
-		when does this happen?
 
 
 
