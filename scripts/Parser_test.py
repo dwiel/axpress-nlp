@@ -266,7 +266,6 @@ class PassCompleteReadsTestCase(unittest.TestCase):
 			i[flickr.tag] = 'sunset' |
 			                'sunrise'
 		"""
-		p('query', self.parser.parse_query(query))
 		assert self.parser.parse_query(query) == [
 			[n.var['i'], n['flickr']['tag'], ['sunset', 'sunrise']],
 		]
