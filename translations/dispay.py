@@ -52,6 +52,9 @@ def loadTranslations(axpress, n) :
   
   def direct_related(vars) :
     # TODO: make this into a mako template with some extra wrappings
+    print '#'*80
+    print 'vars'
+    print vars
     vars['out'] = vars['direct'] + vars['related']
   axpress.register_translation({
     n.meta.name : 'two pane render',

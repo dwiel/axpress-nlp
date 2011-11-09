@@ -41,36 +41,36 @@ class Compiler :
     
     self.log_debug = debug
     self.debug_reset()
+    self.debug_on = False
   
   def debug_reset(self) :
-    #self.debug_str = ""
-    #self.debug_block_id = 0
-    pass
+    self.debug_str = ""
+    self.debug_block_id = 0
   
   def debug(self, str, endline='<br>') :
-    #self.debug_str += str + endline
-    pass
+    if self.debug_on :
+      self.debug_str += str + endline
 
   def debugp(self, *args) :
-    #self.debug('<xmp>' + ' '.join([prettyquery(arg) for arg in args]) + '</xmp>', '')
-    pass
+    if self.debug_on :
+      self.debug('<xmp>' + ' '.join([prettyquery(arg) for arg in args]) + '</xmp>', '')
     
   def debug_open_block(self, title) :
-    #""" this is used to generate HTML debug output.  Reset the output first by
-    #calling debug_reset, then make the compile call, then get the output by 
-    #calling debugp """
+    """ this is used to generate HTML debug output.  Reset the output first by
+    calling debug_reset, then make the compile call, then get the output by 
+    calling debugp """
     
-    #self.debug_str += """
-      #<div class="logblock">
-      #<div class="logblock-title" id="block-title-%d">%s</div>
-      #<div class="logblock-body" style="display:none" id="block-body-%d">
-    #""" % (self.debug_block_id, title, self.debug_block_id)
-    #self.debug_block_id += 1
-    pass
+    if self.debug_on :
+      self.debug_str += """
+        <div class="logblock">
+        <div class="logblock-title" id="block-title-%d">%s</div>
+        <div class="logblock-body" style="display:none" id="block-body-%d">
+      """ % (self.debug_block_id, title, self.debug_block_id)
+      self.debug_block_id += 1
   
   def debug_close_block(self) :
-    #self.debug_str += """</div></div>"""
-    pass
+    if self.debug_on :
+      self.debug_str += """</div></div>"""
   
   def register_translation(self, translation) :
     n = self.n
@@ -176,8 +176,7 @@ class Compiler :
       return ret
     
     if isstr(value) and isstr(qvalue) :
-      if self.string_matches(value, qvalue) :
-        return True
+      return self.string_matches(value, qvalue)
     
     if value == qvalue :
       return True
@@ -209,7 +208,7 @@ class Compiler :
       elif isstr(t) and isstr(q) :
         # BUG: if there is more than one way to match the string with the 
         # pattern this will only return the first
-        self.debugp(str(t), str(q))
+        self.debugp('b', str(t), str(q))
         ret = self.find_matches(str(t), str(q))
         if ret != None:
           for name, value in ret.iteritems() :
@@ -406,14 +405,13 @@ class Compiler :
     if len(pattern) == 0 and root:
       return True, [Bindings()]
     
-    ## OPTIMIZATION
-    ## check that all of the translation inputs match part of the query
-    #if reqd_triples != False:
-      #for triple in pattern :
-        ##self.debugp('find_triple_match', triple, facts)
-        #if not self.find_triple_match(triple, facts) :
-          ##self.debugp('False')
-          #return False, None
+    # check that all of the translation inputs match part of the query
+    if reqd_triples != False:
+      for triple in pattern :
+        #self.debugp('find_triple_match', triple, facts)
+        if not self.find_triple_match(triple, facts) :
+          #self.debugp('False')
+          return False, None
     
     # find all possible bindings for the vars if any exist
     matches, bindings_set = self.bind_vars(pattern, facts, reqd_triples, initial_bindings)
@@ -598,16 +596,16 @@ class Compiler :
           # used in a couple places later on
           output_lit_vars = find_vars(translation[n.meta.output], is_lit_var)
           
-          self.debugp('input_bindings', input_bindings)
-          self.debugp('initial_bindings', initial_bindings)
+          #self.debugp('input_bindings', input_bindings)
+          #self.debugp('initial_bindings', initial_bindings)
           
           if n.meta.input_function in translation :
-            self.debugp('n.meta.input_function', translation[n.meta.input_function])
+            #self.debugp('n.meta.input_function', translation[n.meta.input_function])
             if not translation[n.meta.input_function](input_bindings) :
-              self.debugp('didnt pass input function')
+              #self.debugp('didnt pass input function')
               continue
-          self.debugp('query', query)
-          self.debugp('output_triples', output_triples)
+          #self.debugp('query', query)
+          #self.debugp('output_triples', output_triples)
           
           # unify output_triples with query
           output_matches, output_bindings_set = self.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
@@ -1074,7 +1072,7 @@ class Compiler :
     # an iterative deepening search
     self.depth = 1
     compile_root_node = None
-    while not compile_root_node and self.depth < 6:
+    while not compile_root_node and self.depth < 7:
       self.debugp("depth: %d" % self.depth)
       compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
       self.depth += 1
