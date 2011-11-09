@@ -21,3 +21,4 @@ def loadTranslations(axpress, n) :
 
       m.loadTranslations(axpress, n)
 
+  axpress.compiler.compile_translations()

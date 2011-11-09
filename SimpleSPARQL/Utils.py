@@ -7,68 +7,79 @@ from rdflib import URIRef
 import time, copy
 
 n = Namespaces()
-n.bind('var', '<http://dwiel.net/express/var/0.1/>')
+n.bind('var', '<http://dwiel.net/axpress/var/0.1/>')
 n.bind('meta_var', '<http://dwiel.net/express/meta_var/0.1/>')
 n.bind('lit_var', '<http://dwiel.net/express/lit_var/0.1/>')
-n.bind('out_var', '<http://dwiel.net/express/out_var/0.1/>')
-n.bind('out_lit_var', '<http://dwiel.net/express/out_lit_var/0.1/>')
+n.bind('out_var', '<http://dwiel.net/axpress/out_var/0.1/>')
+n.bind('out_lit_var', '<http://dwiel.net/axpress/out_lit_var/0.1/>')
 n.bind('bnode', '<http://dwiel.net/axpress/bnode/0.1/>')
 
+str_n_var = str(n.var)
+str_n_meta_var = str(n.meta_var)
+str_n_lit_var = str(n.lit_var)
+str_n_out_var = str(n.out_var)
+str_n_out_lit_var = str(n.out_lit_var)
+len_n_var = len(n.var)
+len_n_meta_var = len(n.meta_var)
+len_n_lit_var = len(n.lit_var)
+len_n_out_var = len(n.out_var)
+len_n_out_lit_var = len(n.out_lit_var)
+
 def is_any_var(data) :
-	if type(data) == URIRef :
-		if data.find(n.var) == 0 :
-			return True
-		elif data.find(n.meta_var) == 0 :
-			return True
-		elif data.find(n.lit_var) == 0 :
-			return True
-		elif data.find(n.out_var) == 0 :
-			return True
-		elif data.find(n.out_lit_var) == 0 :
-			return True
-	return False
+  if type(data) == URIRef :
+    if data.find(str_n_var) == 0 :
+      return True
+    elif data.find(str_n_meta_var) == 0 :
+      return True
+    elif data.find(str_n_lit_var) == 0 :
+      return True
+    elif data.find(str_n_out_var) == 0 :
+      return True
+    elif data.find(str_n_out_lit_var) == 0 :
+      return True
+  return False
 
 def is_var(data) :
-	if type(data) == URIRef :
-		if data.find(n.var) == 0 :
-			return True
-	return False
+  if type(data) == URIRef :
+    if data.find(str_n_var) == 0 :
+      return True
+  return False
 
 def is_meta_var(data) :
-	if type(data) == URIRef :
-		if data.find(n.meta_var) == 0 :
-			return True
-	return False
+  if type(data) == URIRef :
+    if data.find(str_n_meta_var) == 0 :
+      return True
+  return False
 
 def is_lit_var(data) :
-	if type(data) == URIRef :
-		if data.find(n.lit_var) == 0 :
-			return True
-	return False	
+  if type(data) == URIRef :
+    if data.find(str_n_lit_var) == 0 :
+      return True
+  return False	
 
 def is_out_var(data) :
-	if type(data) == URIRef :
-		if data.find(n.out_var) == 0 :
-			return True
-	return False
-	
+  if type(data) == URIRef :
+    if data.find(str_n_out_var) == 0 :
+      return True
+  return False
+
 def is_out_lit_var(data) :
-	if type(data) == URIRef :
-		if data.find(n.out_lit_var) == 0 :
-			return True
-	return False
+  if type(data) == URIRef :
+    if data.find(str_n_out_lit_var) == 0 :
+      return True
+  return False
 
 def var_name(uri) :
-	if uri.find(n.var) == 0 :
-		return uri[len(n.var):]
-	elif uri.find(n.meta_var) == 0 :
-		return uri[len(n.meta_var):]
-	elif uri.find(n.lit_var) == 0 :
-		return uri[len(n.lit_var):]
-	elif uri.find(n.out_var) == 0 :
-		return uri[len(n.out_var):]
-	elif uri.find(n.out_lit_var) == 0 :
-		return uri[len(n.out_lit_var):]
+	if uri.find(str_n_var) == 0 :
+		return uri[len_n_var:]
+	elif uri.find(str_n_meta_var) == 0 :
+		return uri[len_n_meta_var:]
+	elif uri.find(str_n_lit_var) == 0 :
+		return uri[len_n_lit_var:]
+	elif uri.find(str_n_out_var) == 0 :
+		return uri[len_n_out_var:]
+	elif uri.find(str_n_out_lit_var) == 0 :
+		return uri[len_n_out_lit_var:]
 	else :
 		raise Exception('data is not a variable' % str(uri))
 
@@ -88,7 +99,7 @@ def var_type(uri) :
 
 def var(data) :
 	if is_any_var(data) :
-		return data[len(n.var):]
+		return data[len_n_var:]
 	return None
 
 def isstr(v) :

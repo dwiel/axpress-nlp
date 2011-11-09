@@ -580,9 +580,9 @@ class AxpressTestCase(unittest.TestCase):
     ]
 if __name__ == "__main__" :
   #print '<root>'
-  import cProfile
-  cProfile.run('unittest.main()')
-  #unittest.main()
+  #import cProfile
+  #cProfile.run('unittest.main()')
+  unittest.main()
   #print '</root>'
 
 

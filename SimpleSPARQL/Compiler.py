@@ -35,35 +35,42 @@ class Compiler :
     
     self.translations = []
     self.translations_by_name = {}
+    self.translations_by_id = {}
     self._next_num = 0
+    self._next_translation_id = 0
     
     self.log_debug = debug
     self.debug_reset()
   
   def debug_reset(self) :
-    self.debug_str = ""
-    self.debug_block_id = 0
+    #self.debug_str = ""
+    #self.debug_block_id = 0
+    pass
   
   def debug(self, str, endline='<br>') :
-    self.debug_str += str + endline
+    #self.debug_str += str + endline
+    pass
 
   def debugp(self, *args) :
-    self.debug('<xmp>' + ' '.join([prettyquery(arg) for arg in args]) + '</xmp>', '')
+    #self.debug('<xmp>' + ' '.join([prettyquery(arg) for arg in args]) + '</xmp>', '')
+    pass
     
   def debug_open_block(self, title) :
-    """ this is used to generate HTML debug output.  Reset the output first by
-    calling debug_reset, then make the compile call, then get the output by 
-    calling debugp """
+    #""" this is used to generate HTML debug output.  Reset the output first by
+    #calling debug_reset, then make the compile call, then get the output by 
+    #calling debugp """
     
-    self.debug_str += """
-      <div class="logblock">
-      <div class="logblock-title" id="block-title-%d">%s</div>
-      <div class="logblock-body" style="display:none" id="block-body-%d">
-    """ % (self.debug_block_id, title, self.debug_block_id)
-    self.debug_block_id += 1
+    #self.debug_str += """
+      #<div class="logblock">
+      #<div class="logblock-title" id="block-title-%d">%s</div>
+      #<div class="logblock-body" style="display:none" id="block-body-%d">
+    #""" % (self.debug_block_id, title, self.debug_block_id)
+    #self.debug_block_id += 1
+    pass
   
   def debug_close_block(self) :
-    self.debug_str += """</div></div>"""
+    #self.debug_str += """</div></div>"""
+    pass
   
   def register_translation(self, translation) :
     n = self.n
@@ -92,8 +99,34 @@ class Compiler :
     constant_vars = list(invars.intersection(outvars))
     translation[n.meta.constant_vars] = constant_vars
     
+    translation[n.meta.id] = self.next_translation_id()
     self.translations.append(translation)
     self.translations_by_name[translation[n.meta.name]] = translation
+    self.translations_by_id[  translation[n.meta.id  ]] = translation
+  
+  def next_translation_id(self) :
+    self._next_translation_id += 1
+    return self._next_translation_id
+  
+  def translation_can_follow(self, this, next) :
+    #this_property_values = set(triple[1] for triple in this[n.meta.output])
+    #next_property_values = set(triple[1] for triple in next[n.meta.input ])
+    
+    #return this_property_values.intersection(next_property_values)
+    for triple in this[n.meta.output] :
+      for ntriple in next[n.meta.input] :
+        if self.triples_match(ntriple, triple) :
+          return True
+    
+    return False
+  
+  def compile_translations(self) :
+    self.translation_matrix = {}
+    for id, translation in self.translations_by_id.iteritems() :
+      self.translation_matrix[id] = [
+        t for t in self.translations if self.translation_can_follow(translation, t)
+      ]
+      #p('t', translation[n.meta.name], [t[n.meta.name] for t in self.translation_matrix[id]])
   
   def find_matches(self, value, qvalue) :
     const, vars = split_string(value)
@@ -468,7 +501,11 @@ class Compiler :
     # the translation_queue is a list of translations that will be searched.  
     # There are some heuristics which alter the order that the translations are
     # searched in
-    translation_queue = list(self.translations)
+    #translation_queue = list(self.translations)
+    if history :
+      translation_queue = self.translation_matrix[history[-1][0].get(n.meta.id)]
+    else :
+      translation_queue = list(self.translations)
     
     ## HEURISTIC
     ## sort translation queue so that the most recently applied translation is 
