@@ -64,6 +64,55 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       [n.var.bnode1, n.color.distance, n.var.distance],
     ]
   
+  """
+  location[axpress.is] = "%location_s%"
+  location[freebase.type] = '/location/location'
+  location[wunderground.weather] = weather
+    =>
+  location{
+    freebase.type = '/location/location'
+    wunderground.weather = weather
+  }
+  
+  location[axpress.is] = "%location_s%"
+  location[freebase.type] = '/location/location'
+  location[wunderground.weather] = weather
+  weather[wunderground.dew_point] = dew_point
+    =>
+  location{
+    freebase.type = '/location/location'
+    wunderground.weather = weather{
+      wunderground.dew_point = dew_point
+    }
+  }
+  
+  This kind of change, is less typing, but is that the highest priority right now?
+  it might be high since the goal is to get people to write apps ...
+  
+  location[wunderground.weather] = weather
+  location[freebase.type] = '/location/location'
+  location[freebase./location/location/geolocation] = geo
+  geo[freebase./location/geocode/latitude] = _lat
+  geo[freebase./location/geocode/longitude] = _lon
+    =>
+  location{
+    wunderground.weather = weather
+    freebase.type = '/location/location'
+    freebase./location/location/geolocation = geo{
+      freebase./location/geocode/latitude = _lat
+      freebase./location/geocode/longitude = _lon
+    }
+  }
+  
+  there might be more savings in helping create sets of translations ...
+  there is a bunch of redundancy mapping the various types ...
+  I guess this is because of all of the duck typing ... must type out the 
+  lat/lon uris in order to get access to those values, where as if there were
+  more explicit types, then there might be shorthand for these ... freebase is
+  especially bad at this, thought it will hopefully, mostly be automatically
+  generated.  Interfacing with it though ... autocomplete could help
+  """
+  
   def test9(self):
     assert self.parser.parse_expression("""
       math.sum(1, 2) = sum""") == [
@@ -269,7 +318,17 @@ class PassCompleteReadsTestCase(unittest.TestCase):
     assert self.parser.parse_query(query) == [
       [n.var['i'], n['flickr']['tag'], ['sunset', 'sunrise']],
     ]
-  
+
+  def test_optional(self) :
+    query = """
+      x[test.foo] = y
+      | x[test.bar] = z
+    """
+    assert self.parser.parse_query(query) == [
+             [n.var['x'], n['test']['foo'], n.var['y']],
+      Triple([n.var['x'], n['test']['bar'], n.var['z']], optional=True),
+    ]
+ 
 if __name__ == "__main__" :
   unittest.main()
 

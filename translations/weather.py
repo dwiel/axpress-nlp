@@ -37,6 +37,36 @@ is a callback of sorts.
 
 !! This also seems to make optional or priority translations important.  Not 
 all translations are going to have related information to display.
+
+However, this requires not optional translations, but optional parts to a query
+which is completely different:
+
+x[a.is] = "the query from the search/spoken field"
+x[simple_display.text] = _out
+| x[simple_display.related][simple_display.text] = _related
+
+better yet:
+
+x[a.is] = "the query from the search/spoken field"
+x[simple_display.text] = _out
+
+x[a.is] = "the dew point in %location%"
+=>
+x[wunderground.dew_point] = dew_point
+x[simple_display.direct] = dew_point
+x[simple_display.related][a.is] = "weather in %location%"
+
+x[sd.direct] = top
+x[sd.related] = bottom
+=>
+x[sd.text] = string.add(top, bottom)
+
+In this way, the way the translations are seperated from eachother create
+conditionals or classes in a procedural language.  How does that inform the
+UI for writing these translations?
+
+This winds up being a lot of code for what otherwise might be a pretty simple
+python script.  Where is the advantage here?  Can that be more of the focus?
 """
 
 def loadTranslations(axpress, n) :
@@ -45,10 +75,10 @@ def loadTranslations(axpress, n) :
   axpress.register_translation({
     n.meta.name : 's current weather',
     n.meta.input : """
-      weather[axpress.is] = "(the |)(current |)(weather|temperature|temp) (in |at |near |by |near by |)%location_s%( right now| now|)"
+      weather[a.is] = "(the |)(current |)(weather|temperature|temp) (in |at |near |by |near by |)%location_s%( right now| now|)"
     """,
     n.meta.output : """
-      location[axpress.is] = "%location_s%"
+      location[a.is] = "%location_s%"
       location[freebase.type] = '/location/location'
       location[wunderground.weather] = weather
     """,
@@ -57,13 +87,15 @@ def loadTranslations(axpress, n) :
   axpress.register_translation({
     n.meta.name : 's current weather',
     n.meta.input : """
-      weather[axpress.is] = "(the |)(current |)dew point (in |at |near |by |near by |)%location_s%( right now| now|)"
+      weather[a.is] = "(the |)(current |)dew point (in |at |near |by |near by |)%location_s%( right now| now|)"
     """,
     n.meta.output : """
-      location[axpress.is] = "%location_s%"
+      location[a.is] = "%location_s%"
       location[freebase.type] = '/location/location'
       location[wunderground.weather] = weather
       weather[wunderground.dew_point] = dew_point
+      weather[simple_display.direct] = dew_point
+      weather[simple_display.related] = weather
     """,
   })
   
@@ -111,6 +143,7 @@ def loadTranslations(axpress, n) :
     n.meta.output : """
       weather[wunderground.current_temperature] = _temp_f
       weather[wunderground.icon_url] = _icon_url
+      weather[wunderground.dew_point] = _dewpoint_f
       weather[wunderground.forecast] = _forecast
     """,
     n.meta.function : lookup_current_weather,

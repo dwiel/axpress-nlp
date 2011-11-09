@@ -272,8 +272,11 @@ def loadTranslations(axpress, n) :
     if ret['status'] != '200 OK' :
       raise Exception("freebase didn't work ...")
     result = ret['result'][0]
-    if result['score'] > 30 :
+    if result['score'] > 25 :
       vars['mid'] = result['mid']
+    else :
+      print('ret', ret['result'])
+      raise Exception("couldn't find something by that name")
     
     #.encode("<utf-8>")
   axpress.register_translation({

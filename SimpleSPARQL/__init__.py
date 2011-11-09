@@ -7,7 +7,7 @@ from Evaluator import Evaluator
 from Cache import Cache
 from Namespaces import Namespaces, globalNamespaces, uri_could_be_from_namespace
 from RDFObject import RDFObject
-from Parser import Parser
+from Parser import Parser, Triple
 from MultilineParser import MultilineParser
 from loadTranslations import loadTranslations
 

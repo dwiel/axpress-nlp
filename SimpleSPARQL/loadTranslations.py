@@ -5,6 +5,7 @@ def loadTranslations(axpress, n) :
   import imp
   import md5
 
+  n.bind('a', '<http://dwiel.net/axpress/0.1/>')
   n.bind('axpress', '<http://dwiel.net/axpress/0.1/>')
   n.bind('rdfs', '<http://www.w3.org/2000/01/rdf-schema#>')
   n.bind('type', '<http://dwiel.net/express/type/0.1/>')

@@ -18,8 +18,6 @@ class IndexController(BaseController):
 		c.ret = u""
 		c.debug_html = u""
 		
-		print "string_query", c.string_query
-		
 		if c.string_query :
 			c.query = u"""
 				x[axpress.is] = "%s"
