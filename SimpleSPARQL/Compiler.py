@@ -406,14 +406,14 @@ class Compiler :
     if len(pattern) == 0 and root:
       return True, [Bindings()]
     
-    # OPTIMIZATION
-    # check that all of the translation inputs match part of the query
-    if reqd_triples != False:
-      for triple in pattern :
-        #self.debugp('find_triple_match', triple, facts)
-        if not self.find_triple_match(triple, facts) :
-          #self.debugp('False')
-          return False, None
+    ## OPTIMIZATION
+    ## check that all of the translation inputs match part of the query
+    #if reqd_triples != False:
+      #for triple in pattern :
+        ##self.debugp('find_triple_match', triple, facts)
+        #if not self.find_triple_match(triple, facts) :
+          ##self.debugp('False')
+          #return False, None
     
     # find all possible bindings for the vars if any exist
     matches, bindings_set = self.bind_vars(pattern, facts, reqd_triples, initial_bindings)

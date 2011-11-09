@@ -549,7 +549,7 @@ class AxpressTestCase(unittest.TestCase):
     """)
     p('ret', ret)
   
-  def testStringQuery(self):
+  def testStringQuery2(self):
           ret = axpress.read_translate("""
               x[axpress.is] = "add library to todo list"
               x[simple_display.text] = _out
