@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import Namespaces
-import re
+from Triple import Triple
 from Utils import p, is_lit_var, var_name
+
+import re
 
 re_lhs_rhs = re.compile('(.+)\s*=\s*(.+)')
 re_obj_prop = re.compile('(\w+)\[(\w+)\.(\w+)\]')
@@ -19,11 +21,6 @@ re_lit_var = re.compile('^_[a-zA-Z_]\w*$')
 re_comment = re.compile('(#.*)$')
 
 python_keywords = ['True', 'False']
-
-class Triple(list) :
-  def __init__(self, l, optional = False) :
-    super(Triple, self).__init__(l)
-    self.optional = optional
 
 class Expression() :
   def __init__(self, exp, missing = None, optional = False) :

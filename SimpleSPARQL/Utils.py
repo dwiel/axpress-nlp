@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from Namespaces import Namespaces
 from PrettyQuery import prettyquery
+from Triple import Triple
 
 from rdflib import URIRef
 
@@ -200,7 +201,7 @@ def new_explode_bindings_set(bindings_set) :
 def sub_var_bindings(triples, bindings) :
   new_triples = []
   for triple in triples :
-    new_triples.append([bound_triple for bound_triple in sub_bindings_triple(triple, bindings)])
+    new_triples.append(Triple([bound_triple for bound_triple in sub_bindings_triple(triple, bindings)]))
   return new_triples
 
 def sub_var_bindings_set(triples, bindings_set) :

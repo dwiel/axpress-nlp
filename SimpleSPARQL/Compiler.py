@@ -3,6 +3,7 @@ from SimpleSPARQL import SimpleSPARQL
 from Namespaces import Namespaces
 from PrettyQuery import prettyquery
 from Parser import Parser
+from Triple import Triple
 from Utils import *
 
 from Bindings import Bindings
@@ -89,6 +90,10 @@ class Compiler :
     translation[n.meta.input] = self.parser.parse_query(translation[n.meta.input], reset_bnodes=False)
     translation[n.meta.output] = self.parser.parse_query(translation[n.meta.output], reset_bnodes=False)
     
+    ## hash the triples
+    #translation[n.meta.input]  = self.hash_triples(translation[n.meta.input])
+    #translation[n.meta.output] = self.hash_triples(translation[n.meta.output])
+    
     # figure out which variables are in both the input and output of the 
     # translation
     invars = find_vars(translation[n.meta.input], find_string_vars = True)
@@ -103,6 +108,12 @@ class Compiler :
     self.translations.append(translation)
     self.translations_by_name[translation[n.meta.name]] = translation
     self.translations_by_id[  translation[n.meta.id  ]] = translation
+  
+  def hash_triple(self, triple) :
+    return Triple(triple)
+  
+  def hash_triples(self, triples) :
+    return map(self.hash_triple, triples)
   
   def next_translation_id(self) :
     self._next_translation_id += 1
@@ -183,11 +194,19 @@ class Compiler :
     
     #return False
   
+  _triples_hash = {}
   def triples_match(self, triple, qtriple) :
+    #assert isinstance(triple, Triple) and isinstance(qtriple, Triple)
+    key = triple.hash + qtriple.hash
+    if key in self._triples_hash :
+      return self._triples_hash[key]
+    
     for tv, qv in izip(triple, qtriple) :
       #print 'v',prettyquery(tv),'q',prettyquery(qv)
       if not self.values_match(tv, qv) :
+        self._triples_hash[key] = False
         return False
+    self._triples_hash[key] = True
     return True
   
   def find_triple_match(self, triple, query) :
