@@ -12,38 +12,46 @@ log = logging.getLogger(__name__)
 
 class IndexController(BaseController):
 
-	def debug(self):
-		c.query = request.params.get('query') or u""
-		c.string_query = request.params.get('string_query', u'')
-		c.ret = u""
-		c.debug_html = u""
-		
-		if c.string_query :
-			c.query = u"""
-				x[axpress.is] = "%s"
-				x[simple_display.text] = _out
-			""" % c.string_query
-			c.query = '\n'.join(line.strip() for line in c.query.split('\n'))
-			
-		if c.query :
-			try :
-				c.raw_ret = g.axpress.read_translate(c.query)
-				c.debug_html = g.axpress.compiler.debug_str
-				if c.raw_ret and 'out' in c.raw_ret[0] :
-					c.ret = u'<ul>%s</ul>' % u''.join(u'<li>'+unicode(o['out']) for o in c.raw_ret)
-					c.ret_html = True
-				else :
-					c.ret = repr(c.raw_ret)
-					c.ret_html = False
-			except CompilerException, e :
-				c.ret = str(e)
-				c.ret_html = False
-				c.debug_html = g.axpress.compiler.debug_str
-		else :
-			c.ret_html = False
-			c.debug_html = g.axpress.compiler.debug_str
-		
-		return render('debug.mako')
-	
-	def s(self):
-		pass
+  def debug(self):
+    c.query = request.params.get('query') or u""
+    c.string_query = request.params.get('string_query', u'')
+    c.debug_on = bool(request.params.get('debug'))
+    c.ret = u""
+    c.debug_html = u""
+    
+    if c.debug_on :
+      c.debug_on_str = 'checked'
+    else :
+      c.debug_on_str = ''
+    
+    g.axpress.compiler.debug_on = c.debug_on
+    
+    if c.string_query :
+      c.query = u"""
+        x[axpress.is] = "%s"
+        x[simple_display.text] = _out
+      """ % c.string_query
+      c.query = '\n'.join(line.strip() for line in c.query.split('\n'))
+      
+    if c.query :
+      try :
+        c.raw_ret = g.axpress.read_translate(c.query)
+        c.debug_html = g.axpress.compiler.debug_str
+        if c.raw_ret and 'out' in c.raw_ret[0] :
+          c.ret = u'<ul>%s</ul>' % u''.join(u'<li>'+unicode(o['out']) for o in c.raw_ret)
+          c.ret_html = True
+        else :
+          c.ret = repr(c.raw_ret)
+          c.ret_html = False
+      except CompilerException, e :
+        c.ret = str(e)
+        c.ret_html = False
+        c.debug_html = g.axpress.compiler.debug_str
+    else :
+      c.ret_html = False
+      c.debug_html = g.axpress.compiler.debug_str
+    
+    return render('debug.mako')
+  
+  def s(self):
+    pass

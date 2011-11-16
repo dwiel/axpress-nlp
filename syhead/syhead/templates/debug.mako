@@ -44,10 +44,11 @@ xmp {
 }
 </style>
 
-<form>
-<input class="simple" id="string_query" type="text" name="string_query" value="${c.string_query | n}" />
+<form id="target">
+<input class="simple" id="string_query" type="text" name="string_query" value="${c.string_query | n}" x-webkit-speech />
 ${'<textarea class="advanced" name="query" rows=10 cols=70>' + c.query + '</textarea>' | n} 
-<input type="submit" id="submit" value="Send">
+<input type="submit" value="Send">
+<input type="checkbox" name="debug" ${c.debug_on_str}>
 <a href="javascript:advanced();">advanced</a>
 </form>
 
@@ -67,6 +68,10 @@ ${'<textarea class="advanced" name="query" rows=10 cols=70>' + c.query + '</text
     
     $('.advanced').hide();
     $('.simple').show();
+    
+    document.getElementById('string_query').onwebkitspeechchange = function(e) {
+      $('#target').submit();
+    };
   });
 
   function advanced() {
