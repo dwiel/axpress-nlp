@@ -44,17 +44,17 @@ def loadTranslations(axpress, n) :
     """,
   })
   
-  # this terminates a string match and binds it as an output variable
-  def string_tag(vars):
-    vars['tag_out'] = vars['tag_str']
-  axpress.register_translation({
-    n.meta.name : 'string: tag?',
-    n.meta.input : """
-      tag[axpress.is] = "%tag_str%"
-    """,
-    n.meta.output : """
-      tag[axpress.is] = _tag_out
-    """,
-    n.meta.function : string_tag,
-  })
+  ## this terminates a string match and binds it as an output variable
+  #def string_tag(vars):
+    #vars['tag_out'] = vars['tag_str']
+  #axpress.register_translation({
+    #n.meta.name : 'string: tag?',
+    #n.meta.input : """
+      #tag[axpress.is] = "%tag_str%"
+    #""",
+    #n.meta.output : """
+      #tag[axpress.is] = _tag_out
+    #""",
+    #n.meta.function : string_tag,
+  #})
   

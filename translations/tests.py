@@ -140,3 +140,50 @@ def loadTranslations(axpress, n) :
     # so it isn't constant.  The value is constant,
     # 2011-10-27: it is constant now ...
   })
+
+  axpress.register_translation({
+    n.meta.name : 'test3',
+    n.meta.input : """
+      x[test.a] = y
+    """,
+    n.meta.output : """
+      x[test.b] = y
+      x[test.c] = z
+      z[test.d] = z
+    """,
+  })
+  
+  axpress.register_translation({
+    n.meta.name : 'test4',
+    n.meta.input : """
+      x[test.b] = _w
+    """,
+    n.meta.output : """
+      x[test.c] = _w
+    """,
+  })
+  
+  def f(vars) :
+    vars['u'] = 1
+  axpress.register_translation({
+    n.meta.name : 'test5',
+    n.meta.input : """
+      t[test.aa] = _s
+    """,
+    n.meta.output : """
+      t[test.ad] = _u
+    """,
+    n.meta.function : f
+  })
+  
+  axpress.register_translation({
+    n.meta.name : 'test6',
+    n.meta.input : """
+      t[test.ad] = _s
+    """,
+    n.meta.output : """
+      t[test.ae] = _s
+    """,
+  })
+  
+  

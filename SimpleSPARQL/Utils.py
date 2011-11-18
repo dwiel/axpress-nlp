@@ -135,16 +135,60 @@ def merge_string(const, vars) :
 
 def sub_bindings_value(value, bindings) :
   if is_any_var(value) and var_name(value) in bindings :
-    return bindings[var_name(value)]
+    return bindings[var_name(value)], True
   elif isstr(value) :
     # substitute bindings into string
     const, vars = split_string(value)
     vals = [bindings.get(var, '%'+var+'%') for var in vars]
-    return merge_string(const, vals)
-  return value
+    return merge_string(const, vals), True
+  return value, False
   
 def sub_bindings_triple(triple, bindings) :
-  return [sub_bindings_value(value, bindings) for value in triple]
+  return [sub_bindings_value(value, bindings)[0] for value in triple]
+
+def sub_bindings_triple_track_changes(triple, bindings) :
+  new_values = []
+  changed = False
+  for value in triple :
+    value, value_changed = sub_bindings_value(value, bindings)
+    new_values.append(value)
+    changed = changed or value_changed
+  return new_values, changed
+
+def sub_var_bindings(triples, bindings) :
+  return [Triple(sub_bindings_triple(triple, bindings)) for triple in triples]
+
+def sub_var_bindings_track_changes(triples, bindings) :
+  """ works the same as sub_var_bindings except it return both the new set
+  of triples as well as a set of only the triples which were changed.  See
+  new_triples in compile.  This is used to know which triples changed and only
+  look for new matches using new information."""
+  new_triples = []
+  changed_triples = []
+  for triple in triples :
+    new_triple, changed = sub_bindings_triple_track_changes(triple, bindings)
+    
+    new_triple = Triple(new_triple)
+    
+    if changed :
+      changed_triples.append(new_triple)
+    new_triples.append(new_triple)
+  
+  return new_triples, changed_triples
+
+def sub_var_bindings_set(triples, bindings_set) :
+  """
+  Substitutes each of the bindings into the set of triples.
+  @arg triples is the set of triples to substitute the bindings into
+  @arg bindings_set is the set of bindings to substitute into the triples
+  @return a generator of triple_sets with bindings substituted in.
+  """
+  
+  #print 'triples',prettyquery(triples)
+  #print 'bindings',prettyquery(bindings_set)
+  
+  for bindings in bindings_set :
+    yield sub_var_bindings(triples, bindings)
 
 def explode_binding(bindings) :
   list_of_new_bindings = [{}]
@@ -196,27 +240,6 @@ def new_explode_bindings_set(bindings_set) :
     else :
       new_bindings_set.append(new_bindings)
   return new_bindings_set
-  
-
-def sub_var_bindings(triples, bindings) :
-  new_triples = []
-  for triple in triples :
-    new_triples.append(Triple([bound_triple for bound_triple in sub_bindings_triple(triple, bindings)]))
-  return new_triples
-
-def sub_var_bindings_set(triples, bindings_set) :
-  """
-  Substitutes each of the bindings into the set of triples.
-  @arg triples is the set of triples to substitute the bindings into
-  @arg bindings_set is the set of bindings to substitute into the triples
-  @return a generator of triple_sets with bindings substituted in.
-  """
-  
-  #print 'triples',prettyquery(triples)
-  #print 'bindings',prettyquery(bindings_set)
-  
-  for bindings in bindings_set :
-    yield sub_var_bindings(triples, bindings)
 
 def find_vars(query, is_a_var = is_any_var, find_string_vars = False) :
   """

@@ -9,6 +9,30 @@ import urllib2
 from mako.template import Template
 
 """
+for better forcast data see:
+
+http://graphical.weather.gov/xml/rest.php
+http://graphical.weather.gov/xml/docs/elementInputNames.php
+http://graphical.weather.gov/xml/sample_products/browser_interface/ndfdXMLclient.php?lat=38.99&lon=-77.01&product=time-series&begin=2004-01-01T00:00:00&end=2013-04-20T00:00:00&maxt=maxt&mint=mint&wspd=wspd&ptornado=ptornado&wgust=wgust
+
+------
+
+how to turn the above into reasonable output?  For example, "will it be windy
+this week?"  A nice response would answer if it was going to be windier than
+normal this week.  A shortcut might be to give some basic stats about it:
+
+  the wind is predicted to be between 2 and 13 mph this week.
+  for most of the week it will be under 6 mph, but in the middle of the week
+    it might be around 8-13 mph.
+
+while we are only displaying graphical output, a graph of expected windiness
+would also be good.
+
+this raises another question which is how we should convert the range of values
+  into a string summarizing them ...
+
+------
+
 How to selectively show the dew point, along with the rest of the forecast.
 
 generating just the susinct answer is different than generating other relevant
@@ -65,8 +89,16 @@ In this way, the way the translations are seperated from eachother create
 conditionals or classes in a procedural language.  How does that inform the
 UI for writing these translations?
 
-This winds up being a lot of code for what otherwise might be a pretty simple
+!!! This winds up being a lot of code for what otherwise might be a pretty simple
 python script.  Where is the advantage here?  Can that be more of the focus?
+
+maybe I should try writing the straight python version of this module and see
+what it looks like.
+
+Also note that some syntax change could result in about half the lines and chars
+
+Not directly related to relase, but some documentation about it might be 
+good ... might inform of changes in style/code
 """
 
 def loadTranslations(axpress, n) :
@@ -116,6 +148,7 @@ def loadTranslations(axpress, n) :
       ).read()
     )
     
+    p('forecast_ret', forecast_ret)
     forecast = []
     for day in forecast_ret['forecast']['simpleforecast']['forecastday'] :
       forecast.append({
@@ -127,6 +160,9 @@ def loadTranslations(axpress, n) :
     
     ret = conditions['current_observation']
     ret['forecast'] = tuple(forecast)
+    
+    if ret['precip_1hr_in'] == u'-999.00' :
+      ret['precip_1hr_in'] = 0
     
     p('ret', ret)
     return ret
@@ -145,6 +181,14 @@ def loadTranslations(axpress, n) :
       weather[wunderground.icon_url] = _icon_url
       weather[wunderground.dew_point] = _dewpoint_f
       weather[wunderground.forecast] = _forecast
+      weather[wunderground.relative_humidity] = _relative_humidity
+      weather[wunderground.pressure] = _pressure_in
+      weather[wunderground.wind_speed] = _wind_mph
+      weather[wunderground.wind_direction] = _wind_dir
+      weather[wunderground.wind_gust_speed] = _wind_gust_mph
+      weather[wunderground.precipitation_today] = _precip_today_in
+      weather[wunderground.precipitation_last_hour] = _precip_1hr_in
+      weather[wunderground.visibility_mi] = _visibility_mi
     """,
     n.meta.function : lookup_current_weather,
   })
@@ -153,7 +197,7 @@ def loadTranslations(axpress, n) :
   def render_weather(vars) :
     vars['out'] = Template(u"""## -*- coding: utf-8 -*-
       <div id="weather" style="width:400px">
-        <div id="today" style="margin:auto;width:220px">
+        <div id="today" style="margin:auto;width:250px">
           <div id="temp" style="font-size:350%;float:left;padding-left:0em;padding-right:0.5em">
             ${temp}° F
           </div>
@@ -185,8 +229,21 @@ def loadTranslations(axpress, n) :
     """,
     n.meta.function : render_weather
   })
-  
-  
 
-  
-  
+"""
+will it rain today
+whats the high for today
+when is it going to rain
+Do|will|should I need|want|bring an umbrella %time-range%
+is it going to snow this week
+what are the odds of rain this week
+will it be windy this week
+will it be sunny today
+
+### historic:
+did it rain yesterday
+how much has it rained so far this year
+will it rain this year
+how much rain is predicted for this year
+how much does it normally rain in a year
+"""

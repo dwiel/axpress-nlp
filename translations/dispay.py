@@ -55,7 +55,7 @@ def loadTranslations(axpress, n) :
     print '#'*80
     print 'vars'
     print vars
-    vars['out'] = vars['direct'] + vars['related']
+    vars['out'] = unicode(vars['direct']) + unicode(vars['related'])
   axpress.register_translation({
     n.meta.name : 'two pane render',
     n.meta.input : """

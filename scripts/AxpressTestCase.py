@@ -555,6 +555,20 @@ class AxpressTestCase(unittest.TestCase):
               x[simple_display.text] = _out
           """)
   
+  #def testStringQuery3(self):
+    #ret = axpress.read_translate("""
+      #x[axpress.is] = "dew point in bloomington, in today"
+      #x[simple_display] = _out
+    #""")
+    #p('ret', ret)
+  
+  def testComplexOutputUnification(self):
+    ret = axpress.read_translate("""
+        x[test.a] = "hello"
+        x[test.d] = _out
+    """)
+    p('ret', ret)
+
   #def testStringQuery(self):
     #ret = axpress.read_translate("""
       #x[axpress.is] = "files matching pictures/*.jpg"

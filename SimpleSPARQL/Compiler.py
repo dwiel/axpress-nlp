@@ -224,6 +224,8 @@ class Compiler :
         if t in binding and binding[var_name(t)] != q :
           return Bindings()
         binding[var_name(t)] = q
+      elif (is_lit_var(t) or is_var(t)) and is_var(q) :
+        binding[var_name(t)] = q
       elif isstr(t) and isstr(q) :
         # BUG: if there is more than one way to match the string with the 
         # pattern this will only return the first
@@ -625,6 +627,7 @@ class Compiler :
               continue
           #self.debugp('query', query)
           #self.debugp('output_triples', output_triples)
+          #self.debugp('initial_bindings', initial_bindings)
           
           # unify output_triples with query
           output_matches, output_bindings_set = self.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
@@ -659,22 +662,40 @@ class Compiler :
             # WARNING: I think this means that find_bindings might not do the 
             # right thing if it thinks that it can bind whatever it wants to 
             # lit_vars.  lit_vars for example shouldn't bind to literal values
-            for var in output_lit_vars :
-              output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
             
             self.debugp('output_bindings', output_bindings)
+            
+            # if get_bindings found variable to variable matches, we will need
+            # to alter the triples in the existing query (not just add triples)
+            # unified_bindings maps old query variables to new query variables
+            unified_bindings = {}
+            for var in output_lit_vars :
+              new_lit_var = n.lit_var[var+'_out_'+str(self.next_num())]
+              if var in output_bindings :
+                if is_any_var(output_bindings[var]) :
+                  unified_bindings[var_name(output_bindings[var])] = new_lit_var
+              output_bindings[var] = new_lit_var
+            
+            #self.debugp('unified_bindings', unified_bindings)
+            #self.debugp('output_bindings', output_bindings)
             
             for var in find_vars(translation[n.meta.output], is_var) :
               #print var
               if var not in output_bindings :
                 output_bindings[var] = n.var[var+'_'+str(self.next_num())]
             
+            #self.debugp('output_bindings', output_bindings)
+            
             # generate the new query by adding the output triples with 
             # output bindings substituted in
             #p('output_bindings', output_bindings)
             new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
-            new_query = copy.copy(query)
+            # TODO:is this necessary:
+            # I wonder if the triples which are changed here need to be added to
+            # new_triples ...
+            new_query, new_query_new_triples = sub_var_bindings_track_changes(query, unified_bindings)
             new_query.extend(new_triples)
+            new_triples.extend(new_query_new_triples)
             
             # remove output_bindings which are not constant_vars or lit_vars (in
             # the translation's output triples.  An example of an instance when

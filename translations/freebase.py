@@ -259,6 +259,7 @@ def loadTranslations(axpress, n) :
   })
   
   def freebase_search(vars) :
+    print('vars', vars)
     req = urllib2.urlopen("https://www.googleapis.com/freebase/v1/search", urllib.urlencode({
       'query' : vars['title'],
       'type' : vars['type'],
