@@ -552,21 +552,6 @@ class Compiler :
           # output_bindings map from translation space to query space
           output_bindings = {}
           
-          # THIS IS THE OLD OUTPUT BINDINGS CODE.  NO UNIFICATION
-          ## find output_bindings
-          ## for each variable in the output triples
-          #for var in find_vars(translation[n.meta.output]) :
-            ## if this is a constant_var, bind it to whatever it was bound to
-            ## in the input part of the translation
-            #if var in translation[n.meta.constant_vars] :
-              #if var in input_bindings :
-                #output_bindings[var] = input_bindings[var]
-              #else :
-                #output_bindings[var] = n.var[var]
-            ## otherwise, create a new lit_var to bind to
-            #else :
-              #output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
-          
           # initial_bindings are the bindings that we already know from the 
           # input unification that must also hold true for output unification
           # some of the initial_binding vars don't appear in the output triples
@@ -597,28 +582,7 @@ class Compiler :
           
           # unify output_triples with query
           output_matches, output_bindings_set = self.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
-          if output_matches :
-            #print 'output unification'
-            # TODO: fix this, we should iterate over output_bindings_sets
-            #output_bindings = output_bindings_set[0]
-            #assert len(output_bindings_set) <= 1
-            pass
-            
-            # if an output binding is to an out_lit_var, than we need to change
-            # it to a simple lit_var.  This is so that later, we can look for
-            # solutions which we know we have found when a lit_var is bound to
-            # a out_lit_var.  It would seem that we could just flag it here, but
-            # for now it works to convert it like this so that it looks like the
-            # other cases ...  Or maybe it isn't necessary, but this seems to 
-            # work for now!
-            # NONE of the above is true ... I don't think.
-            # these variables should get new names anyway ...
-            #for k, v in output_bindings.iteritems() :
-              #if is_out_lit_var(v) :
-                #output_bindings[k] = n.out_lit_var[k+'_out_'+str(self.next_num())]
-          else :
-            #print "no output unification"
-            #output_bindings = initial_bindings
+          if not output_matches :
             output_bindings_set = [initial_bindings]
           
           for output_bindings in output_bindings_set :
@@ -862,7 +826,7 @@ class Compiler :
     return False
   
   #@logger
-  def search(self, query, possible_stack, history, output_vars, new_triples, root = False) :
+  def search(self, query, stack, history, output_vars, new_triples, root = False) :
     """
     follow guaranteed translations and add possible translations to the 
       possible_stack
@@ -883,50 +847,48 @@ class Compiler :
       structure)
     """
     
-    self.debug_open_block('search')
-    self.debugp('query', query)
-    
-    compile_node = {
-      'guaranteed' : [],
-      'possible' : [],
-    }
-    compile_node_found_solution = False
-    
-    # see what the guaranteed and possible next steps are
-    #print '%'*80
     #p('query', query)
-    #p('output_vars', output_vars)
-    #p('new_triples', new_triples)
-    #p('root', root)
+    
     guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, new_triples, root)
-    #p('guaranteed_steps', guaranteed_steps)
-    #p('possible_steps', possible_steps)
+    stack.extend(guaranteed_steps)
+    #p('stack', stack)
     
-    # NOTE right now we don't do anything with the partial solutions ...
-    if len(guaranteed_steps) == 0 :
+    all_steps = []
+    for step in stack :
+      # see what the guaranteed and possible next steps are
+      #print '%'*80
+      #p('query', query)
+      #p('output_vars', output_vars)
+      #p('new_triples', new_triples)
+      #p('root', root)
+      guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, new_triples, root)
+      #p('guaranteed_steps', guaranteed_steps)
+      #p('possible_steps', possible_steps)
+      
+      if len(guaranteed_steps) == 0 :
+        self.debug_close_block()
+        return False
+      
+      self.debug_open_block('guaranteed_steps')
+      self.debugp(guaranteed_steps)
       self.debug_close_block()
-      # I think this was causing problems where the 
-      # compiler thought it has reached a solution when it really hadn't
-      #return compile_node 
-      return False
-    
-    self.debug_open_block('guaranteed_steps')
-    self.debugp(guaranteed_steps)
-    self.debug_close_block()
-    
-    # look through all guarenteed steps recursively to see if they terminate and
-    # should be added to the compile_node, the finished 'program'
-    for step in guaranteed_steps :
+      
+      # look at the first step and add the rest of the steps to the stack
+      step       = guaranteed_steps[0]
+      next_steps = guaranteed_steps[1:]
+      stack = next_steps.extend(stack)
+      
       # if we've already made this translation, skip it
       if [step['translation'], step['input_bindings']] in history :
         continue
       
-      self.debug_open_block(step['translation'][n.meta.name] or '<unnamed>')
+      all_steps.append(step)
+      
+      self.debugp(step['translation'][n.meta.name] or '<unnamed>')
       
       # add this step to the history (though since this history object can be 
       # forked by other guaranteed_steps, we must copy it first)
-      new_history = copy.copy(history)
-      new_history.append([step['translation'], copy.copy(step['input_bindings'])])
+      history.append([step['translation'], copy.copy(step['input_bindings'])])
       
       # if the new information at this point is enough to fulfil the query, done
       # otherwise, recursively continue searching.
@@ -935,37 +897,24 @@ class Compiler :
       found_solution = self.found_solution(step['new_query'])
       if found_solution :
         step['solution'] = found_solution
+        return {
+          'guaranteed' : [step],
+          'possible' : [],
+        }
       else :
-        child_steps = self.search(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
-        if child_steps :
-          found_solution = True
-          # step['guaranteed'] is a list of steps to get to the solution which 
-          # is built up recursively.  step['guaranteed'] will always be [] 
-          # before these lines
-          assert step['guaranteed'] == []
-          step['guaranteed'].extend(child_steps['guaranteed'])
-          step['possible'].extend(child_steps['possible'])
+        # NOTE: I think the problem is here.
+        # if new_triples is simple, this works
+        # if the translation must be unified to the query in order to output
+        # then the entire output unification step would need to happen here
+        # rather than in next_steps.  Also, if this step was pulled off of the
+        # stack, the old input_bindings might not make any sense any more ...
+        # how to resolve that?
         
-      self.debug_close_block()
-      
-      if found_solution :
-        compile_node['guaranteed'].append(step)
-        compile_node_found_solution = True
+        #query = step['new_query']
+        query.extend(step['new_triples'])
+        new_triples = step['new_triples']
     
-    # UNUSED 
-    for step in possible_steps:
-      possible_stack.append({
-        'root' : compile_node,
-        'step' : step,
-        'query' : query,
-      })
-    
-    self.debug_close_block()
-    
-    if compile_node_found_solution == False :
-      return False
-    else :
-      return compile_node
+    return False
   
   def make_vars_out_vars(self, query, reqd_bound_vars) :
     """
