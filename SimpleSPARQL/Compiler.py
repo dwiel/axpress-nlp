@@ -109,11 +109,11 @@ class Compiler :
     self.translations_by_name[translation[n.meta.name]] = translation
     self.translations_by_id[  translation[n.meta.id  ]] = translation
   
-  def hash_triple(self, triple) :
-    return Triple(triple)
+  #def hash_triple(self, triple) :
+    #return Triple(triple)
   
-  def hash_triples(self, triples) :
-    return map(self.hash_triple, triples)
+  #def hash_triples(self, triples) :
+    #return map(self.hash_triple, triples)
   
   def next_translation_id(self) :
     self._next_translation_id += 1
@@ -394,13 +394,6 @@ class Compiler :
     #self.debugp('matches', matches, bindings)
     return matches, bindings
   
-  def contains(self, triples, value) :
-    for triple in triples :
-      for v in triple :
-        if v == value :
-          return True
-    return False
-  
   def find_bindings(self, facts, pattern, output_vars, reqd_triples, root = False, initial_bindings = {}) :
     """
     @arg facts is the set of triples whose values are attempting to matched to
@@ -463,10 +456,6 @@ class Compiler :
     else :
       return matches, None
   
-  # return all triples which have at least one var
-  def find_var_triples(self, query, is_a_var = is_any_var) :
-    return [triple for triple in query if any(map(lambda x:is_a_var(x), triple))]
-  
   # return all triples which have at least one var in vars
   def find_specific_var_triples(self, query, vars) :
     return [triple for triple in query if any(map(lambda x:is_out_lit_var(x) and var_name(x) in vars, triple))]
@@ -474,22 +463,6 @@ class Compiler :
   def next_num(self) :
     self._next_num += 1
     return self._next_num
-  
-  def find_unified_bindings_triple(self, otriple, ntriple) :
-    bindings = {}
-    for ov, nv in izip(otriple, ntriple) :
-      if ov != nv :
-        return {}
-      elif is_var(ov) and is_var(nv) :
-        bindings[nv] = var_name(ov)
-    return bindings
-  
-  def find_unified_bindings(self, old, new) :
-    bindings = {}
-    for otriple in old :
-      for ntriple in new :
-        bindings.update(self.find_unified_bindings_triple(otriple, ntriple))
-    return bindings
 
   #@logger
   def next_steps(self, query, history, output_vars, reqd_triples, root = False) :
@@ -742,14 +715,6 @@ class Compiler :
     
     return guaranteed_steps, possible_steps
   
-  def contains_all_bindings(self, required, obtained) :
-    for key in required :
-      if key not in obtained :
-        return False
-      elif not self.values_match(self.n.lit_var[key], obtained[key]) :
-        return False
-    return True
-    
   def find_solution_values_match(self, tv, qv) :
     """
     does the pattern (value) in tv match the value of qv?
