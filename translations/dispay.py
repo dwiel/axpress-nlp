@@ -51,14 +51,23 @@ def loadTranslations(axpress, n) :
   })
   
   def direct_related(vars) :
-    # TODO: make this into a mako template with some extra wrappings
-    print '#'*80
-    print 'vars'
-    print vars
-    vars['out'] = unicode(vars['direct']) + unicode(vars['related'])
+      vars['out'] = Template(u"""## -*- coding: utf-8 -*-
+      <div id="two_pane" style="width:400px">
+        <div id="direct">
+          <div style="font-size:350%;text-align:center">
+            ${direct_label}${direct}
+          </div>
+        </div>
+        <div id="related">
+          ${related}
+        </div>
+      </div>
+      """).render_unicode(**vars)
+    #vars['out'] = unicode(vars['direct']) + unicode(vars['related'])
   axpress.register_translation({
     n.meta.name : 'two pane render',
     n.meta.input : """
+      x[simple_display.direct_label] = _direct_label
       x[simple_display.direct] = _direct
       x[simple_display.related][simple_display.text] = _related
     """,

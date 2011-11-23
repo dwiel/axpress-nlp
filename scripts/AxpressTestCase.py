@@ -592,6 +592,17 @@ class AxpressTestCase(unittest.TestCase):
         'c' : "FF0000"
       }
     ]
+  
+  def testStringQuerySuperSimple2(self):
+    try :
+      ret = axpress.read_translate("""
+        color[axpress.is] = "red"
+        color[html.color] = _c
+      """)
+      assert False # should not get here
+    except :
+      pass
+  
 if __name__ == "__main__" :
   #print '<root>'
   #import cProfile

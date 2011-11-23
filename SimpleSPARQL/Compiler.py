@@ -154,25 +154,19 @@ class Compiler :
   def values_match(self, value, qvalue) :
     #self.debugp('values_match', value, qvalue)
     if type(value) == URIRef :
-      #if is_out_var(value) or is_out_var(qvalue) :
-        #print '???',prettyquery(value),prettyquery(qvalue)
-      
       if is_var(value) :
         return True
       elif is_meta_var(value) :
         if type(qvalue) == URIRef :
           return is_any_var(qvalue) and not is_lit_var(qvalue)
-          # return is_any_var(qvalue) and not is_meta_var(qvalue)
         else :
           return False
       elif is_lit_var(value) :
         if type(qvalue) == URIRef :
           return is_lit_var(qvalue) or not is_any_var(qvalue)
-          # return qvalue.find(self.n.var) != 0 and qvalue.find(self.n.lit_var) != 0
         else :
           return True
       elif is_out_lit_var(value) :
-        self.debugp('out_lit_var', value, qvalue)
         # not often ... probably only in the if matches(q,v) or (v,q) ...
         if is_lit_var(qvalue) :
           return True
@@ -352,7 +346,6 @@ class Compiler :
     for ttriple in translation :
       possible_bindings = self.find_bindings_for_triple(ttriple, facts, reqd_facts)
       
-      #self.debugp('pbind', possible_bindings)
       #for pbinding in possible_bindings :
         #self.debugp('pbinding', pbinding, pbinding.matches_reqd_fact)
       
@@ -398,7 +391,7 @@ class Compiler :
       #self.debugp('len(bindings)==0')
       return False, []
     
-    #self.debugp('matches', matches)
+    #self.debugp('matches', matches, bindings)
     return matches, bindings
   
   def contains(self, triples, value) :
@@ -872,6 +865,37 @@ class Compiler :
     bindings = dict([(var_name(var), normalize(value)) for var, value in bindings.iteritems()])
     return bindings, found_var_triples, fact_triples
   
+  def found_solution(self, new_query) :
+    # NOTE: it is quite possible that the output unification step has enough 
+    # information to know if a solution has been found too, which could make
+    # this step unecessary.
+    
+    # var_triples are the triples which contain the variables which we are 
+    # looking to bind
+    var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
+    initial_bindings = {var: n.var[var] for var in find_vars(var_triples, lambda x:is_var(x) or is_lit_var(x))}
+    
+    # see if the triples which contain the variables can bind to any of the 
+    # other triples in the query
+    found_bindings, bindings_set = self.find_bindings(new_query, var_triples, [], False, initial_bindings = initial_bindings)
+    if found_bindings :
+      for bindings in bindings_set :
+        found_bindings_for = set()
+        # find the bindings that are bound to a lit var or a value.  Sometimes
+        # a variable will be bound to another variable, but that is not a result
+        for k, v in bindings.iteritems() :
+          if is_lit_var(v) or not is_any_var(v) :
+            found_bindings_for.add(k)
+        
+        # if we found bindings 
+        if found_bindings_for == set(self.reqd_bound_vars) :
+          # WARNING: it is possible that multiple bindings will be valid in 
+          # which case we should return a set of solutions rather than a 
+          # solution
+          return {n.var[name] : v for name, v in bindings.iteritems()}
+    
+    return False
+  
   #@logger
   def search(self, query, possible_stack, history, output_vars, new_triples, root = False) :
     """
@@ -934,7 +958,6 @@ class Compiler :
       
       self.debug_open_block(step['translation'][n.meta.name] or '<unnamed>')
       
-      
       # add this step to the history (though since this history object can be 
       # forked by other guaranteed_steps, we must copy it first)
       new_history = copy.copy(history)
@@ -944,40 +967,12 @@ class Compiler :
       # otherwise, recursively continue searching.
       # found_solution is filled with the bindings from the query to the 
       # out_lit_vars
-      # NOTE: it is quite possible that the output unification step has enough 
-      # information to know if a solution has been found too, which could make
-      # this step unecessary.
-      
-      var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
-      #p('var_triples', var_triples)
-      #p("step['new_query']", step['new_query'])
-      if False : # if old
-        found_solution = self.find_solution(var_triples, step['new_query'])
-        #p('found_solution', found_solution)
-      else :
-        initial_bindings = {var: n.var[var] for var in find_vars(var_triples, is_var)}
-        found_bindings, bindings_set = self.find_bindings(step['new_query'], var_triples, [], False, initial_bindings = initial_bindings)
-        #p('bindings_set', bindings_set)
-        found_solution = False
-        if found_bindings :
-          for bindings in bindings_set :
-            found_bindings_for = set()
-            for k, v in bindings.iteritems() :
-              # bindings only count if they are a lit var, or a value
-              if is_lit_var(v) or not is_any_var(v) :
-                found_bindings_for.add(k)
-            if len(found_bindings_for) == len(self.reqd_bound_vars) :
-              found_solution = {n.var[name] : v for name, v in bindings.iteritems()}
-        #p('found_solution', found_solution)
-      
+      found_solution = self.found_solution(step['new_query'])
       if found_solution :
-        #print "FOUND SOLUTION"
-        #p('found_solution', found_solution)
         step['solution'] = found_solution
       else :
         child_steps = self.search(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
         if child_steps :
-          #print "FOUND SOLUTION", True
           found_solution = True
           # step['guaranteed'] is a list of steps to get to the solution which 
           # is built up recursively.  step['guaranteed'] will always be [] 
@@ -991,7 +986,6 @@ class Compiler :
       if found_solution :
         compile_node['guaranteed'].append(step)
         compile_node_found_solution = True
-        #break
     
     # don't follow the possible translations yet, just add then to a stack to
     # follow once all guaranteed translations have been found
@@ -1010,17 +1004,6 @@ class Compiler :
     else :
       return compile_node
   
-  def follow_possible(self, query, possible_stack) :
-    """
-    
-    """
-    #for translation in possible_stack :
-      #compile_node = 
-      ## next_query, input_bindings, output_bindings
-      #translation_step = self.follow_translation(query, translation)
-      #compile_node['guaranteed'].append(translation_step)
-    # TODO
-    
   def make_vars_out_vars(self, query, reqd_bound_vars) :
     """
     replaces all instances of variables in query whose name is in the 
@@ -1112,7 +1095,7 @@ class Compiler :
     # an iterative deepening search
     self.depth = 1
     compile_root_node = None
-    while not compile_root_node and self.depth < 7:
+    while not compile_root_node and self.depth < 8:
       self.debugp("depth: %d" % self.depth)
       compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
       self.depth += 1

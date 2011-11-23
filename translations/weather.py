@@ -119,18 +119,38 @@ def loadTranslations(axpress, n) :
   axpress.register_translation({
     n.meta.name : 's current dew point',
     n.meta.input : """
-      dp[a.is] = "(the |)(current |)dew point (in |at |near |by |near by |)%location_s%( right now| now|)"
+      dew_point[a.is] = "(the |)(current |)dew point (in |at |near |by |near by |)%location_s%( right now| now| today|)"
     """,
+    #n.meta.output : """
+      #location[a.is] = "%location_s%"
+      #location[freebase.type] = '/location/location'
+      #location[wunderground.weather] = weather
+      #weather[wunderground.dew_point] = dew_point
+      #dp[simple_display.direct_label] = "Dew Point: "
+      #dp[simple_display.direct] = dew_point
+      #dp[simple_display.related] = weather
+    #""",
     n.meta.output : """
       location[a.is] = "%location_s%"
       location[freebase.type] = '/location/location'
       location[wunderground.weather] = weather
       weather[wunderground.dew_point] = dew_point
+    """,
+  })
+  
+  axpress.register_translation({
+    n.meta.name : 'display dew point',
+    n.meta.input : """
+      weather[wunderground.dew_point] = _dp
+    """,
+    n.meta.output : """
+      weather[wunderground.dew_point] = _dp
+      dp[simple_display.direct_label] = "Dew Point: "
       dp[simple_display.direct] = dew_point
       dp[simple_display.related] = weather
     """,
   })
-  
+
   def lookup_current_weather(vars) :
     conditions = json.loads(
       urllib2.urlopen(
