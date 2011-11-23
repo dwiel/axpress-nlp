@@ -908,10 +908,23 @@ class Compiler :
       found_solution = self.found_solution(step['new_query'])
       if found_solution :
         step['solution'] = found_solution
-        return {
-          'guaranteed' : all_steps,
-          'possible' : [],
-        }
+        p('all_steps', all_steps)
+        
+        def build_ret(steps) :
+          if steps :
+            step = steps[0]
+            step['guaranteed'] = [build_ret(steps[1:])]
+            step['possible'] = []
+            return step
+          else :
+            return []
+          
+        ret = [{
+          'guaranteed' : build_ret(all_steps),
+          'possible' : []
+        }]
+        p('ret', ret)
+        return ret
       else :
         # NOTE: I think the problem is here.
         # if new_triples is simple, this works
