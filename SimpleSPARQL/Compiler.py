@@ -849,19 +849,26 @@ class Compiler :
     
     #p('query', query)
     
-    guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, new_triples, root)
-    stack.extend(guaranteed_steps)
-    #p('stack', stack)
+    #guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, new_triples, root)
+    ##stack.extend(guaranteed_steps)
+    #if not guaranteed_steps :
+      #return False
+    
+    #step = guaranteed_steps[0]
+    ##p('stack', stack)
     
     all_steps = []
-    for step in stack :
+    while True :
       # see what the guaranteed and possible next steps are
       #print '%'*80
       #p('query', query)
       #p('output_vars', output_vars)
       #p('new_triples', new_triples)
       #p('root', root)
-      guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, new_triples, root)
+      reqd_bound_vars = []
+      self.make_vars_out_vars(query, reqd_bound_vars)
+      var_triples = self.find_specific_var_triples(query, reqd_bound_vars)
+      guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, query, root)
       #p('guaranteed_steps', guaranteed_steps)
       #p('possible_steps', possible_steps)
       
@@ -873,14 +880,18 @@ class Compiler :
       self.debugp(guaranteed_steps)
       self.debug_close_block()
       
-      # look at the first step and add the rest of the steps to the stack
-      step       = guaranteed_steps[0]
-      next_steps = guaranteed_steps[1:]
-      stack = next_steps.extend(stack)
+      ## look at the first step and add the rest of the steps to the stack
+      #step       = guaranteed_steps[0]
+      ##next_steps = guaranteed_steps[1:]
+      ##stack = next_steps.extend(stack)
       
-      # if we've already made this translation, skip it
-      if [step['translation'], step['input_bindings']] in history :
-        continue
+      ## if we've already made this translation, skip it
+      #if [step['translation'], step['input_bindings']] in history :
+        #continue
+      
+      for step in guaranteed_steps :
+        if [step['translation'], step['input_bindings']] not in history :
+          break
       
       all_steps.append(step)
       
@@ -898,7 +909,7 @@ class Compiler :
       if found_solution :
         step['solution'] = found_solution
         return {
-          'guaranteed' : [step],
+          'guaranteed' : all_steps,
           'possible' : [],
         }
       else :
@@ -910,9 +921,9 @@ class Compiler :
         # stack, the old input_bindings might not make any sense any more ...
         # how to resolve that?
         
-        #query = step['new_query']
-        query.extend(step['new_triples'])
-        new_triples = step['new_triples']
+        query = step['new_query']
+        #query.extend(step['new_triples'])
+        #new_triples = step['new_triples']
     
     return False
   
@@ -1004,13 +1015,16 @@ class Compiler :
     possible_stack = []
     history = []
     
+    ## an iterative deepening search
+    #self.depth = 1
+    #compile_root_node = None
+    #while not compile_root_node and self.depth < 8:
+      #self.debugp("depth: %d" % self.depth)
+      #compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
+      #self.depth += 1
     # an iterative deepening search
-    self.depth = 1
-    compile_root_node = None
-    while not compile_root_node and self.depth < 8:
-      self.debugp("depth: %d" % self.depth)
-      compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
-      self.depth += 1
+    self.depth = 10
+    compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
     
     # if there were no paths through the search space we are done here
     if not compile_root_node :
