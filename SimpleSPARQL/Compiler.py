@@ -552,21 +552,6 @@ class Compiler :
           # output_bindings map from translation space to query space
           output_bindings = {}
           
-          # THIS IS THE OLD OUTPUT BINDINGS CODE.  NO UNIFICATION
-          ## find output_bindings
-          ## for each variable in the output triples
-          #for var in find_vars(translation[n.meta.output]) :
-            ## if this is a constant_var, bind it to whatever it was bound to
-            ## in the input part of the translation
-            #if var in translation[n.meta.constant_vars] :
-              #if var in input_bindings :
-                #output_bindings[var] = input_bindings[var]
-              #else :
-                #output_bindings[var] = n.var[var]
-            ## otherwise, create a new lit_var to bind to
-            #else :
-              #output_bindings[var] = n.lit_var[var+'_out_'+str(self.next_num())]
-          
           # initial_bindings are the bindings that we already know from the 
           # input unification that must also hold true for output unification
           # some of the initial_binding vars don't appear in the output triples
@@ -597,28 +582,7 @@ class Compiler :
           
           # unify output_triples with query
           output_matches, output_bindings_set = self.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
-          if output_matches :
-            #print 'output unification'
-            # TODO: fix this, we should iterate over output_bindings_sets
-            #output_bindings = output_bindings_set[0]
-            #assert len(output_bindings_set) <= 1
-            pass
-            
-            # if an output binding is to an out_lit_var, than we need to change
-            # it to a simple lit_var.  This is so that later, we can look for
-            # solutions which we know we have found when a lit_var is bound to
-            # a out_lit_var.  It would seem that we could just flag it here, but
-            # for now it works to convert it like this so that it looks like the
-            # other cases ...  Or maybe it isn't necessary, but this seems to 
-            # work for now!
-            # NONE of the above is true ... I don't think.
-            # these variables should get new names anyway ...
-            #for k, v in output_bindings.iteritems() :
-              #if is_out_lit_var(v) :
-                #output_bindings[k] = n.out_lit_var[k+'_out_'+str(self.next_num())]
-          else :
-            #print "no output unification"
-            #output_bindings = initial_bindings
+          if not output_matches :
             output_bindings_set = [initial_bindings]
           
           for output_bindings in output_bindings_set :
@@ -684,23 +648,12 @@ class Compiler :
             # TODO: this will need to be better fleshed out when we want to 
             # support possible steps.  For now execution always goes to the elif 
             # below
-            if matches == self.MAYBE :
-              possible_steps.append({
-                'query' : query,
-                'input_bindings' : input_bindings,
-                'output_bindings' : output_bindings,
-                'translation' : translation,
-                'new_triples' : new_triples,
-                'new_query' : new_query,
-                'guaranteed' : [],
-                'possible' : [],
-              })
-            elif matches == True :
+            if matches == True :
               var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
               partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(var_triples, new_query, new_triples)
               #partial_triples = [triple for triple in partial_triples if triple in new_triples]
               
-              guaranteed_steps.append({
+              yield {
                 'input_bindings' : input_bindings,
                 'output_bindings' : output_bindings,
                 'translation' : translation,
@@ -711,9 +664,7 @@ class Compiler :
                 'partial_solution_triples' : partial_solution_triples,
                 'partial_facts_triples' : partial_facts_triples,
                 'partial_bindings' : partial_bindings,
-              })
-    
-    return guaranteed_steps, possible_steps
+              }
   
   def find_solution_values_match(self, tv, qv) :
     """
@@ -898,21 +849,13 @@ class Compiler :
     #p('output_vars', output_vars)
     #p('new_triples', new_triples)
     #p('root', root)
-    guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, new_triples, root)
+    guaranteed_steps = self.next_steps(query, history, output_vars, new_triples, root)
     #p('guaranteed_steps', guaranteed_steps)
     #p('possible_steps', possible_steps)
     
-    # NOTE right now we don't do anything with the partial solutions ...
-    if len(guaranteed_steps) == 0 :
-      self.debug_close_block()
-      # I think this was causing problems where the 
-      # compiler thought it has reached a solution when it really hadn't
-      #return compile_node 
-      return False
-    
-    self.debug_open_block('guaranteed_steps')
-    self.debugp(guaranteed_steps)
-    self.debug_close_block()
+    #self.debug_open_block('guaranteed_steps')
+    #self.debugp(guaranteed_steps)
+    #self.debug_close_block()
     
     # look through all guarenteed steps recursively to see if they terminate and
     # should be added to the compile_node, the finished 'program'
@@ -951,14 +894,6 @@ class Compiler :
       if found_solution :
         compile_node['guaranteed'].append(step)
         compile_node_found_solution = True
-    
-    # UNUSED 
-    for step in possible_steps:
-      possible_stack.append({
-        'root' : compile_node,
-        'step' : step,
-        'query' : query,
-      })
     
     self.debug_close_block()
     
