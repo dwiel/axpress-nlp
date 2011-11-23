@@ -1002,7 +1002,7 @@ class Compiler :
     if not compile_root_node :
       return compile_root_node
     
-    #p('compile_root_node', compile_root_node)
+    p('compile_root_node', compile_root_node)
     
     def p_cnode(cnode, level = 0) :
       if 'translation' in cnode :
