@@ -952,9 +952,7 @@ class Compiler :
         compile_node['guaranteed'].append(step)
         compile_node_found_solution = True
     
-    # don't follow the possible translations yet, just add then to a stack to
-    # follow once all guaranteed translations have been found
-    # NOTE: this will need to change
+    # UNUSED 
     for step in possible_steps:
       possible_stack.append({
         'root' : compile_node,
