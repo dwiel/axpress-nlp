@@ -908,22 +908,22 @@ class Compiler :
       found_solution = self.found_solution(step['new_query'])
       if found_solution :
         step['solution'] = found_solution
-        p('all_steps', all_steps)
+        #p('all_steps', all_steps)
         
         def build_ret(steps) :
           if steps :
             step = steps[0]
-            step['guaranteed'] = [build_ret(steps[1:])]
+            step['guaranteed'] = build_ret(steps[1:])
             step['possible'] = []
-            return step
+            return [step]
           else :
             return []
           
-        ret = [{
+        ret = {
           'guaranteed' : build_ret(all_steps),
           'possible' : []
-        }]
-        p('ret', ret)
+        }
+        #p('compile_root_node', ret)
         return ret
       else :
         # NOTE: I think the problem is here.
