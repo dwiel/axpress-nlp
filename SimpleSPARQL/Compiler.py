@@ -515,11 +515,11 @@ class Compiler :
     
     for translation in translation_queue :
       # HEURISTIC
-      if history :
-        inverse_function = history[-1][0].get(n.meta.inverse_function) 
-        if inverse_function :
-          if inverse_function == translation[n.meta.name] :
-            continue
+      #if history :
+        #inverse_function = history[-1][0].get(n.meta.inverse_function) 
+        #if inverse_function :
+          #if inverse_function == translation[n.meta.name] :
+            #continue
       
       #self.debug('testing ' + translation[n.meta.name])
       #p('testing', translation[n.meta.name])
@@ -861,7 +861,7 @@ class Compiler :
     while True :
       # see what the guaranteed and possible next steps are
       #print '%'*80
-      #p('query', query)
+      p('query', query)
       #p('output_vars', output_vars)
       #p('new_triples', new_triples)
       #p('root', root)
@@ -871,6 +871,8 @@ class Compiler :
       guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, query, root)
       #p('guaranteed_steps', guaranteed_steps)
       #p('possible_steps', possible_steps)
+      
+      guaranteed_steps
       
       if len(guaranteed_steps) == 0 :
         self.debug_close_block()
@@ -888,6 +890,21 @@ class Compiler :
       ## if we've already made this translation, skip it
       #if [step['translation'], step['input_bindings']] in history :
         #continue
+      
+      if history :
+        inverse_function = history[-1][0].get(n.meta.inverse_function) 
+        if inverse_function :
+          new_steps = []
+          new_steps_end = []
+          for step in guaranteed_steps :
+            if inverse_function == step['translation'][n.meta.name] :
+              new_steps_end.append(step)
+            else :
+              new_steps.append(step)
+          new_steps.extend(new_steps_end)
+          guaranteed_steps = new_steps
+      
+      p('guaranteed_steps', [step['translation'][n.meta.name] for step in guaranteed_steps])
       
       for step in guaranteed_steps :
         if [step['translation'], step['input_bindings']] not in history :
@@ -1005,24 +1022,21 @@ class Compiler :
   def compile(self, query, reqd_bound_vars, input = [], output = []) :
     self.debug_reset()
     
-    if isinstance(query, basestring) :
-      query = [line.strip() for line in query.split('\n')]
-      query = [line for line in query if line is not ""]
+    # parse the query
     query = self.parser.parse(query)
     
+    # modifiers are things like limit, sort by, etc
     query, modifiers = self.extract_query_modifiers(query)
-    
-    self.make_vars_out_vars(query, reqd_bound_vars)
     
     #debug('query',query)
     
+    self.make_vars_out_vars(query, reqd_bound_vars)
     self.reqd_bound_vars = reqd_bound_vars
     var_triples = self.find_specific_var_triples(query, reqd_bound_vars)
     if var_triples == [] :
       raise Exception("Waring, required bound triples were provided, but not found in the query")
     
-    self.vars = reqd_bound_vars
-    self.vars = [var for var in self.vars if var.find('bnode') is not 0]
+    self.vars = [var for var in reqd_bound_vars if var.find('bnode') is not 0]
     #debug('self.vars',self.vars)
     
     possible_stack = []
@@ -1036,6 +1050,9 @@ class Compiler :
       #compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
       #self.depth += 1
     # an iterative deepening search
+    #compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
+    
+    # linear search
     self.depth = 10
     compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
     
