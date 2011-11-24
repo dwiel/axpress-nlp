@@ -480,9 +480,6 @@ class Compiler :
     #p('reqd_triples', reqd_triples)
     n = self.n
     
-    guaranteed_steps = []
-    possible_steps = []
-    
     # the translation_queue is a list of translations that will be searched.  
     # There are some heuristics which alter the order that the translations are
     # searched in
@@ -649,23 +646,12 @@ class Compiler :
             # TODO: this will need to be better fleshed out when we want to 
             # support possible steps.  For now execution always goes to the elif 
             # below
-            if matches == self.MAYBE :
-              possible_steps.append({
-                'query' : query,
-                'input_bindings' : input_bindings,
-                'output_bindings' : output_bindings,
-                'translation' : translation,
-                'new_triples' : new_triples,
-                'new_query' : new_query,
-                'guaranteed' : [],
-                'possible' : [],
-              })
-            elif matches == True :
+            if matches == True :
               var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
               partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(var_triples, new_query, new_triples)
               #partial_triples = [triple for triple in partial_triples if triple in new_triples]
               
-              guaranteed_steps.append({
+              yield {
                 'input_bindings' : input_bindings,
                 'output_bindings' : output_bindings,
                 'translation' : translation,
@@ -676,9 +662,8 @@ class Compiler :
                 'partial_solution_triples' : partial_solution_triples,
                 'partial_facts_triples' : partial_facts_triples,
                 'partial_bindings' : partial_bindings,
-              })
-    
-    return guaranteed_steps, possible_steps
+              }
+              found_step = True
   
   def find_solution_values_match(self, tv, qv) :
     """
@@ -869,17 +854,17 @@ class Compiler :
       reqd_bound_vars = []
       self.make_vars_out_vars(query, reqd_bound_vars)
       var_triples = self.find_specific_var_triples(query, reqd_bound_vars)
-      guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, query, False)
+      guaranteed_steps = self.next_steps(query, history, output_vars, query, False)
       
       #guaranteed_steps
       
-      if len(guaranteed_steps) == 0 :
-        self.debug_close_block()
-        return False
+      #if guaranteed_steps == False :
+        #self.debug_close_block()
+        #return False
       
-      self.debug_open_block('guaranteed_steps')
-      self.debugp(guaranteed_steps)
-      self.debug_close_block()
+      #self.debug_open_block('guaranteed_steps')
+      #self.debugp(guaranteed_steps)
+      #self.debug_close_block()
       
       ## look at the first step and add the rest of the steps to the stack
       #step       = guaranteed_steps[0]
@@ -893,24 +878,33 @@ class Compiler :
       if history :
         inverse_function = history[-1][0].get(n.meta.inverse_function) 
         if inverse_function :
-          new_steps = []
-          new_steps_end = []
-          for step in guaranteed_steps :
-            if inverse_function == step['translation'][n.meta.name] :
-              new_steps_end.append(step)
-            else :
-              new_steps.append(step)
-          new_steps.extend(new_steps_end)
-          guaranteed_steps = new_steps
+          def sort_steps(steps) :
+            end_steps = []
+            for step in steps :
+              if inverse_function == step['translation'][n.meta.name] :
+                end_steps.append(step)
+              else :
+                yield step
+            
+            for step in end_steps :
+              yield step
+          
+          guaranteed_steps = sort_steps(guaranteed_steps)
       
       #p('guaranteed_steps', [(step['translation'][n.meta.name], step['input_bindings']) for step in guaranteed_steps])
       
       #p('history', [(translation[n.meta.name], bindings) for (translation, bindings) in history])
       #p('history', history)
-      
+
+      # find the first step not in the history
+      step = False
       for step in guaranteed_steps :
         if [step['translation'], step['input_bindings']] not in history :
           break
+      if step == False :
+        self.debug_close_block()
+        return False
+        
       
       #p('step', (step['translation'][n.meta.name], step['input_bindings']))
       
