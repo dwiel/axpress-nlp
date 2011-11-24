@@ -486,11 +486,12 @@ class Compiler :
     # the translation_queue is a list of translations that will be searched.  
     # There are some heuristics which alter the order that the translations are
     # searched in
-    #translation_queue = list(self.translations)
-    if history :
-      translation_queue = self.translation_matrix[history[-1][0].get(n.meta.id)]
-    else :
-      translation_queue = list(self.translations)
+    # NOTE: this doesn't work in the new linear search
+    translation_queue = list(self.translations)
+    #if history :
+      #translation_queue = self.translation_matrix[history[-1][0].get(n.meta.id)]
+    #else :
+      #translation_queue = list(self.translations)
     
     ## HEURISTIC
     ## sort translation queue so that the most recently applied translation is 
@@ -861,18 +862,16 @@ class Compiler :
     while True :
       # see what the guaranteed and possible next steps are
       #print '%'*80
-      p('query', query)
+      #p('query', query)
       #p('output_vars', output_vars)
       #p('new_triples', new_triples)
       #p('root', root)
       reqd_bound_vars = []
       self.make_vars_out_vars(query, reqd_bound_vars)
       var_triples = self.find_specific_var_triples(query, reqd_bound_vars)
-      guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, query, root)
-      #p('guaranteed_steps', guaranteed_steps)
-      #p('possible_steps', possible_steps)
+      guaranteed_steps, possible_steps = self.next_steps(query, history, output_vars, query, False)
       
-      guaranteed_steps
+      #guaranteed_steps
       
       if len(guaranteed_steps) == 0 :
         self.debug_close_block()
@@ -904,11 +903,16 @@ class Compiler :
           new_steps.extend(new_steps_end)
           guaranteed_steps = new_steps
       
-      p('guaranteed_steps', [step['translation'][n.meta.name] for step in guaranteed_steps])
+      #p('guaranteed_steps', [(step['translation'][n.meta.name], step['input_bindings']) for step in guaranteed_steps])
+      
+      #p('history', [(translation[n.meta.name], bindings) for (translation, bindings) in history])
+      #p('history', history)
       
       for step in guaranteed_steps :
         if [step['translation'], step['input_bindings']] not in history :
           break
+      
+      #p('step', (step['translation'][n.meta.name], step['input_bindings']))
       
       all_steps.append(step)
       
