@@ -875,6 +875,16 @@ class Compiler :
       #if [step['translation'], step['input_bindings']] in history :
         #continue
       
+      # for debugging
+      guaranteed_steps = list(guaranteed_steps)
+      
+      def pri(bindings) :
+        names = [var_name(v) for v in bindings.itervalues() if is_lit_var(v)]
+        print names
+        return max([0] + [int(name[name.rfind('_')+1:]) for name in names])
+        
+      # TODO: sort guaranteed_steps by pri
+      
       if history :
         inverse_function = history[-1][0].get(n.meta.inverse_function) 
         if inverse_function :
@@ -891,7 +901,7 @@ class Compiler :
           
           guaranteed_steps = sort_steps(guaranteed_steps)
       
-      #p('guaranteed_steps', [(step['translation'][n.meta.name], step['input_bindings']) for step in guaranteed_steps])
+      #p('guaranteed_steps', [(step['translation'][n.meta.name], step['input_bindings'], pri(step['input_bindings'])) for step in guaranteed_steps])
       
       #p('history', [(translation[n.meta.name], bindings) for (translation, bindings) in history])
       #p('history', history)
@@ -1051,7 +1061,7 @@ class Compiler :
     #compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
     
     # linear search
-    self.depth = 10
+    self.depth = 20
     compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
     
     # if there were no paths through the search space we are done here
