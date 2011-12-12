@@ -563,11 +563,15 @@ class AxpressTestCase(unittest.TestCase):
     #p('ret', ret)
   
   def testComplexOutputUnification(self):
-    ret = axpress.read_translate("""
-        x[test.a] = "hello"
-        x[test.d] = _out
-    """)
-    p('ret', ret)
+    try :
+      ret = axpress.read_translate("""
+          x[test.a] = "hello"
+          x[test.d] = _out
+      """)
+      p('ret', ret)
+      assert False
+    except :
+      pass
 
   #def testStringQuery(self):
     #ret = axpress.read_translate("""
