@@ -204,7 +204,7 @@ class AxpressTestCase(unittest.TestCase):
       dist[type.number] = color.distance(color.red, pixel)
       dist[type.number] = _distance
     """, reqd_bound_vars = ['filename','distance'])
-    #print 'ret6',prettyquery(ret)
+    print 'ret6',prettyquery(ret)
     assert ret == [
       {
         'distance' : 53593,
@@ -528,11 +528,11 @@ class AxpressTestCase(unittest.TestCase):
     """)
     p('ret', ret)
   
-  def testSimpleFreebaseStringQuery5(self):
-    ret = axpress.read_translate("""
-      _x[axpress.is] = "The Queen's birthday"
-    """)
-    p('ret', ret)
+  #def testSimpleFreebaseStringQuery5(self):
+    #ret = axpress.read_translate("""
+      #_x[axpress.is] = "The Queen's birthday"
+    #""")
+    #p('ret', ret)
 
   def testSimpleFreebaseStringQuery6(self):
     ret = axpress.read_translate("""
@@ -606,6 +606,52 @@ class AxpressTestCase(unittest.TestCase):
       assert False # should not get here
     except :
       pass
+    
+  def testMultiBranchJoin(self):
+    compiler = Compiler(n)
+    evaluator = Evaluator(n)
+
+    axpress = Axpress(
+      sparql = sparql,
+      compiler = compiler,
+      evaluator = evaluator
+    )
+    
+    def make_rule(name, i, o, fn = None):
+      axpress.register_translation({
+        n.meta.name : name,
+        n.meta.input : i,
+        n.meta.output : o,
+        n.meta.function : fn,
+      })
+    
+    def simple_rule(x, y) :
+      make_rule("%s->%s" % (x, y), """
+        o[test.%s] = _x
+      """ % x, """
+        o[test.%s] = _x
+      """ % y)
+    simple_rule('root', 'b1s1')
+    simple_rule('b1s1', 'b1s2')
+    simple_rule('root', 'b2s1')
+    simple_rule('b2s1', 'b2s2')
+    
+    def fn(vars) :
+      vars['result'] = vars['x'] + vars['y']
+    make_rule('result', """
+      o[test.b1s2] = _x
+      o[test.b2s2] = _y
+    """, """
+      o[test.result] = _result
+    """, fn)
+    
+    axpress.compiler.compile_translations()
+    
+    ret = axpress.read_translate("""
+      foo[test.root] = 1
+      foo[test.result] = _out
+    """)
+    p('ret', ret)
   
 if __name__ == "__main__" :
   #print '<root>'
