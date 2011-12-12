@@ -291,3 +291,20 @@ def loadTranslations(axpress, n) :
     """,
     n.meta.function : freebase_search,
   })
+
+
+  def freebase_blurb(vars) :
+    try :
+      return freebase.blurb(vars['mid']).decode('<utf-8>')
+    except freebase.api.MetawebError :
+      return u'no blurb'
+  axpress.register_translation({
+    n.meta.name : 'freebase blurb',
+    n.meta.input : """
+      o[freebase.mid] = _mid
+    """,
+    n.meta.output : """
+      o[freebase.blurb] = _blurb
+    """,
+    n.meta.function : freebase_blurb,
+  })
