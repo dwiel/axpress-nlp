@@ -291,11 +291,3 @@ def loadTranslations(axpress, n) :
     """,
     n.meta.function : freebase_search,
   })
-  
-  def get_blurbs(mids) :
-    for mid in mids :
-      try :
-        yield freebase.blurb(mid).decode('<utf-8>')
-      except freebase.api.MetawebError :
-        yield u'no blurb'
-  

@@ -1,4 +1,5 @@
 from mako.template import Template
+import freebase
 
 def loadTranslations(axpress, n) :
   n.bind('display', '<http://dwiel.net/axpress/display/0.1/>')
@@ -22,6 +23,12 @@ def loadTranslations(axpress, n) :
     n.meta.function : display_html_filenames,
   })
 
+  def get_blurbs(mids) :
+    for mid in mids :
+      try :
+        yield freebase.blurb(mid).decode('<utf-8>')
+      except freebase.api.MetawebError :
+        yield u'no blurb'
   def simple_render(bindings_set) :
     blurbs = get_blurbs([b['mid'] for b in bindings_set])
     
