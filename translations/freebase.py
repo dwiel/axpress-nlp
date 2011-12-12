@@ -295,9 +295,9 @@ def loadTranslations(axpress, n) :
 
   def freebase_blurb(vars) :
     try :
-      return freebase.blurb(vars['mid']).decode('<utf-8>')
+      vars['blurb'] = freebase.blurb(vars['mid']).decode('<utf-8>')
     except freebase.api.MetawebError :
-      return u'no blurb'
+      vars['blurb'] = u'no blurb'
   axpress.register_translation({
     n.meta.name : 'freebase blurb',
     n.meta.input : """

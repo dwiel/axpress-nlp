@@ -24,9 +24,7 @@ def loadTranslations(axpress, n) :
   })
 
   def simple_render(bindings_set) :
-    blurbs = get_blurbs([b['mid'] for b in bindings_set])
-    
-    for vars, blurb in zip(bindings_set, blurbs) :
+    for vars in bindings_set :
       vars['html'] = Template(u"""## -*- coding: utf-8 -*-
       <div class="item">
         <div class="image">
@@ -38,7 +36,7 @@ def loadTranslations(axpress, n) :
         </div>
         <div class="clear" />
       </div>
-      """).render_unicode(blurb = blurb, **vars)
+      """).render_unicode(**vars)
   axpress.register_translation({
     n.meta.name : 'freebase simple render',
     n.meta.input : """
