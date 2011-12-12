@@ -82,7 +82,7 @@ class Compiler :
     if missing :
       raise Exception('translation is missing keys: %s' % prettyquery(missing))
     
-    if n.meta.function not in translation :
+    if n.meta.function not in translation or translation[n.meta.function] == None :
       if n.meta.multi_function not in translation :
         translation[n.meta.function] = lambda x:x
     
