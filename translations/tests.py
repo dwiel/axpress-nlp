@@ -141,6 +141,8 @@ def loadTranslations(axpress, n) :
     # 2011-10-27: it is constant now ...
   })
 
+  # I guess it is possible here that z and x wind up being unified ... thats
+  # not the intention though
   axpress.register_translation({
     n.meta.name : 'test3',
     n.meta.input : """
