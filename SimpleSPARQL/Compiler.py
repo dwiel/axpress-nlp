@@ -409,6 +409,12 @@ class Compiler :
       matches is True iff the query matched the set of data
       set_of_bindings is the set of bindings which matched the data
     """
+    
+    p('facts', facts)
+    p('pattern', pattern)
+    p('output_vars', output_vars)
+    p('reqd_triples', reqd_triples)
+    
     if len(pattern) == 0 and root:
       return True, [Bindings()]
     
@@ -417,11 +423,12 @@ class Compiler :
       for triple in pattern :
         #self.debugp('find_triple_match', triple, facts)
         if not self.find_triple_match(triple, facts) :
-          #self.debugp('False')
+          p(False, None)
           return False, None
     
     # find all possible bindings for the vars if any exist
     matches, bindings_set = self.bind_vars(pattern, facts, reqd_triples, initial_bindings)
+    p('matches', matches, bindings_set)
     return matches, bindings_set
   
   def partial_match_exists(self, pattern, reqd_triples) :
@@ -574,7 +581,7 @@ class Compiler :
             if not translation[n.meta.input_function](input_bindings) :
               #self.debugp('didnt pass input function')
               continue
-          #self.debugp('query', query)
+          #p('query', query)
           #self.debugp('output_triples', output_triples)
           #self.debugp('initial_bindings', initial_bindings)
           
@@ -591,7 +598,7 @@ class Compiler :
             # right thing if it thinks that it can bind whatever it wants to 
             # lit_vars.  lit_vars for example shouldn't bind to literal values
             
-            self.debugp('output_bindings', output_bindings)
+            #p('output_bindings', output_bindings)
             
             # if get_bindings found variable to variable matches, we will need
             # to alter the triples in the existing query (not just add triples)
@@ -604,7 +611,7 @@ class Compiler :
                   unified_bindings[var_name(output_bindings[var])] = new_lit_var
               output_bindings[var] = new_lit_var
             
-            #self.debugp('unified_bindings', unified_bindings)
+            #p('unified_bindings', unified_bindings)
             #self.debugp('output_bindings', output_bindings)
             
             for var in find_vars(translation[n.meta.output], is_var) :
@@ -614,13 +621,17 @@ class Compiler :
             
             #self.debugp('output_bindings', output_bindings)
             
+            
             # generate the new query by adding the output triples with 
             # output bindings substituted in
+            #p('output_bindings', output_bindings)
+            #p('output_triples', translation[n.meta.output])
             #p('output_bindings', output_bindings)
             new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
             # TODO:is this necessary:
             # I wonder if the triples which are changed here need to be added to
             # new_triples ...
+            #p('new_triples', new_triples)
             new_query, new_query_new_triples = sub_var_bindings_track_changes(query, unified_bindings)
             new_query.extend(new_triples)
             new_triples.extend(new_query_new_triples)
@@ -639,9 +650,11 @@ class Compiler :
                 var in translation[n.meta.constant_vars]
             }
             
+            #p('output_triple_vars diff', set(output_triple_vars))
+            #p('keys', set(output_bindings.keys()))
+            
             self.debugp('new_triples', new_triples)
             self.debugp('new_query', new_query)
-            self.debugp('output_bindings', output_bindings)
             
             # TODO: this will need to be better fleshed out when we want to 
             # support possible steps.  For now execution always goes to the elif 
@@ -880,10 +893,14 @@ class Compiler :
       
       def pri(bindings) :
         names = [var_name(v) for v in bindings.itervalues() if is_lit_var(v)]
-        print names
-        return max([0] + [int(name[name.rfind('_')+1:]) for name in names])
+        ret = max([0] + [int(name[name.rfind('_')+1:]) for name in names])
+        #print ret, names
+        return ret
         
       # TODO: sort guaranteed_steps by pri
+      pri_steps = [(step, pri(step['input_bindings'])) for step in guaranteed_steps]
+      pri_steps.sort(lambda x,y:x[1]-y[1])
+      guaranteed_steps = [step for step, _ in pri_steps]
       
       if history :
         inverse_function = history[-1][0].get(n.meta.inverse_function) 
@@ -920,7 +937,12 @@ class Compiler :
       
       all_steps.append(step)
       
-      self.debugp(step['translation'][n.meta.name] or '<unnamed>')
+      #self.debugp(step['translation'][n.meta.name] or '<unnamed>')
+      print '%'*80
+      p('input_bindings', step['input_bindings'])
+      p('name', step['translation'][n.meta.name] or '<unnamed>')
+      p('output_bindings', step['output_bindings'])
+      p('new_query', step['new_query'])
       
       # add this step to the history (though since this history object can be 
       # forked by other guaranteed_steps, we must copy it first)
@@ -1021,7 +1043,7 @@ class Compiler :
         #p('depends_triple',depends_triple)
         if depends_triple in combination :
           if dependency is not combination[depends_triple] :
-            p('ret',False)
+            #p('ret',False)
             return False
         else :
           new_combination[depends_triple] = dependency
@@ -1076,7 +1098,7 @@ class Compiler :
       for g in cnode['guaranteed'] :
         p_cnode(g, level + 1)
     
-    #p_cnode(compile_root_node)
+    p_cnode(compile_root_node)
     
     # HIGH LEVEL:
     # at this point, we must go through the resulting steps and figure out which
@@ -1088,7 +1110,7 @@ class Compiler :
     
     which_translations_fulfil_which_query_triple = self.extract_which_translations_fulfil_which_query_triple(compile_root_node)
     
-    #p('which_translations_fulfil_which_query_triple', which_translations_fulfil_which_query_triple)
+    p('which_translations_fulfil_which_query_triple', which_translations_fulfil_which_query_triple)
     
     which_translations_fulfil_which_query_triple_dict = {}
     for triple, step, depends in which_translations_fulfil_which_query_triple :
@@ -1201,5 +1223,8 @@ class Compiler :
     self.debug_open_block('result')
     self.debugp(ret)
     self.debug_close_block()
+    
+    p('ret', ret)
+    
     return ret
     

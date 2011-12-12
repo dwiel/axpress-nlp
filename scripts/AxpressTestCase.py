@@ -357,7 +357,30 @@ class AxpressTestCase(unittest.TestCase):
         'sum' : 3,
       },
     ]
-  
+    
+  def testInputUnification(self):
+    ret = axpress.read_translate("""
+      foo[test.bb] = 1
+      foo[test.cc] = 1
+      foo[test.dd] = _s
+    """)
+    #p('ret',ret)
+    assert ret == [
+      {
+        's' : 1,
+      },
+    ]
+
+    try :
+      ret = axpress.read_translate("""
+        foo[test.bb] = 1
+        foo[test.cc] = 2
+        foo[test.dd] = _s
+      """)
+      raise Exception("shouldn't get here")
+    except :
+      pass
+
   def testIncomingOutgoingBindings2(self):
     ret = axpress.read_translate("""
       foo[test.x] = _x

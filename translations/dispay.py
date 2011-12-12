@@ -7,10 +7,12 @@ def loadTranslations(axpress, n) :
 
   def display_html_filenames(vars) :
     str = "<ul>"
-    for filename in vars['filenames'] :
-      str += "<li>" + filename
+    #for filename in vars['filenames'] :
+      #str += "<li>" + filename
+    str += "<li>" + vars['filename']
     str += "</ul>"
-    return str
+    #return str
+    vars['html'] = str
   axpress.register_translation({
     n.meta.name : 'filename as html',
     n.meta.input : """

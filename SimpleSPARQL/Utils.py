@@ -150,9 +150,9 @@ def sub_bindings_triple_track_changes(triple, bindings) :
   new_values = []
   changed = False
   for value in triple :
-    value, value_changed = sub_bindings_value(value, bindings)
-    new_values.append(value)
-    changed = changed or value_changed
+    new_value, value_changed = sub_bindings_value(value, bindings)
+    new_values.append(new_value)
+    changed = changed or (value_changed and new_value != value)
   return new_values, changed
 
 def sub_var_bindings(triples, bindings) :

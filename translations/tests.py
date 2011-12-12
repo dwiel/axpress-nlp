@@ -186,4 +186,14 @@ def loadTranslations(axpress, n) :
     """,
   })
   
+  axpress.register_translation({
+    n.meta.name : 'testt',
+    n.meta.input : """
+      t[test.bb] = s
+      t[test.cc] = 1
+    """,
+    n.meta.output : """
+      t[test.dd] = s
+    """,
+  })
   

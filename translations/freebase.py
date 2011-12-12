@@ -51,26 +51,26 @@ def loadTranslations(axpress, n) :
     n.meta.function : author_of_book
   })
   
-  def book_from_title(vars) :
-    if vars['title'] == 'Gaviotas' :
-      vars['guid'] = '9202a8c04000641f800000000c770bee'
-    else :
-      vars['guid'] = ''
-  def book_from_title_test(vars) :
-    if vars['title'] == 'Gaviotas' :
-      return True
-  axpress.register_translation({
-    n.meta.name : 'book from title',
-    n.meta.input : """
-      book[axpress.is] = "%title%"
-    """,
-    n.meta.input_function : book_from_title_test,
-    n.meta.output : """
-      book[freebase.guid] = _guid
-      book[freebase.type] = '/book/written_work'
-    """,
-    n.meta.function : book_from_title,
-  })
+  #def book_from_title(vars) :
+    #if vars['title'] == 'Gaviotas' :
+      #vars['guid'] = '9202a8c04000641f800000000c770bee'
+    #else :
+      #vars['guid'] = ''
+  #def book_from_title_test(vars) :
+    #if vars['title'] == 'Gaviotas' :
+      #return True
+  #axpress.register_translation({
+    #n.meta.name : 'book from title',
+    #n.meta.input : """
+      #book[axpress.is] = "%title%"
+    #""",
+    #n.meta.input_function : book_from_title_test,
+    #n.meta.output : """
+      #book[freebase.guid] = _guid
+      #book[freebase.type] = '/book/written_work'
+    #""",
+    #n.meta.function : book_from_title,
+  #})
   
   axpress.register_translation({
     n.meta.name : 's albums by musician',
@@ -272,6 +272,9 @@ def loadTranslations(axpress, n) :
     
     if ret['status'] != '200 OK' :
       raise Exception("freebase didn't work ...")
+    if not ret['result'] :
+      raise Exception("didn't find anything in freebase")
+    
     result = ret['result'][0]
     if result['score'] > 25 :
       vars['mid'] = result['mid']
@@ -283,11 +286,11 @@ def loadTranslations(axpress, n) :
   axpress.register_translation({
     n.meta.name : 'freebase search',
     n.meta.input : """
-      book[axpress.is] = "%title%"
-      book[freebase.type] = _type
+      o[axpress.is] = _title
+      o[freebase.type] = _type
     """,
     n.meta.output : """
-      book[freebase.mid] = _mid
+      o[freebase.mid] = _mid
     """,
     n.meta.function : freebase_search,
   })
