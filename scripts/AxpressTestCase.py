@@ -550,11 +550,13 @@ class AxpressTestCase(unittest.TestCase):
     p('ret', ret)
   
   def testStringQuery2(self):
-          ret = axpress.read_translate("""
-              x[axpress.is] = "add library to todo list"
-              x[simple_display.text] = _out
-          """)
-  
+    ret = axpress.read_translate("""
+        x[axpress.is] = "add library to todo list"
+        x[simple_display.text] = _out
+    """)
+    
+    assert 'library' in ret[0]['out']
+    
   #def testStringQuery3(self):
     #ret = axpress.read_translate("""
       #x[axpress.is] = "dew point in bloomington, in today"

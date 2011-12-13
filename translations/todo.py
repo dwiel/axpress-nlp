@@ -1,30 +1,42 @@
 from mako.template import Template
 
+import hashlib
+
 def loadTranslations(axpress, n) :
-  n.bind('todo', '<http://dwiel.net/axpress/todo/0.1/>')
+  n.bind('list', '<http://dwiel.net/axpress/list/0.1/>')
   n.bind('simple_display', '<http://dwiel.net/axpress/simple_display/0.1/>')
   
-  def todo_add(vars) :
-    f = open('/home/dwiel/axpress/todolist', 'a')
+  def hash(x) :
+    m = hashlib.md5()
+    m.update(x)
+    return m.hexdigest()
+  
+  def filename_from_list_name(list_name) :
+    return '/home/dwiel/axpress/%s_list' % hash(list_name)
+  
+  def list_add(vars) :
+    f = open(filename_from_list_name(vars['list_name']), 'a')
     print >>f, vars['item']
     f.close()
   
   axpress.register_translation({
-    n.meta.name : 's todo add',
+    n.meta.name : 's list add',
     n.meta.input : """
-      x[axpress.is] = "add %item% (to |)(my |the |)todo( list|)"
+      x[axpress.is] = "add %item% (to |)(my |the |)%list_name%( list|)"
     """,
     n.meta.output : """
-      x[axpress.is] = "show todo list"
+      x[axpress.is] = "show %list_name% list"
     """,
-    n.meta.function : todo_add
+    n.meta.function : list_add
   })
 
-  def todo_show(vars) :
-    print 'todo show'
-    f = open('/home/dwiel/axpress/todolist', 'r')
-    lines = [line.strip() for line in f.read().split('\n') if line.strip()]
-    f.close()
+  def list_show(vars) :
+    try :
+      f = open(filename_from_list_name(vars['list_name']), 'r')
+      lines = [line.strip() for line in f.read().split('\n') if line.strip()]
+      f.close()
+    except IOError :
+      lines = []
 
     vars['html'] = Template(u"""## -*- coding: utf-8 -*-
       <ul>
@@ -33,48 +45,38 @@ def loadTranslations(axpress, n) :
         % endfor
       </ul>
     """).render_unicode(items = lines)
-    print vars['html']
   axpress.register_translation({
-    n.meta.name : 'show todo list',
+    n.meta.name : 'show list list',
     n.meta.input : """
-      x[axpress.is] = "(show |)(my |)todo( list|)"
+      x[axpress.is] = "show (my |)%list_name%( list|)"
     """,
     n.meta.output : """
       x[simple_display.text] = _html
     """,
-    n.meta.function : todo_show,
+    n.meta.function : list_show,
   })
 
-  def remove_todo(vars) :
-    f = open('/home/dwiel/axpress/todolist', 'r')
+  def remove_list(vars) :
+    f = open(filename_from_list_name(vars['list_name']), 'r')
     lines = f.read().split('\n')
     f.close()
     
-    print lines, repr(vars['item'])
     if vars['item'] not in lines :
-      raise Exception("%s was not in your todo list" % vars['item'])
+      raise Exception("%s was not in your %s list" % (vars['item'], vars['list_name']))
     else :
       lines = [line for line in lines if line != vars['item']]
     
-    f = open('/home/dwiel/axpress/todolist', 'w')
+    f = open(filename_from_list_name(vars['list_name']), 'w')
     for line in lines :
       print >>f, line
     f.close()
   axpress.register_translation({
-    n.meta.name : 'remove todo',
+    n.meta.name : 'remove list',
     n.meta.input : """
-      x[axpress.is] = "remove %item% (from |)(my |)todo( list|)"
+      x[axpress.is] = "remove %item% (from |)(my |)%list_name%( list|)"
     """,
     n.meta.output : """
-      x[axpress.is] = "show todo list"
+      x[axpress.is] = "show %list_name% list"
     """,
-    n.meta.function : remove_todo,
+    n.meta.function : remove_list,
   })
-
-
-
-
-
-
-
-
