@@ -108,7 +108,7 @@ def isstr(v) :
 
 import re
 
-split_re = re.compile('%[\w_]+%')
+split_re = re.compile('%[\w\.:_]+%')
 def split_string(s) :
   """
   given a string, split it into two lists:
