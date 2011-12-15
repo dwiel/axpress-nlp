@@ -5,19 +5,21 @@ import unittest
 from SimpleSPARQL import *
 
 n = globalNamespaces()
-n.bind('', '<http://dwiel.net/express//0.1/>')
-n.bind('string', '<http://dwiel.net/express/string/0.1/>')
-n.bind('math', '<http://dwiel.net/express/math/0.1/>')
-n.bind('file', '<http://dwiel.net/express/file/0.1/>')
-n.bind('glob', '<http://dwiel.net/express/glob/0.1/>')
-n.bind('color', '<http://dwiel.net/express/color/0.1/>')
-n.bind('sparql', '<http://dwiel.net/express/sparql/0.1/>')
-n.bind('image', '<http://dwiel.net/express/image/0.1/>')
-n.bind('pil', '<http://dwiel.net/express/python/pil/0.1/>')
-n.bind('glob', '<http://dwiel.net/express/python/glob/0.1/>')
-n.bind('call', '<http://dwiel.net/express/call/0.1/>')
-n.bind('test', '<http://dwiel.net/express/test/0.1/>')
-n.bind('flickr', '<http://dwiel.net/express/flickr/0.1/>')
+n.bind('',        '<http://dwiel.net/express//0.1/>')
+n.bind('axpress', '<http://dwiel.net/axpress/0.1/>')
+n.bind('string',  '<http://dwiel.net/express/string/0.1/>')
+n.bind('math',    '<http://dwiel.net/express/math/0.1/>')
+n.bind('file',    '<http://dwiel.net/express/file/0.1/>')
+n.bind('glob',    '<http://dwiel.net/express/glob/0.1/>')
+n.bind('color',   '<http://dwiel.net/express/color/0.1/>')
+n.bind('sparql',  '<http://dwiel.net/express/sparql/0.1/>')
+n.bind('image',   '<http://dwiel.net/express/image/0.1/>')
+n.bind('pil',     '<http://dwiel.net/express/python/pil/0.1/>')
+n.bind('glob',    '<http://dwiel.net/express/python/glob/0.1/>')
+n.bind('call',    '<http://dwiel.net/express/call/0.1/>')
+n.bind('test',    '<http://dwiel.net/express/test/0.1/>')
+n.bind('flickr',  '<http://dwiel.net/express/flickr/0.1/>')
+n.bind('dt',      '<http://dwiel.net/axpress/datetime/0.1/>')
 
 class PassCompleteReadsTestCase(unittest.TestCase):
   def setUp(self):
@@ -310,6 +312,18 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       [n.var['bnode1'], n.test['test'], 1]
     ]
   
+  def test_implied_type(self):
+    query = """
+      x[test.test] = "day before %:dt.date%"
+    """
+    ret = self.parser.parse_query(query)
+    #p('ret', ret)
+    assert ret == [
+      [n.var['x'],      n.test['test'],  "day before %date_auto_str%"],
+      [n.var['bnode1'], n.axpress['is'], "%date_auto_str%"],
+      [n.var['bnode1'], n.dt['date'],    n.lit_var['date']],
+    ]
+
   def test_multiLineOr(self):
     query = """
       i[flickr.tag] = 'sunset' |
@@ -328,7 +342,31 @@ class PassCompleteReadsTestCase(unittest.TestCase):
              [n.var['x'], n['test']['foo'], n.var['y']],
       Triple([n.var['x'], n['test']['bar'], n.var['z']], optional=True),
     ]
- 
+    
+  def test_unknown(self) :
+    query = """
+      weather[axpress.is] = "current weather in bloomington, indiana"
+      weather[test.current_temperature] = _current_temperature
+    """
+    ret = self.parser.parse_query(query)
+    #p('ret', ret)
+    assert ret == [
+      [ n.var.weather, n.axpress['is'], 'current weather in bloomington, indiana', ],
+      [ n.var.weather, n.test.current_temperature, n.lit_var.current_temperature, ],
+    ]
+
+  def test_simple_string_var(self) :
+    query = """
+      book[axpress.is] = "%title%"
+      book[test.type] = _type
+    """
+    ret = self.parser.parse_query(query)
+    #p('ret', ret)
+    assert ret == [
+      [ n.var.book, n.axpress['is'], '%title%', ],
+      [ n.var.book, n.test.type, n.lit_var.type, ],
+    ]
+
 if __name__ == "__main__" :
   unittest.main()
 

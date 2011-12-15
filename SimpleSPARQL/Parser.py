@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import Namespaces
 from Triple import Triple
-from Utils import p, is_lit_var, var_name
+from Utils import p, is_lit_var, var_name, split_string, merge_string
 
 import re
 
@@ -95,12 +95,45 @@ class Parser() :
       for triple in exp.triplelist(True)
     ])
     triples = eval(code, {'n' : self.n, 'Triple' : Triple}, {})
-    # if there were strings before, insert them back in now that its been parsed
+    
     if str_bindings :
+      # add triples for special strings
+      for k, str in str_bindings.items() :
+        if isinstance(str, list) :
+          # list strings shouldn't have %% in them
+          assert all(len(split_string(s)[1]) == 0 for s in str)
+          continue
+        
+        # var will be each of the %var% in the str
+        const, vars = split_string(str)
+        new_vars = []
+        for var in vars :
+          if ':' in var :
+            new_var_name, type = var.split(':')
+            namespace, name = type.split('.')
+            prop = self.n[namespace][name]
+            new_var_name = new_var_name or name
+            
+            str_name = new_var_name + '_auto_str'
+            
+            bnode = eval(self.next_bnode(), {'n' : self.n})
+            triples.extend([
+              Triple([bnode, self.n.axpress['is'], '%'+str_name+'%']),
+              Triple([bnode, prop,                 self.n.lit_var[new_var_name]]),
+            ])
+            
+            var = str_name
+          new_vars.append('%'+var+'%')
+        
+        str_bindings[k] = merge_string(const, new_vars)
+      
+      #p('str', str_bindings)
+      # if there were strings before, insert them back in now that its been parsed
       for triple in triples :
         for i, value in enumerate(triple) :
           if is_lit_var(value) and var_name(value)[:4] == '_str' :
             triple[i] = str_bindings[var_name(value)[4:]]
+    
     return triples
   
   def flatten(self, seq):
@@ -287,7 +320,7 @@ class Parser() :
       obj = g.group(1).strip()
       inside = g.group(2).strip() + ','
       
-      obj = self.parse_expression_new(obj)	
+      obj = self.parse_expression_new(obj)  
       
       pairs = re_dict_pair.findall(inside)
       if pairs is not [] :
