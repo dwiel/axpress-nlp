@@ -56,7 +56,7 @@ def is_lit_var(data) :
   if type(data) == URIRef :
     if data.find(str_n_lit_var) == 0 :
       return True
-  return False	
+  return False  
 
 def is_out_var(data) :
   if type(data) == URIRef :
@@ -134,25 +134,28 @@ def merge_string(const, vars) :
   return ''.join(interleave(const, vars))
 
 def sub_bindings_value(value, bindings) :
+  """
+  @returns new value and weather or not it was changed by the binding
+  """
   if is_any_var(value) and var_name(value) in bindings :
-    return bindings[var_name(value)], True
+    return bindings[var_name(value)]
   elif isstr(value) :
     # substitute bindings into string
     const, vars = split_string(value)
     vals = [bindings.get(var, '%'+var+'%') for var in vars]
-    return merge_string(const, vals), True
-  return value, False
+    return merge_string(const, vals)
+  return value
   
 def sub_bindings_triple(triple, bindings) :
-  return [sub_bindings_value(value, bindings)[0] for value in triple]
+  return [sub_bindings_value(value, bindings) for value in triple]
 
 def sub_bindings_triple_track_changes(triple, bindings) :
   new_values = []
   changed = False
   for value in triple :
-    value, value_changed = sub_bindings_value(value, bindings)
-    new_values.append(value)
-    changed = changed or value_changed
+    new_value = sub_bindings_value(value, bindings)
+    new_values.append(new_value)
+    changed = changed or (value != new_value)
   return new_values, changed
 
 def sub_var_bindings(triples, bindings) :
