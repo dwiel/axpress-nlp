@@ -145,7 +145,9 @@ class PassCompleteReadsTestCase(unittest.TestCase):
     assert self.parser.parse_expression("image[flickr.tag] = image_tag") == [[n.var.image, n.flickr.tag, n.var.image_tag]]
     
   def test14(self):
-    assert self.parser.parse_expression('image[file.filename] = "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"') == [[n.var.image, n.file.filename, "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"]]
+    assert self.parser.parse_expression('image[file.filename] = "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"') == [
+      [n.var.image, n.file.filename, "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"]
+    ]
     
   def test15(self):
     assert self.parser.parse_expression('image[file.filename] = "home/dwiel/AMOSvid/1065/*.jpg"[glob.glob]') == [
