@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import Parser, Evaluator, MultilineParser
+import Parser, Evaluator, Compiler, MultilineParser
 from Utils import sub_var_bindings, sub_var_bindings_set, find_vars, UniqueURIGenerator, debug, is_any_var, var_name, explode_bindings_set, p, is_lit_var
 from PrettyQuery import prettyquery
 
@@ -9,11 +9,14 @@ class CompilerException(Exception) :
 	pass
 
 class Axpress() :
-	def __init__(self, sparql, compiler, evaluator = None, multiline_parser = None, options = ['time']) :
+	def __init__(self, sparql, compiler = None, evaluator = None, multiline_parser = None, options = ['time']) :
 		self.sparql = sparql
 		self.n = sparql.n
 		# self.translator = translator
-		self.compiler = compiler
+		if compiler :
+			self.compiler = compiler
+		else :
+			self.compiler = Compiler.Compiler(self.n)
 		if evaluator == None :
 			evaluator = Evaluator.Evaluator(self.n)
 		self.evaluator = evaluator
