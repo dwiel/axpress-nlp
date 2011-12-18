@@ -73,7 +73,7 @@ def loadTranslations(axpress, n) :
   axpress.register_translation({
     n.meta.name : 'remove list',
     n.meta.input : """
-      x[axpress.is] = "remove %item% (from |)(my |)%list_name%( list|)"
+      x[axpress.is] = "(remove|get rid of) %item% (from |)(my |)%list_name%( list|)"
     """,
     n.meta.output : """
       x[axpress.is] = "show %list_name% list"
