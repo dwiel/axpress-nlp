@@ -35,14 +35,7 @@ a = n.rdfs.type
 class X():pass
 type_instance = type(X())
 
-compiler = Compiler(n)
-evaluator = Evaluator(n)
-
-axpress = Axpress(
-  sparql = sparql,
-  compiler = compiler,
-  evaluator = evaluator
-)
+axpress = Axpress(sparql = sparql)
 loadTranslations(axpress, n)
 
 
@@ -654,6 +647,18 @@ class AxpressTestCase(unittest.TestCase):
       foo[test.result] = _out
     """)
     p('ret', ret)
+  
+  def testDayOfWeek(self):
+    ret = axpress.read_translate("""
+      d[dt.day_of_week_string] = "mon"
+      d[dt.day_of_week] = _out
+    """)
+    #p('testDayOfWeek', ret)
+    assert ret == [
+      {
+        'out' : "monday"
+      }
+    ]
   
 if __name__ == "__main__" :
   #print '<root>'
