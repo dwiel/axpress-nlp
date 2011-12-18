@@ -18,7 +18,11 @@ def loadTranslations(axpress, n) :
 
       f = open(name, 'rb')
       m = imp.load_source(md5.new(name).hexdigest(), name, f)
-
-      m.loadTranslations(axpress, n)
+      try :
+        loadTranslations = m.loadTranslations
+      except AttributeError, e:
+        continue
+      
+      loadTranslations(axpress, n)
 
   axpress.compiler.compile_translations()
