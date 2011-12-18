@@ -198,3 +198,5 @@ def loadTranslations(axpress, n) :
       #track[lastfm.album_mbid] = _album_mbid
     #""",
   #})
+
+"(listen to|play) %artist% on last.fm"
