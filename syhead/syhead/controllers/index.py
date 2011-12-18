@@ -55,3 +55,54 @@ class IndexController(BaseController):
   
   def s(self):
     pass
+  
+  def translation_graph(self):
+    c.axpress = g.axpress
+    c.n = g.axpress.compiler.n
+
+    filenames = {}
+    class lookup_filename_id() :
+      def __init__(self) :
+        self.next_filename_id = 0
+      def __call__(self, filename) :
+        id = filenames.get(filename, None)
+        if id != None :
+          return id
+        else :
+          filenames[filename] = self.next_filename_id
+          self.next_filename_id += 1
+          return filenames[filename]
+    c.lookup_filename_id = lookup_filename_id()
+    
+    from subprocess import Popen, PIPE
+    p = Popen("dot -Tpng -Goverlap=false", shell=True, stdin=PIPE, stdout=PIPE)
+    
+    def test(t) :
+      fn = t[c.n.meta.filename]
+      return 'date' in fn or 'time' in fn
+    
+    p.stdin.write("digraph sdsu {")
+    for t in c.axpress.compiler.translations :
+      if test(t) :
+        p.stdin.write('"%s";' % t[c.n.meta.name])
+      #, group:${c.lookup_filename_id(t[c.n.meta.filename])} },
+      
+    def t_by_id(id) :
+      return c.axpress.compiler.translations_by_id[id]
+    def name_by_id(id) :
+      return c.axpress.compiler.translations_by_id[id][c.n.meta.name]
+    
+    for id, ts in c.axpress.compiler.translation_matrix.iteritems() :
+      for t in ts :
+        if test(t) and test(t_by_id(id)) :
+          p.stdin.write('"%s" -> "%s";' % (
+            name_by_id(id), name_by_id(t[c.n.meta.id])
+          ))
+    p.stdin.write("}")
+    
+    #return render('translation_graph.mako')
+    p.stdin.close()
+    print 'rendering'
+    response.headers['Content-Type'] = 'image/png'
+    #response.write(p.stdout.read())
+    return p.stdout.read()
