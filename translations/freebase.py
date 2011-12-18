@@ -258,16 +258,28 @@ def loadTranslations(axpress, n) :
     n.meta.function : lookup_location_lat_lon,
   })
   
+  def curl(url) :
+    import subprocess
+    p = subprocess.Popen('curl "%s"' % url, shell=True, stdout=subprocess.PIPE)
+    return p.stdout.read()
+  
   def freebase_search(vars) :
-    print('vars', vars)
-    req = urllib2.urlopen("https://www.googleapis.com/freebase/v1/search", urllib.urlencode({
+    # this is stupid, but it works ...
+    ret = curl('https://www.googleapis.com/freebase/v1/search?' + urllib.urlencode({
       'query' : vars['title'],
       'type' : vars['type'],
       'html_escape' : 'false',
       'html_encode' : 'false',
       'escape' : 'false',
       'limit' : 1}))
-    ret = req.read().decode('<utf-8>')
+    #req = urllib2.urlopen("https://www.googleapis.com/freebase/v1/search", str(urllib.urlencode({
+      #'query' : vars['title'],
+      #'type' : vars['type'],
+      #'html_escape' : 'false',
+      #'html_encode' : 'false',
+      #'escape' : 'false',
+      #'limit' : 1})))
+    #ret = req.read().decode('<utf-8>')
     ret = json.loads(ret)
     
     if ret['status'] != '200 OK' :
