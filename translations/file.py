@@ -41,21 +41,20 @@ def loadTranslations(axpress, n) :
     n.meta.function : glob_glob,
   })
   
-  def glob_glob(vars):
-    vars['out_filename'] = glob.glob(vars['pattern'])
-  axpress.register_translation({
-    n.meta.name : 'glob glob',
-    n.meta.input : """
-      glob.glob(_pattern) = foo[file.filename]
-    """,
-    n.meta.output : """
-      foo[file.filename] = _out_filename
-    """,
-    n.meta.function : glob_glob,
-  })
-
-
-
+  # I don't think this is any different than the other glob glob
+  #def glob_glob(vars):
+    #vars['out_filename'] = glob.glob(vars['pattern'])
+  #axpress.register_translation({
+    #n.meta.name : 'glob glob',
+    #n.meta.input : """
+      #glob.glob(_pattern) = foo[file.filename]
+    #""",
+    #n.meta.output : """
+      #foo[file.filename] = _out_filename
+    #""",
+    #n.meta.function : glob_glob,
+  #})
+  
   def download_tmp_file(vars):
     #TODO don't depend on wget ...
     vars['filename'] = 'axpress.tmp%s' % str(random.random()).replace('.','')

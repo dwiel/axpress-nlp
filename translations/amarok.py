@@ -25,11 +25,8 @@ def loadTranslations(axpress, n) :
   axpress.register_translation({
     n.meta.name : 'playlist enqueue',
     n.meta.input : """
-      playlist.enqueue(playlist.playlist, album) = True
-      album[music.track] = track
+      playlist.enqueue(playlist.playlist, track) = True
       track[file.url] = url
-      track[music.title] = title
-      track[music.track_number] = track_number
     """,
     n.meta.output : [
     ],

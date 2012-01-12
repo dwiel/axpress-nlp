@@ -197,7 +197,7 @@ class AxpressTestCase(unittest.TestCase):
       dist[type.number] = color.distance(color.red, pixel)
       dist[type.number] = _distance
     """, reqd_bound_vars = ['filename','distance'])
-    print 'ret6',prettyquery(ret)
+    #print 'ret6',prettyquery(ret)
     assert ret == [
       {
         'distance' : 53593,
@@ -511,7 +511,7 @@ class AxpressTestCase(unittest.TestCase):
       x[freebase.mid] = _mid
       x[freebase.name] = _name
     """)
-    p('ret', ret)
+    ##p('ret', ret)
   
   def testSimpleFreebaseStringQuery4(self):
     ret = axpress.read_translate("""
@@ -519,7 +519,7 @@ class AxpressTestCase(unittest.TestCase):
       x[freebase.mid] = _mid
       x[freebase.name] = _name
     """)
-    p('ret', ret)
+    #p('ret', ret)
   
   #def testSimpleFreebaseStringQuery5(self):
     #ret = axpress.read_translate("""
@@ -533,14 +533,14 @@ class AxpressTestCase(unittest.TestCase):
       x[freebase.mid] = _mid
       x[freebase.name] = _name
     """)
-    p('ret', ret)
+    #p('ret', ret)
   
   def testSimpleFreebaseStringQuery7(self):
     ret = axpress.read_translate("""
       weather[axpress.is] = "current weather in bloomington, indiana"
       weather[wunderground.current_temperature] = _current_temperature
     """)
-    p('ret', ret)
+    #p('ret', ret)
   
   def testStringQuery2(self):
     ret = axpress.read_translate("""
@@ -563,7 +563,7 @@ class AxpressTestCase(unittest.TestCase):
           x[test.a] = "hello"
           x[test.d] = _out
       """)
-      p('ret', ret)
+      #p('ret', ret)
       assert False
     except :
       pass
@@ -646,7 +646,7 @@ class AxpressTestCase(unittest.TestCase):
       foo[test.root] = 1
       foo[test.result] = _out
     """)
-    p('ret', ret)
+    #p('ret', ret)
   
   def testDayOfWeek(self):
     ret = axpress.read_translate("""

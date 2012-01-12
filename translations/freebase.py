@@ -93,7 +93,7 @@ def loadTranslations(axpress, n) :
         "mid" : None,
       }]
     })
-    print result
+    #print result
     return result['album']
   
   axpress.register_translation({
@@ -205,14 +205,14 @@ def loadTranslations(axpress, n) :
         "name" : None,
       },
     })
-    print result
+    #print result
     return result['place_of_birth']
   
   axpress.register_translation({
     n.meta.name : 'lookup birthplace',
     n.meta.input : """
-      person[freebase.mid] = _person_mid
       person[freebase.type] = '/people/person'
+      person[freebase.mid] = _person_mid
     """,
     n.meta.output : """
       person[freebase./people/person/place_of_birth] = birthplace
@@ -260,7 +260,7 @@ def loadTranslations(axpress, n) :
   
   def curl(url) :
     import subprocess
-    p = subprocess.Popen('curl "%s"' % url, shell=True, stdout=subprocess.PIPE)
+    p = subprocess.Popen('curl --silent "%s"' % url, shell=True, stdout=subprocess.PIPE)
     return p.stdout.read()
   
   def freebase_search(vars) :
@@ -288,7 +288,7 @@ def loadTranslations(axpress, n) :
     if result['score'] > 25 :
       vars['mid'] = result['mid']
     else :
-      print('ret', ret['result'])
+      #print('ret', ret['result'])
       raise Exception("couldn't find something by that name")
     
     #.encode("<utf-8>")

@@ -168,7 +168,7 @@ def loadTranslations(axpress, n) :
       ).read()
     )
     
-    p('forecast_ret', forecast_ret)
+    #p('forecast_ret', forecast_ret)
     forecast = []
     for day in forecast_ret['forecast']['simpleforecast']['forecastday'] :
       forecast.append({
@@ -184,7 +184,7 @@ def loadTranslations(axpress, n) :
     if ret['precip_1hr_in'] == u'-999.00' :
       ret['precip_1hr_in'] = 0
     
-    p('ret', ret)
+    #p('ret', ret)
     return ret
   
   axpress.register_translation({
