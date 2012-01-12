@@ -870,18 +870,24 @@ class Compiler :
       self.debug_open_block('search')
     #self.debugp('query', query)
     
+    # this is where the result of the work done in this function is ultimately 
+    # stored
     compile_node = {
       'guaranteed' : [],
       'possible' : [],
     }
+    # we will set this to True if/when we find a solution
     compile_node_found_solution = False
     
-    # see what the guaranteed and possible next steps are
     #print '%'*80
     #p('query', query)
     #p('output_vars', output_vars)
     #p('new_triples', new_triples)
     #p('root', root)
+    # guarenteed steps are steps that will be valid no mater the input values
+    # possible steps are steps which may or may not be valid, depending on what 
+    # the input values are
+    # find the guarenteed steps
     guaranteed_steps = self.next_steps(query, history, output_vars, new_triples, root)
     #p('guaranteed_steps', guaranteed_steps)
     #p('possible_steps', possible_steps)
@@ -890,32 +896,35 @@ class Compiler :
     #self.debugp(guaranteed_steps)
     #self.debug_close_block()
     
-    # look through all guarenteed steps recursively to see if they terminate and
-    # should be added to the compile_node, the finished 'program'
+    # look through all guarenteed steps recursively to see if they result in a 
+    # solution and should be added to the compile_node, the finished 'program'
     for step in guaranteed_steps :
-      # if we've already made this translation, skip it
+      # if we've already made this translation once before, skip it
       if [step['translation'], step['input_bindings']] in history :
         continue
+
+      # add this step to the history (though since this history object can be 
+      # forked by other guaranteed_steps, we must copy it before altering it)
+      new_history = copy.copy(history)
+      new_history.append([step['translation'], copy.copy(step['input_bindings'])])
       
       self.debug_open_block((step['translation'][n.meta.name] or '<unnamed>') + ' ' + color(hash(step['input_bindings'], step['output_bindings'])) + ' ' + prettyquery(step['input_bindings']))
       self.debugps('new_triples', step['new_triples'])
       
-      # add this step to the history (though since this history object can be 
-      # forked by other guaranteed_steps, we must copy it first)
-      new_history = copy.copy(history)
-      new_history.append([step['translation'], copy.copy(step['input_bindings'])])
-      
       # if the new information at this point is enough to fulfil the query, done
       # otherwise, recursively continue searching.
-      # found_solution is filled with the bindings from the query to the 
-      # out_lit_vars
+      # found_solution is filled with the bindings which bind out_lit_vars from 
+      # the query to literal values (strings, numbers, uris, etc)
       found_solution = self.found_solution(step['new_query'])
       if found_solution :
         step['solution'] = found_solution
       else :
         child_steps = self.search(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
         if child_steps :
+          # this will happen if one of the steps that followed from this one
+          # had a solution
           found_solution = True
+          
           # step['guaranteed'] is a list of steps to get to the solution which 
           # is built up recursively.  step['guaranteed'] will always be [] 
           # before these lines
