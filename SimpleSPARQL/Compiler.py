@@ -843,7 +843,25 @@ class Compiler :
           return {n.var[name] : v for name, v in bindings.iteritems()}
     
     return False
-  
+
+  def remove_steps_already_taken(self, steps, history) :
+    """
+    remove any steps that we've already taken
+    """
+    for step in steps :
+      # if we've already made this translation once before, skip it
+      if [step['translation'], step['input_bindings']] in history :
+        continue
+
+      # add this step to the history (though since this history object can be 
+      # forked by other guaranteed_steps, we must copy it before altering it)
+      new_history = copy.copy(history)
+      new_history.append([step['translation'], copy.copy(step['input_bindings'])])
+      
+      step['new_history'] = new_history
+      
+      yield step
+
   #@logger
   def search(self, query, possible_stack, history, output_vars, new_triples, root = False) :
     """
@@ -871,43 +889,24 @@ class Compiler :
     #self.debugp('query', query)
     
     # this is where the result of the work done in this function is ultimately 
-    # stored
+    # stored.  Possible isn't really used any more, it might in the future.
+    # would be awesome to refactor this out at some point
     compile_node = {
       'guaranteed' : [],
       'possible' : [],
     }
-    # we will set this to True if/when we find a solution
-    compile_node_found_solution = False
     
-    #print '%'*80
-    #p('query', query)
-    #p('output_vars', output_vars)
-    #p('new_triples', new_triples)
-    #p('root', root)
-    # guarenteed steps are steps that will be valid no mater the input values
-    # possible steps are steps which may or may not be valid, depending on what 
-    # the input values are
-    # find the guarenteed steps
-    guaranteed_steps = self.next_steps(query, history, output_vars, new_triples, root)
-    #p('guaranteed_steps', guaranteed_steps)
-    #p('possible_steps', possible_steps)
+    steps = self.next_steps(query, history, output_vars, new_triples, root)
     
-    #self.debug_open_block('guaranteed_steps')
-    #self.debugp(guaranteed_steps)
+    # remove any steps we've already taken
+    steps = self.remove_steps_already_taken(steps, history)
+    #self.debug_open_block('steps')
+    #self.debugp(steps)
     #self.debug_close_block()
     
-    # look through all guarenteed steps recursively to see if they result in a 
+    # look through all steps recursively to see if they result in a 
     # solution and should be added to the compile_node, the finished 'program'
-    for step in guaranteed_steps :
-      # if we've already made this translation once before, skip it
-      if [step['translation'], step['input_bindings']] in history :
-        continue
-
-      # add this step to the history (though since this history object can be 
-      # forked by other guaranteed_steps, we must copy it before altering it)
-      new_history = copy.copy(history)
-      new_history.append([step['translation'], copy.copy(step['input_bindings'])])
-      
+    for step in steps :
       self.debug_open_block((step['translation'][n.meta.name] or '<unnamed>') + ' ' + color(hash(step['input_bindings'], step['output_bindings'])) + ' ' + prettyquery(step['input_bindings']))
       self.debugps('new_triples', step['new_triples'])
       
@@ -919,7 +918,7 @@ class Compiler :
       if found_solution :
         step['solution'] = found_solution
       else :
-        child_steps = self.search(step['new_query'], possible_stack, new_history, output_vars, step['new_triples'])
+        child_steps = self.search(step['new_query'], possible_stack, step['new_history'], output_vars, step['new_triples'])
         if child_steps :
           # this will happen if one of the steps that followed from this one
           # had a solution
@@ -934,17 +933,17 @@ class Compiler :
         
       self.debug_close_block()
       
+      # if we've found a solution through this step, add it to the list
       if found_solution :
         compile_node['guaranteed'].append(step)
-        compile_node_found_solution = True
     
     if root:
       self.debug_close_block()
     
-    if compile_node_found_solution == False :
-      return False
-    else :
+    if compile_node['guaranteed'] :
       return compile_node
+    else :
+      return False
   
   def make_vars_out_vars(self, query, reqd_bound_vars) :
     """
