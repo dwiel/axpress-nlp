@@ -347,12 +347,13 @@ class Parser() :
       
       params = [self.parse_expression_new(param) for param in params]
       
-      bnode = self.next_bnode()
-      triples = []
-      for i, param in enumerate(params) :
-        triples.append([bnode, 'n.call.arg%d' % (i+1), param])
-      triples.append([bnode, obj, None])
-      return Expression(triples, [len(triples)-1, 2])
+      return Expression([obj] + params + [None], [-1])
+      #bnode = self.next_bnode()
+      #triples = []
+      #for i, param in enumerate(params) :
+        #triples.append([bnode, 'n.call.arg%d' % (i+1), param])
+      #triples.append([bnode, obj, None])
+      #return Expression(triples, [len(triples)-1, 2])
     
     g = re_uri.match(expression)
     if g is not None :

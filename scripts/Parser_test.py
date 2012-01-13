@@ -116,11 +116,15 @@ class PassCompleteReadsTestCase(unittest.TestCase):
   """
   
   def test9(self):
+    #assert self.parser.parse_expression("""
+      #math.sum(1, 2) = sum""") == [
+      #[n.var.bnode1, n.call.arg1, 1],
+      #[n.var.bnode1, n.call.arg2, 2],
+      #[n.var.bnode1, n.math.sum, n.var.sum],
+    #]
     assert self.parser.parse_expression("""
       math.sum(1, 2) = sum""") == [
-      [n.var.bnode1, n.call.arg1, 1],
-      [n.var.bnode1, n.call.arg2, 2],
-      [n.var.bnode1, n.math.sum, n.var.sum],
+      [n.math.sum, 1, 2, n.var.sum],
     ]
   
   #def test10(self):
@@ -168,18 +172,24 @@ class PassCompleteReadsTestCase(unittest.TestCase):
     
   def test18(self):
     query = """test.func("xyz()", 'abc = 123') = "what's um, the deal?" """
+    #assert self.parser.parse_query(query) == [
+      #[ n.var.bnode1, n.call.arg1, 'xyz()', ],
+      #[ n.var.bnode1, n.call.arg2, 'abc = 123', ],
+      #[ n.var.bnode1, n.test.func, "what's um, the deal?", ],
+    #]
     assert self.parser.parse_query(query) == [
-      [ n.var.bnode1, n.call.arg1, 'xyz()', ],
-      [ n.var.bnode1, n.call.arg2, 'abc = 123', ],
-      [ n.var.bnode1, n.test.func, "what's um, the deal?", ],
+      [ n.test.func, 'xyz()', 'abc = 123', "what's um, the deal?", ],
     ]
   
   def test19(self):
     query = """test.func('''xyz() + 'what?' and "what?" ''', 'abc = 123') = "what's um, the deal?" """
+    #assert self.parser.parse_query(query) == [
+      #[ n.var.bnode1, n.call.arg1, 'xyz() + \'what?\' and "what?" ', ],
+      #[ n.var.bnode1, n.call.arg2, 'abc = 123', ],
+      #[ n.var.bnode1, n.test.func, "what's um, the deal?", ],
+    #]
     assert self.parser.parse_query(query) == [
-      [ n.var.bnode1, n.call.arg1, 'xyz() + \'what?\' and "what?" ', ],
-      [ n.var.bnode1, n.call.arg2, 'abc = 123', ],
-      [ n.var.bnode1, n.test.func, "what's um, the deal?", ],
+      [ n.test.func, 'xyz() + \'what?\' and "what?" ', 'abc = 123', "what's um, the deal?", ],
     ]
   
   def test_parseQuery1(self):
@@ -210,14 +220,20 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       'thumb_image = thumb[pil.image]',
     ]
     ret = self.parser.parse_query(query)
+    #assert ret == [
+      #[ n.var.image, n.file.filename, n.var.bnode1, ],
+      #[ '/home/dwiel/pictures/stitt blanket/*.jpg', n.glob.glob, n.var.bnode1, ],
+      #[ n.var.bnode2, n.call.arg1, n.var.image, ],
+      #[ n.var.bnode2, n.call.arg2, 4, ],
+      #[ n.var.bnode2, n.call.arg3, 4, ],
+      #[ n.var.bnode2, n.call.arg4, n.image.antialias, ],
+      #[ n.var.bnode2, n.image.thumbnail, n.var.thumb, ],
+      #[ n.var.thumb, n.pil.image, n.var.thumb_image, ],
+    #]
     assert ret == [
       [ n.var.image, n.file.filename, n.var.bnode1, ],
       [ '/home/dwiel/pictures/stitt blanket/*.jpg', n.glob.glob, n.var.bnode1, ],
-      [ n.var.bnode2, n.call.arg1, n.var.image, ],
-      [ n.var.bnode2, n.call.arg2, 4, ],
-      [ n.var.bnode2, n.call.arg3, 4, ],
-      [ n.var.bnode2, n.call.arg4, n.image.antialias, ],
-      [ n.var.bnode2, n.image.thumbnail, n.var.thumb, ],
+      [ n.image.thumbnail, n.var.image, 4, 4, n.image.antialias, n.var.thumb, ],
       [ n.var.thumb, n.pil.image, n.var.thumb_image, ],
     ]
   
