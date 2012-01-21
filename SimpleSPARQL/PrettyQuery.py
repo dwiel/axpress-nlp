@@ -34,7 +34,7 @@ def prettyquery_helper(query, tabs = '', indent = '  ', namespaces = n) :
       s += '[]\n'
     else :
       prettylist = [prettyquery_helper(i, tabs+indent, indent) for i in query]
-      if len(query) <= 3 and any(['\n' not in item for item in prettylist]) :
+      if (len(query) <= 3 or sum(map(len, prettylist)) < 80) and any(['\n' not in item for item in prettylist]) :
         s += '['
         for item in prettylist :
           s += ' ' + item + ','
