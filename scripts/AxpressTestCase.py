@@ -85,7 +85,7 @@ class AxpressTestCase(unittest.TestCase):
     """
     ret = axpress.read_translate("""
       image[glob.glob] = "pictures/*.jpg"
-      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb = image.thumbnail(image, 4, 4)
       thumb[pil.image] = _thumb_image
     """, reqd_bound_vars = ['thumb_image'])
     #""", reqd_bound_vars = ['thumb_image', 'thumb'])
@@ -105,7 +105,7 @@ class AxpressTestCase(unittest.TestCase):
   def testQueryLimitLessThanAvailable(self):
     ret = axpress.read_translate("""
       image[glob.glob] = "pictures/*.jpg"
-      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb = image.thumbnail(image, 4, 4)
       thumb[pil.image] = _thumb_image
       query.query[query.limit] = 1
     """, reqd_bound_vars = ['thumb_image'])
@@ -120,7 +120,7 @@ class AxpressTestCase(unittest.TestCase):
   def testQueryLimitSameAsAvailable(self):
     ret = axpress.read_translate("""
       image[glob.glob] = "pictures/*.jpg"
-      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb = image.thumbnail(image, 4, 4)
       thumb[pil.image] = _thumb_image
       query.query[query.limit] = 2
     """, reqd_bound_vars = ['thumb_image'])
@@ -137,7 +137,7 @@ class AxpressTestCase(unittest.TestCase):
   def testQueryLimitMoreThanAvailable(self):
     ret = axpress.read_translate("""
       image[glob.glob] = "pictures/*.jpg"
-      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb = image.thumbnail(image, 4, 4)
       thumb[pil.image] = _thumb_image
       query.query[query.limit] = 3
     """, reqd_bound_vars = ['thumb_image'])
@@ -163,7 +163,7 @@ class AxpressTestCase(unittest.TestCase):
   #def test4(self) :
     #ret = axpress.read_translate("""
       #image[flickr.tag] = 'wall'
-      #thumb = image.thumbnail(image, 4, 4, image.antialias)
+      #thumb = image.thumbnail(image, 4, 4)
       #thumb[pil.image] = _thumb_image
       #query.query[query.limit] = 1
     #""", reqd_bound_vars = ['thumb_image'])
@@ -173,7 +173,7 @@ class AxpressTestCase(unittest.TestCase):
     ret = axpress.read_translate("""
       image[glob.glob] = "pictures/*.jpg"
       image[file.filename] = _filename
-      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb = image.thumbnail(image, 4, 4)
       pixel = image.pixel(thumb, 0, 0)
       pixel[pil.color] = _thumb_pixel_color
     """, reqd_bound_vars = ['filename','thumb_pixel_color'])
@@ -192,7 +192,7 @@ class AxpressTestCase(unittest.TestCase):
     ret = axpress.read_translate("""
       image[glob.glob] = "pictures/*.jpg"
       image[file.filename] = _filename
-      thumb = image.thumbnail(image, 4, 4, image.antialias)
+      thumb = image.thumbnail(image, 4, 4)
       pixel = image.pixel(thumb, 0, 0)
       dist[type.number] = color.distance(color.red, pixel)
       dist[type.number] = _distance
