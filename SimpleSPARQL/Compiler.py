@@ -418,23 +418,18 @@ class Compiler :
     #self.debugp('matches', matches, bindings)
     return bindings
   
-  def find_bindings(self, facts, pattern, reqd_triples, root = False, initial_bindings = {}) :
+  def find_bindings(self, facts, pattern, reqd_triples, initial_bindings = {}) :
     """
     @arg facts is the set of triples whose values are attempting to matched to
     @arg pattern is the pattern whose variables are attempting to be matched
     @arg reqd_triples is a set of triples which is a subset of the data of which
       at least one must be used in the bindings
-    @arg root is True only on the first set of matches to inform find_bindings
-      that a 0 length pattern matches.  Otherwise, 0 length patterns don't match
       
     @return set_of_bindings
       set_of_bindings is the set of bindings which matched the data unless there
       was no match, in which case it is False
     """
-    if len(pattern) == 0 and root:
-      raise Exception('WTF!? this never happens and root variable isnt necessary')
-      return [Bindings()]
-    
+
     # check that all of the translation inputs match part of the query
     if reqd_triples != False:
       for triple in pattern :
@@ -453,7 +448,7 @@ class Compiler :
         return True
     return False
     
-  def testtranslation(self, translation, query, reqd_triples, root = False) :
+  def testtranslation(self, translation, query, reqd_triples) :
     """
     @returns matches, bindings
       matches is True if the translation is guaranteed to match the query.  It 
@@ -472,7 +467,7 @@ class Compiler :
       return False, None
       
     ret = self.find_bindings(
-      query, translation[self.n.meta.input], reqd_triples, root
+      query, translation[self.n.meta.input], reqd_triples
     )
     # if a partial match did exist, but no bindings could be found, then this 
     # was a partial match
@@ -499,7 +494,7 @@ class Compiler :
     return self._next_num
 
   #@logger
-  def next_steps(self, query, history, reqd_triples, root = False) :
+  def next_steps(self, query, history, reqd_triples) :
     """
     @arg query the query in triples set form
     @arg history the history of steps already followed
@@ -555,7 +550,7 @@ class Compiler :
       #p('testing', translation[n.meta.name])
       # NOTE: I think this is where I need to check for partial matches in order
       # to tack on the DFS stack onto the translation_queue
-      ret, more = self.testtranslation(translation, query, reqd_triples, root)
+      ret, more = self.testtranslation(translation, query, reqd_triples)
       if ret == "partial" :
         matched_triples = more
         
@@ -581,7 +576,7 @@ class Compiler :
                 new_query.extend(altered_past_query)
                 
                 p('new_query', new_query)
-                ret, more = self.testtranslation(translation, new_query, reqd_triples, root)
+                ret, more = self.testtranslation(translation, new_query, reqd_triples)
                 p('ret', ret, more)
                 p()
                 if ret == True :
@@ -945,7 +940,7 @@ class Compiler :
     }
     
     # find the possible next steps
-    steps = self.next_steps(query, history, new_triples, root)
+    steps = self.next_steps(query, history, new_triples)
     
     # remove any steps we've already taken
     steps = self.remove_steps_already_taken(steps, history)
