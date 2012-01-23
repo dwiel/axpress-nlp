@@ -366,6 +366,13 @@ class Compiler :
     # technically, there should be a split there so that we return both sets
     # of possible bindings rather than just the first one.
     # WARNING: likely bug,  See above comment
+    # check that all of the translation inputs match part of the query
+
+    if reqd_facts != False:
+      for triple in translation :
+        if not self.find_triple_match(triple, facts) :
+          return False
+    
     bindings = [Bindings()]
     for ttriple in translation :
       possible_bindings = self.find_bindings_for_triple(ttriple, facts, reqd_facts)
@@ -418,29 +425,6 @@ class Compiler :
     #self.debugp('matches', matches, bindings)
     return bindings
   
-  def find_bindings(self, facts, pattern, reqd_triples, initial_bindings = {}) :
-    """
-    @arg facts is the set of triples whose values are attempting to matched to
-    @arg pattern is the pattern whose variables are attempting to be matched
-    @arg reqd_triples is a set of triples which is a subset of the data of which
-      at least one must be used in the bindings
-      
-    @return set_of_bindings
-      set_of_bindings is the set of bindings which matched the data unless there
-      was no match, in which case it is False
-    """
-
-    # check that all of the translation inputs match part of the query
-    if reqd_triples != False:
-      for triple in pattern :
-        #if self.debug_find_bindings : p('find_triple_match', triple, facts)
-        if not self.find_triple_match(triple, facts) :
-          #if self.debug_find_bindings : p('False')
-          return False
-    
-    # find all possible bindings for the vars if any exist
-    return self.bind_vars(pattern, facts, reqd_triples, initial_bindings)
-  
   def partial_match_exists(self, pattern, reqd_triples) :
     # check that one of the reqd_triples match part of the query
     for triple in pattern :
@@ -466,8 +450,8 @@ class Compiler :
     if not self.partial_match_exists(translation[self.n.meta.input], reqd_triples) :
       return False, None
       
-    ret = self.find_bindings(
-      query, translation[self.n.meta.input], reqd_triples
+    ret = self.bind_vars(
+      translation[self.n.meta.input], query, reqd_triples
     )
     # if a partial match did exist, but no bindings could be found, then this 
     # was a partial match
@@ -654,7 +638,7 @@ class Compiler :
         #self.debugp('initial_bindings', initial_bindings)
         
         # unify output_triples with query
-        output_bindings_set = self.find_bindings(query, output_triples, False, initial_bindings = initial_bindings)
+        output_bindings_set = self.bind_vars(output_triples, query, False, initial_bindings = initial_bindings)
         if output_bindings_set == False :
           output_bindings_set = [initial_bindings]
         
@@ -662,7 +646,7 @@ class Compiler :
           # if var is a lit var in the output_triples, then its output bindings
           # must bind it to a new variable since it will be computed and set by
           # the translation function and may not have the same value any more
-          # WARNING: I think this means that find_bindings might not do the 
+          # WARNING: I think this means that bind_vars might not do the 
           # right thing if it thinks that it can bind whatever it wants to 
           # lit_vars.  lit_vars for example shouldn't bind to literal values
           
@@ -867,7 +851,7 @@ class Compiler :
     
     # see if the triples which contain the variables can bind to any of the 
     # other triples in the query
-    bindings_set = self.find_bindings(new_query, var_triples, False, initial_bindings = initial_bindings)
+    bindings_set = self.bind_vars(var_triples, new_query, False, initial_bindings = initial_bindings)
     if bindings_set != False :
       for bindings in bindings_set :
         found_bindings_for = set()
@@ -1055,7 +1039,6 @@ class Compiler :
   def compile(self, query, reqd_bound_vars, input = [], output = []) :
     self.debug_reset()
     self.partials = defaultdict(list)
-    self.debug_find_bindings = False
     
     if isinstance(query, basestring) :
       query = [line.strip() for line in query.split('\n')]
