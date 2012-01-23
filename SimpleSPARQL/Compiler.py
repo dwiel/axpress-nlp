@@ -444,6 +444,9 @@ class Compiler :
     # HEURISTIC
     # make sure that the translation's input matches part of the reqd_triples
     # otherwise, not a new path
+    # right now, this is also a required step because this is the only way that
+    # testtranslation will return False
+    
     #p('translation[self.n.meta.input]', translation[self.n.meta.input])
     #p('query', query)
     #p('reqd_triples', reqd_triples)
@@ -461,10 +464,16 @@ class Compiler :
       #p('input', translation[n.meta.input])
       #p('reqd_triples', reqd_triples)
       #p()
+      # loop for which triples matched and return that so that.  This can be
+      # used by an optimization which will only look at combinations of partial
+      # matches if together, they partially cover all triples.  This doesn't
+      # guarantee that they form a match, but it can guarantee when they won't
+      # form a match
       matched_triples = set()
       for i, triple in enumerate(translation[self.n.meta.input]) :
         if self.find_triple_match(triple, query) :
           matched_triples.add(i)
+      
       return "partial", matched_triples
     else :
       return True, ret
