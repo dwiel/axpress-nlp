@@ -23,6 +23,7 @@ def loadTranslations(axpress, n) :
     
   def image_thumbnail(vars) :
     im = vars['pil_image']
+    print 'im', im
     im.thumbnail((int(vars['x']), int(vars['y'])), Image.ANTIALIAS)
     vars['thumb_image'] = im
   axpress.register_translation({

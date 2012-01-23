@@ -12,6 +12,7 @@ from rdflib import URIRef
 
 from itertools import izip, imap
 import copy, time, random
+from collections import defaultdict
 
 def isstr(v) :
   return isinstance(v, basestring) and not isinstance(v, URIRef)
@@ -144,10 +145,6 @@ class Compiler :
     return self._next_translation_id
   
   def translation_can_follow(self, this, next) :
-    #this_property_values = set(triple[1] for triple in this[n.meta.output])
-    #next_property_values = set(triple[1] for triple in next[n.meta.input ])
-    
-    #return this_property_values.intersection(next_property_values)
     for triple in this[n.meta.output] :
       for ntriple in next[n.meta.input] :
         if self.triples_match(ntriple, triple) :
@@ -197,6 +194,8 @@ class Compiler :
         # not often ... probably only in the if matches(q,v) or (v,q) ...
         if is_lit_var(qvalue) :
           return True
+        #elif is_out_lit_var(qvalue) :
+          #return True
         elif is_any_var(qvalue) :
           return False
         else :
@@ -419,30 +418,29 @@ class Compiler :
     #self.debugp('matches', matches, bindings)
     return bindings
   
-  def find_bindings(self, facts, pattern, output_vars, reqd_triples, root = False, initial_bindings = {}) :
+  def find_bindings(self, facts, pattern, reqd_triples, root = False, initial_bindings = {}) :
     """
     @arg facts is the set of triples whose values are attempting to matched to
     @arg pattern is the pattern whose variables are attempting to be matched
-    @arg output_vars are variables which are not allowed to be bound to a 
-      literal variable in the pattern
     @arg reqd_triples is a set of triples which is a subset of the data of which
       at least one must be used in the bindings
     @arg root is True only on the first set of matches to inform find_bindings
       that a 0 length pattern matches.  Otherwise, 0 length patterns don't match
       
-    @return matches, set_of_bindings
-      matches is True iff the query matched the set of data
-      set_of_bindings is the set of bindings which matched the data
+    @return set_of_bindings
+      set_of_bindings is the set of bindings which matched the data unless there
+      was no match, in which case it is False
     """
     if len(pattern) == 0 and root:
+      raise Exception('WTF!? this never happens and root variable isnt necessary')
       return [Bindings()]
     
     # check that all of the translation inputs match part of the query
     if reqd_triples != False:
       for triple in pattern :
-        #self.debugp('find_triple_match', triple, facts)
+        #if self.debug_find_bindings : p('find_triple_match', triple, facts)
         if not self.find_triple_match(triple, facts) :
-          #self.debugp('False')
+          #if self.debug_find_bindings : p('False')
           return False
     
     # find all possible bindings for the vars if any exist
@@ -455,7 +453,7 @@ class Compiler :
         return True
     return False
     
-  def testtranslation(self, translation, query, output_vars, reqd_triples, root = False) :
+  def testtranslation(self, translation, query, reqd_triples, root = False) :
     """
     @returns matches, bindings
       matches is True if the translation is guaranteed to match the query.  It 
@@ -471,9 +469,26 @@ class Compiler :
     #p('query', query)
     #p('reqd_triples', reqd_triples)
     if not self.partial_match_exists(translation[self.n.meta.input], reqd_triples) :
-      return False
+      return False, None
       
-    return self.find_bindings(query, translation[self.n.meta.input], output_vars, reqd_triples, root)
+    ret = self.find_bindings(
+      query, translation[self.n.meta.input], reqd_triples, root
+    )
+    # if a partial match did exist, but no bindings could be found, then this 
+    # was a partial match
+    if ret == False :
+      #p('cx'*39)
+      #p('name', translation[n.meta.name])
+      #p('input', translation[n.meta.input])
+      #p('reqd_triples', reqd_triples)
+      #p()
+      matched_triples = set()
+      for i, triple in enumerate(translation[self.n.meta.input]) :
+        if self.find_triple_match(triple, query) :
+          matched_triples.add(i)
+      return "partial", matched_triples
+    else :
+      return True, ret
   
   # return all triples which have at least one var in vars
   def find_specific_var_triples(self, query, vars) :
@@ -484,18 +499,15 @@ class Compiler :
     return self._next_num
 
   #@logger
-  def next_steps(self, query, history, output_vars, reqd_triples, root = False) :
+  def next_steps(self, query, history, reqd_triples, root = False) :
     """
     @arg query the query in triples set form
     @arg history the history of steps already followed
-    @arg output_vars is a set of variables which are not allowed to be bound as
-      an input to a translation
     @returns the set of next guaranteed_steps and possible_steps.
       Ensures that this set of translation and bindings haven't already been 
       searched.....
     """
     #p('query', query)
-    #p('output_vars', output_vars)
     #p('reqd_triples', reqd_triples)
     n = self.n
     
@@ -541,10 +553,56 @@ class Compiler :
       
       #self.debug('testing ' + translation[n.meta.name])
       #p('testing', translation[n.meta.name])
-      bindings_set = self.testtranslation(translation, query, output_vars, reqd_triples, root)
-      if bindings_set == False :
-        continue 
+      # NOTE: I think this is where I need to check for partial matches in order
+      # to tack on the DFS stack onto the translation_queue
+      ret, more = self.testtranslation(translation, query, reqd_triples, root)
+      if ret == "partial" :
+        matched_triples = more
+        
+        def test_against_partials() :
+          past_partials = self.partials[translation[n.meta.id]]
+          if past_partials :
+            #p('2nd find', past_partials)
+            for past_query, past_matched_triples in past_partials :
+              if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
+                combined_bindings = self.bind_vars(query, past_query, False, {})
+                p('!!!!!!! potential merge', past_query, query, combined_bindings, past_matched_triples, matched_triples, translation[n.meta.input])
+                
+                # TODO: look for identical past_query and query
+                # TODO: look for past_query in direct lineage of query
+                # TODO  make sure that the two queries combined have more information that query by itself
 
+                altered_past_query, altered_past_query_new_triples = sub_var_bindings_track_changes(past_query, combined_bindings)
+                # TODO: combine new_triples
+                
+                # combine two branches' queries
+                new_query = []
+                new_query.extend(query)
+                new_query.extend(altered_past_query)
+                
+                p('new_query', new_query)
+                ret, more = self.testtranslation(translation, new_query, reqd_triples, root)
+                p('ret', ret, more)
+                p()
+                if ret == True :
+                  return ret, more
+          return False, None
+        
+        # set to if True to enable partial translation merging
+        if False :
+          ret, more = test_against_partials()
+          self.partials[translation[n.meta.id]].append((query, matched_triples))
+          
+          if ret != True :
+            continue
+        else :
+          continue
+      if ret == False :
+        continue 
+      
+      # the 2nd value from testtranslation is bindings_set if we've gotten here
+      bindings_set = more
+      
       # we've found a match, now we just need to find the bindings.  This is
       # the step where we unify the new information (generated by output 
       # triples) with existing information.
@@ -601,7 +659,7 @@ class Compiler :
         #self.debugp('initial_bindings', initial_bindings)
         
         # unify output_triples with query
-        output_bindings_set = self.find_bindings(query, output_triples, [], False, initial_bindings = initial_bindings)
+        output_bindings_set = self.find_bindings(query, output_triples, False, initial_bindings = initial_bindings)
         if output_bindings_set == False :
           output_bindings_set = [initial_bindings]
         
@@ -640,9 +698,6 @@ class Compiler :
           # output bindings substituted in
           #p('output_bindings', output_bindings)
           new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
-          # TODO:is this necessary:
-          # I wonder if the triples which are changed here need to be added to
-          # new_triples ...
           #self.debugps('new_triples', new_triples)
           #self.debugps('unified_bindings', unified_bindings)
           #self.debugps('query', query)
@@ -817,7 +872,7 @@ class Compiler :
     
     # see if the triples which contain the variables can bind to any of the 
     # other triples in the query
-    bindings_set = self.find_bindings(new_query, var_triples, [], False, initial_bindings = initial_bindings)
+    bindings_set = self.find_bindings(new_query, var_triples, False, initial_bindings = initial_bindings)
     if bindings_set != False :
       for bindings in bindings_set :
         found_bindings_for = set()
@@ -855,7 +910,7 @@ class Compiler :
       yield step
 
   #@logger
-  def search(self, query, possible_stack, history, output_vars, new_triples, root = False) :
+  def search(self, query, possible_stack, history, new_triples, root = False) :
     """
     follow guaranteed translations and add possible translations to the 
       possible_stack
@@ -866,8 +921,6 @@ class Compiler :
       followed completely
     @history is a list of all the paths we've already explored so we don't 
       repeat them.
-    @arg output_vars is a set of variables which are not allowed to be bound as
-      an input to a translation
     @new_triples is a set of triples which are new as of the previous 
       translation.  This next translation must take them into account.  If they
       are not needed, then an earlier step could have gotten there already and
@@ -880,18 +933,23 @@ class Compiler :
       self.debug_open_block('search')
     #self.debugp('query', query)
     
+    # TODO: refactor out possible
     # this is where the result of the work done in this function is ultimately 
     # stored.  Possible isn't really used any more, it might in the future.
-    # would be awesome to refactor this out at some point
+    # would be awesome to refactor this out at some point.
+    # compile_node['guaranteed'] will be a list of steps that are gauranteed to
+    # be valid
     compile_node = {
       'guaranteed' : [],
       'possible' : [],
     }
     
-    steps = self.next_steps(query, history, output_vars, new_triples, root)
+    # find the possible next steps
+    steps = self.next_steps(query, history, new_triples, root)
     
     # remove any steps we've already taken
     steps = self.remove_steps_already_taken(steps, history)
+    
     #self.debug_open_block('steps')
     #self.debugp(steps)
     #self.debug_close_block()
@@ -910,7 +968,7 @@ class Compiler :
       if found_solution :
         step['solution'] = found_solution
       else :
-        child_steps = self.search(step['new_query'], possible_stack, step['new_history'], output_vars, step['new_triples'])
+        child_steps = self.search(step['new_query'], possible_stack, step['new_history'], step['new_triples'])
         if child_steps :
           # this will happen if one of the steps that followed from this one
           # had a solution
@@ -1001,6 +1059,8 @@ class Compiler :
 
   def compile(self, query, reqd_bound_vars, input = [], output = []) :
     self.debug_reset()
+    self.partials = defaultdict(list)
+    self.debug_find_bindings = False
     
     if isinstance(query, basestring) :
       query = [line.strip() for line in query.split('\n')]
@@ -1030,14 +1090,14 @@ class Compiler :
     compile_root_node = None
     while not compile_root_node and self.depth < 8:
       self.debugp("depth: %d" % self.depth)
-      compile_root_node = self.search(query, possible_stack, history, reqd_bound_vars, query, True)
+      compile_root_node = self.search(query, possible_stack, history, query, True)
       self.depth += 1
     
     # if there were no paths through the search space we are done here
     if not compile_root_node :
       return compile_root_node
     
-    #p('compile_root_node', compile_root_node)
+    self.debugp('compile_root_node', compile_root_node)
     
     def p_cnode(cnode, level = 0) :
       if 'translation' in cnode :
@@ -1136,8 +1196,8 @@ class Compiler :
         new.append(b)
         s.add(key)
     #solution_bindings_set = new
-    p('solution_bindings_set', solution_bindings_set)
-    p('new', new)
+    #p('solution_bindings_set', solution_bindings_set)
+    #p('new', new)
     
     # if a translation listed in the root of the combinations is a dependency
     # of another root, dont include it.  It will be computed anyway.
