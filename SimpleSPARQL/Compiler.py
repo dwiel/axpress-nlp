@@ -1129,7 +1129,7 @@ class Compiler :
     # replaces all vars in reqd_bound_vars not already litvars with outvars ...
     self.make_vars_out_vars(query, reqd_bound_vars)
     
-    p('query',query)
+    #p('query',query)
     
     self.reqd_bound_vars = reqd_bound_vars
     var_triples = self.find_specific_var_triples(query, reqd_bound_vars)
