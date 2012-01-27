@@ -30,7 +30,7 @@ class Variable(object) :
     if isinstance(other, Variable) :
       return self.name != other.name
     else :
-      return False
+      return True
   
   def __str__(self) :
     return self.__class__.__name__ + '.' + self.name
