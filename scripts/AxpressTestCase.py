@@ -196,8 +196,8 @@ class AxpressTestCase(unittest.TestCase):
       dist[type.number] = color.distance(color.red, pixel)
       dist[type.number] = _distance
     """, reqd_bound_vars = ['filename','distance'])
-    print 'ret6',prettyquery(ret)
-    print ret
+    #print 'ret6',prettyquery(ret)
+    #print ret
     assert ret == [
       {
         'distance' : 53593,
