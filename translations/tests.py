@@ -115,11 +115,11 @@ def loadTranslations(axpress, n) :
   axpress.register_translation({
     n.meta.name : 'test',
     n.meta.input : """
-      x[test.p][test.p] = y
+      xxx[test.p][test.p] = yyy
     """,
     n.meta.output : """
-      x[test.q][test.q] = y
-      x[test.q][test.r] = 10000
+      xxx[test.q][test.q] = yyy
+      xxx[test.q][test.r] = 10000
     """,
     # note that y isn't a constant var ... right now it is because y in the 
     # input will likely be bound to a different variable than y in the output,

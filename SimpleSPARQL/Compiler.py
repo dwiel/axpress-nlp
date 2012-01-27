@@ -668,7 +668,6 @@ class Compiler :
         
         # used in a couple places later on
         output_lit_vars = find_vars(translation[n.meta.output], is_lit_var)
-        
         #self.debugp('input_bindings', input_bindings)
         #self.debugp('initial_bindings', initial_bindings)
         
@@ -677,19 +676,11 @@ class Compiler :
           if not translation[n.meta.input_function](input_bindings) :
             #self.debugp('didnt pass input function')
             continue
-        if translation[n.meta.name] == 'color distance' :
-          print '-'*80
-          p('query', query)
-          p('output_triples', output_triples)
-          p('initial_bindings', initial_bindings)
         
         # unify output_triples with query
         output_bindings_set = self.bind_vars(output_triples, query, False, initial_bindings = initial_bindings)
         if output_bindings_set == False :
           output_bindings_set = [initial_bindings]
-        
-        if translation[n.meta.name] == 'color distance' :
-          p('obs', output_bindings_set)
         
         for output_bindings in output_bindings_set :
           # if var is a lit var in the output_triples, then its output bindings
@@ -749,9 +740,10 @@ class Compiler :
               var in translation[n.meta.constant_vars]
           }
           
-          #self.debugp('new_triples', new_triples)
-          #self.debugp('new_query', new_query)
-          #self.debugp('output_bindings', output_bindings)
+          self.debugp('new_triples', new_triples)
+          self.debugp('new_query', new_query)
+          self.debugp('input_bindings', input_bindings)
+          self.debugp('output_bindings', output_bindings)
           
           # TODO/NOTE: I think that all of this find_specific_var_triples stuff could
           # happen in the post-processing stages.  That way, we wouldn't 
@@ -760,6 +752,8 @@ class Compiler :
           partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(
             var_triples, new_query, new_triples
           )
+          self.debugp('var_triples', var_triples)
+          self.debugp(partial_bindings, partial_solution_triples, partial_facts_triples)
           #partial_triples = [triple for triple in partial_triples if triple in new_triples]
           
           yield {
@@ -1135,7 +1129,7 @@ class Compiler :
     # replaces all vars in reqd_bound_vars not already litvars with outvars ...
     self.make_vars_out_vars(query, reqd_bound_vars)
     
-    #p('query',query)
+    p('query',query)
     
     self.reqd_bound_vars = reqd_bound_vars
     var_triples = self.find_specific_var_triples(query, reqd_bound_vars)
