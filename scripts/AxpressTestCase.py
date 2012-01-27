@@ -176,8 +176,7 @@ class AxpressTestCase(unittest.TestCase):
       thumb = image.thumbnail(image, 4, 4)
       pixel = image.pixel(thumb, 0, 0)
       pixel[pil.color] = _thumb_pixel_color
-    """, reqd_bound_vars = ['filename','thumb_pixel_color'])
-    print 'ret5',prettyquery(ret)
+    """)
     assert ret == [
       {
         'filename' : 'pictures/111.jpg',
@@ -197,7 +196,8 @@ class AxpressTestCase(unittest.TestCase):
       dist[type.number] = color.distance(color.red, pixel)
       dist[type.number] = _distance
     """, reqd_bound_vars = ['filename','distance'])
-    #print 'ret6',prettyquery(ret)
+    print 'ret6',prettyquery(ret)
+    print ret
     assert ret == [
       {
         'distance' : 53593,

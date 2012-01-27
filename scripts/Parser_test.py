@@ -26,33 +26,33 @@ class PassCompleteReadsTestCase(unittest.TestCase):
     self.parser = Parser(n)
   
   def test1(self):
-    assert self.parser.parse_expression("image[flickr.tag] = 'sunset'") == [[n.var.image, n.flickr.tag, 'sunset']]
+    assert self.parser.parse_expression("image[flickr.tag] = 'sunset'") == [[Var.image, n.flickr.tag, 'sunset']]
   
   def test1b(self):
-    assert self.parser.parse_expression("image[flickr.tag] = 'sunset' | 'sunrise'") == [[n.var.image, n.flickr.tag, ['sunset', 'sunrise']]]
+    assert self.parser.parse_expression("image[flickr.tag] = 'sunset' | 'sunrise'") == [[Var.image, n.flickr.tag, ['sunset', 'sunrise']]]
   
   def test2(self):
-    assert self.parser.parse_expression("image[flickr:tag] = 1.5") == [[n.var.image, n.flickr.tag, 1.5]]
+    assert self.parser.parse_expression("image[flickr:tag] = 1.5") == [[Var.image, n.flickr.tag, 1.5]]
   
   def test3(self):
-    assert self.parser.parse_expression("image[flickr:tag] = 4 * 9") == [[n.var.image, n.flickr.tag, 4 * 9]]
+    assert self.parser.parse_expression("image[flickr:tag] = 4 * 9") == [[Var.image, n.flickr.tag, 4 * 9]]
 
   def test4(self):
-    assert self.parser.parse_expression("image[flickr.tag] = tag") == [[n.var.image, n.flickr.tag, n.var.tag]]
+    assert self.parser.parse_expression("image[flickr.tag] = tag") == [[Var.image, n.flickr.tag, Var.tag]]
   
   def test5(self):
-    assert self.parser.parse_expression("tag = image[flickr.tag]") == [[n.var.image, n.flickr.tag, n.var.tag]]
+    assert self.parser.parse_expression("tag = image[flickr.tag]") == [[Var.image, n.flickr.tag, Var.tag]]
   
   def test6(self):
     assert self.parser.parse_expression("image1[flickr.tag] = image2[flickr.tag]") == [
-      [n.var.image1, n.flickr.tag, n.var.bnode1],
-      [n.var.image2, n.flickr.tag, n.var.bnode1],
+      [Var.image1, n.flickr.tag, Var.bnode1],
+      [Var.image2, n.flickr.tag, Var.bnode1],
     ]
   
   def test7(self):
     assert self.parser.parse_expression("tag = image[flickr.tag][string.upper]") == [
-      [n.var.image, n.flickr.tag, n.var.bnode1],
-      [n.var.bnode1, n.string['upper'], n.var.tag],
+      [Var.image, n.flickr.tag, Var.bnode1],
+      [Var.bnode1, n.string['upper'], Var.tag],
     ]
   
   def test8(self):
@@ -61,9 +61,9 @@ class PassCompleteReadsTestCase(unittest.TestCase):
         color.rgb : 1,
         color.rgb : 2,
       } = distance""") == [
-      [n.var.bnode1, n.color.rgb, 1],
-      [n.var.bnode1, n.color.rgb, 2],
-      [n.var.bnode1, n.color.distance, n.var.distance],
+      [Var.bnode1, n.color.rgb, 1],
+      [Var.bnode1, n.color.rgb, 2],
+      [Var.bnode1, n.color.distance, Var.distance],
     ]
   
   """
@@ -118,13 +118,13 @@ class PassCompleteReadsTestCase(unittest.TestCase):
   def test9(self):
     #assert self.parser.parse_expression("""
       #math.sum(1, 2) = sum""") == [
-      #[n.var.bnode1, n.call.arg1, 1],
-      #[n.var.bnode1, n.call.arg2, 2],
-      #[n.var.bnode1, n.math.sum, n.var.sum],
+      #[Var.bnode1, n.call.arg1, 1],
+      #[Var.bnode1, n.call.arg2, 2],
+      #[Var.bnode1, n.math.sum, Var.sum],
     #]
     assert self.parser.parse_expression("""
       math.sum(1, 2) = sum""") == [
-      [n.math.sum, 1, 2, n.var.sum],
+      [n.math.sum, 1, 2, Var.sum],
     ]
   
   #def test10(self):
@@ -133,49 +133,49 @@ class PassCompleteReadsTestCase(unittest.TestCase):
         #color.rgb : something[color],
         #color.rgb : 2,
       #} = distance""") == [
-      #[n.var.something, n.var.color, n.var.bnode2],
-      #[n.var.bnode1, n.color.rgb, n.var.bnode2],
-      #[n.var.bnode1, n.color.rgb, 2],
-      #[n.var.bnode1, n.color.distance, n.var.distance],
+      #[Var.something, Var.color, Var.bnode2],
+      #[Var.bnode1, n.color.rgb, Var.bnode2],
+      #[Var.bnode1, n.color.rgb, 2],
+      #[Var.bnode1, n.color.distance, Var.distance],
     #]
   
   def test11(self):
-    assert self.parser.parse_expression("image[flickr.tag] = x") == [[n.var.image, n.flickr.tag, n.var.x]]
+    assert self.parser.parse_expression("image[flickr.tag] = x") == [[Var.image, n.flickr.tag, Var.x]]
 
   def test12(self):
-    assert self.parser.parse_expression("image[flickr:tag] = True") == [[n.var.image, n.flickr.tag, True]]
+    assert self.parser.parse_expression("image[flickr:tag] = True") == [[Var.image, n.flickr.tag, True]]
   
   def test13(self):
-    assert self.parser.parse_expression("image[flickr.tag] = image_tag") == [[n.var.image, n.flickr.tag, n.var.image_tag]]
+    assert self.parser.parse_expression("image[flickr.tag] = image_tag") == [[Var.image, n.flickr.tag, Var.image_tag]]
     
   def test14(self):
     assert self.parser.parse_expression('image[file.filename] = "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"') == [
-      [n.var.image, n.file.filename, "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"]
+      [Var.image, n.file.filename, "/home/dwiel/AMOSvid/1065/20080821_083129.jpg"]
     ]
     
   def test15(self):
     assert self.parser.parse_expression('image[file.filename] = "home/dwiel/AMOSvid/1065/*.jpg"[glob.glob]') == [
-      [n.var.image, n.file.filename, n.var.bnode1],
-      ["home/dwiel/AMOSvid/1065/*.jpg", n.glob.glob, n.var.bnode1],
+      [Var.image, n.file.filename, Var.bnode1],
+      ["home/dwiel/AMOSvid/1065/*.jpg", n.glob.glob, Var.bnode1],
     ]
   
   def test16(self):
     assert self.parser.parse_expression('_pattern[glob.glob] = ?filename') == [
-      [n.lit_var.pattern, n.glob.glob, n.meta_var.filename],
+      [LitVar.pattern, n.glob.glob, MetaVar.filename],
     ]
   
   def test17(self):
     query = """uri[test.result] = '<script type="text/javascript" src="external.js"></script>'"""
     assert self.parser.parse_query(query) == [
-      [ n.var.uri, n.test.result, '<script type="text/javascript" src="external.js"></script>', ],
+      [ Var.uri, n.test.result, '<script type="text/javascript" src="external.js"></script>', ],
     ]
     
   def test18(self):
     query = """test.func("xyz()", 'abc = 123') = "what's um, the deal?" """
     #assert self.parser.parse_query(query) == [
-      #[ n.var.bnode1, n.call.arg1, 'xyz()', ],
-      #[ n.var.bnode1, n.call.arg2, 'abc = 123', ],
-      #[ n.var.bnode1, n.test.func, "what's um, the deal?", ],
+      #[ Var.bnode1, n.call.arg1, 'xyz()', ],
+      #[ Var.bnode1, n.call.arg2, 'abc = 123', ],
+      #[ Var.bnode1, n.test.func, "what's um, the deal?", ],
     #]
     assert self.parser.parse_query(query) == [
       [ n.test.func, 'xyz()', 'abc = 123', "what's um, the deal?", ],
@@ -184,9 +184,9 @@ class PassCompleteReadsTestCase(unittest.TestCase):
   def test19(self):
     query = """test.func('''xyz() + 'what?' and "what?" ''', 'abc = 123') = "what's um, the deal?" """
     #assert self.parser.parse_query(query) == [
-      #[ n.var.bnode1, n.call.arg1, 'xyz() + \'what?\' and "what?" ', ],
-      #[ n.var.bnode1, n.call.arg2, 'abc = 123', ],
-      #[ n.var.bnode1, n.test.func, "what's um, the deal?", ],
+      #[ Var.bnode1, n.call.arg1, 'xyz() + \'what?\' and "what?" ', ],
+      #[ Var.bnode1, n.call.arg2, 'abc = 123', ],
+      #[ Var.bnode1, n.test.func, "what's um, the deal?", ],
     #]
     assert self.parser.parse_query(query) == [
       [ n.test.func, 'xyz() + \'what?\' and "what?" ', 'abc = 123', "what's um, the deal?", ],
@@ -197,20 +197,20 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       'uri[test.sum] = sum',
     ]
     assert self.parser.parse_query(query) == [
-      [n.var.uri, n.test.sum, n.var.sum],
+      [Var.uri, n.test.sum, Var.sum],
     ]
   
   def test_parseQuery2(self):
     query = [
       'uri[test.sum] = sum',
       'uri[test.x] = uri2[test.x]',
-      [n.var.uri, n.test.x, 1],
+      [Var.uri, n.test.x, 1],
     ]
     assert self.parser.parse_query(query) == [
-      [n.var.uri, n.test.sum, n.var.sum],
-      [n.var.uri, n.test.x, n.var.bnode1],
-      [n.var.uri2, n.test.x, n.var.bnode1],
-      [n.var.uri, n.test.x, 1],
+      [Var.uri, n.test.sum, Var.sum],
+      [Var.uri, n.test.x, Var.bnode1],
+      [Var.uri2, n.test.x, Var.bnode1],
+      [Var.uri, n.test.x, 1],
     ]
   
   def test_parseQuery3(self):
@@ -221,20 +221,20 @@ class PassCompleteReadsTestCase(unittest.TestCase):
     ]
     ret = self.parser.parse_query(query)
     #assert ret == [
-      #[ n.var.image, n.file.filename, n.var.bnode1, ],
-      #[ '/home/dwiel/pictures/stitt blanket/*.jpg', n.glob.glob, n.var.bnode1, ],
-      #[ n.var.bnode2, n.call.arg1, n.var.image, ],
-      #[ n.var.bnode2, n.call.arg2, 4, ],
-      #[ n.var.bnode2, n.call.arg3, 4, ],
-      #[ n.var.bnode2, n.call.arg4, n.image.antialias, ],
-      #[ n.var.bnode2, n.image.thumbnail, n.var.thumb, ],
-      #[ n.var.thumb, n.pil.image, n.var.thumb_image, ],
+      #[ Var.image, n.file.filename, Var.bnode1, ],
+      #[ '/home/dwiel/pictures/stitt blanket/*.jpg', n.glob.glob, Var.bnode1, ],
+      #[ Var.bnode2, n.call.arg1, Var.image, ],
+      #[ Var.bnode2, n.call.arg2, 4, ],
+      #[ Var.bnode2, n.call.arg3, 4, ],
+      #[ Var.bnode2, n.call.arg4, n.image.antialias, ],
+      #[ Var.bnode2, n.image.thumbnail, Var.thumb, ],
+      #[ Var.thumb, n.pil.image, Var.thumb_image, ],
     #]
     assert ret == [
-      [ n.var.image, n.file.filename, n.var.bnode1, ],
-      [ '/home/dwiel/pictures/stitt blanket/*.jpg', n.glob.glob, n.var.bnode1, ],
-      [ n.image.thumbnail, n.var.image, 4, 4, n.image.antialias, n.var.thumb, ],
-      [ n.var.thumb, n.pil.image, n.var.thumb_image, ],
+      [ Var.image, n.file.filename, Var.bnode1, ],
+      [ '/home/dwiel/pictures/stitt blanket/*.jpg', n.glob.glob, Var.bnode1, ],
+      [ n.image.thumbnail, Var.image, 4, 4, n.image.antialias, Var.thumb, ],
+      [ Var.thumb, n.pil.image, Var.thumb_image, ],
     ]
   
   def test_parseQuery4(self):
@@ -243,11 +243,12 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       uri[test.x] = uri2[test.x]
       uri[test.x] = 1
     """
+    #p('self.parser.parse_query(query)', self.parser.parse_query(query))
     assert self.parser.parse_query(query) == [
-      [n.var.uri, n.test.sum, n.var.sum],
-      [n.var.uri, n.test.x, n.var.bnode1],
-      [n.var.uri2, n.test.x, n.var.bnode1],
-      [n.var.uri, n.test.x, 1],
+      [Var.uri, n.test.sum, Var.sum],
+      [Var.uri, n.test.x, Var.bnode1],
+      [Var.uri2, n.test.x, Var.bnode1],
+      [Var.uri, n.test.x, 1],
     ]
   
   def test_parseKeyword(self):
@@ -255,7 +256,7 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       count[file.count] = _count
     """
     assert self.parser.parse_query(query) == [
-      [n.var['count'], n.file['count'], n.lit_var['count']],
+      [Var.count, n.file['count'], LitVar.count],
     ]
   
   def test_parseBrokenQuery(self):
@@ -273,7 +274,7 @@ class PassCompleteReadsTestCase(unittest.TestCase):
     """
     
     assert self.parser.parse_query(query) == [
-      [n.var['note'], n['']['tag'], n.lit_var['tag']],
+      [Var.note, n['']['tag'], LitVar.tag],
     ]
   
   def test_emptyNamespace2(self):
@@ -282,7 +283,7 @@ class PassCompleteReadsTestCase(unittest.TestCase):
     """
     
     assert self.parser.parse_query(query) == [
-      [n.var['note'], n['']['tag'], n.lit_var['tag']],
+      [Var.note, n['']['tag'], LitVar.tag],
     ]
   
   def test_URIwithSlashes(self):
@@ -290,7 +291,7 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       x[test./type/type] = test.property
     """
     assert self.parser.parse_query(query) == [
-      [n.var['x'], n.test['/type/type'], n.test['property']],
+      [Var.x, n.test['/type/type'], n.test['property']],
     ]
     
   def test_full_line_comment(self):
@@ -299,7 +300,7 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       # this is a comment
     """
     assert self.parser.parse_query(query) == [
-      [n.var['x'], n.test['/type/type'], n.test['property']],
+      [Var.x, n.test['/type/type'], n.test['property']],
     ]
     
   def test_after_triple_comment(self):
@@ -307,7 +308,7 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       x[test./type/type] = test.property # this is a comment
     """
     assert self.parser.parse_query(query) == [
-      [n.var['x'], n.test['/type/type'], n.test['property']],
+      [Var.x, n.test['/type/type'], n.test['property']],
     ]
   
   def test_comment_in_middle_of_query(self):
@@ -317,8 +318,8 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       x[test./type/type] = test.property
     """
     assert self.parser.parse_query(query) == [
-      [n.var['x'], n.test['/type/type'], n.test['property']],
-      [n.var['x'], n.test['/type/type'], n.test['property']],
+      [Var.x, n.test['/type/type'], n.test['property']],
+      [Var.x, n.test['/type/type'], n.test['property']],
     ]
   
   def test_implied_var(self):
@@ -326,21 +327,21 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       x[test.test][test.test] = 1
     """
     assert self.parser.parse_query(query) == [
-      [n.var['x'], n.test['test'], n.var['bnode1']],
-      [n.var['bnode1'], n.test['test'], 1]
+      [Var.x, n.test['test'], Var.bnode1],
+      [Var.bnode1, n.test['test'], 1]
     ]
   
-  def test_implied_type(self):
-    query = """
-      x[test.test] = "day before %:dt.date%"
-    """
-    ret = self.parser.parse_query(query)
+  #def test_implied_type(self):
+    #query = """
+      #x[test.test] = "day before %:dt.date%"
+    #"""
+    #ret = self.parser.parse_query(query)
     #p('ret', ret)
-    assert ret == [
-      [n.var['x'],      n.test['test'],  "day before %date_auto_str%"],
-      [n.var['bnode1'], n.axpress['is'], "%date_auto_str%"],
-      [n.var['bnode1'], n.dt['date'],    n.lit_var['date']],
-    ]
+    #assert ret == [
+      #[Var.x,      n.test['test'],  "day before %date_auto_str%"],
+      #[Var.bnode1, n.axpress['is'], "%date_auto_str%"],
+      #[Var.bnode1, n.dt['date'],    LitVar.date],
+    #]
 
   def test_multiLineOr(self):
     query = """
@@ -348,7 +349,7 @@ class PassCompleteReadsTestCase(unittest.TestCase):
                       'sunrise'
     """
     assert self.parser.parse_query(query) == [
-      [n.var['i'], n['flickr']['tag'], ['sunset', 'sunrise']],
+      [Var.i, n['flickr']['tag'], ['sunset', 'sunrise']],
     ]
 
   def test_optional(self) :
@@ -357,8 +358,8 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       | x[test.bar] = z
     """
     assert self.parser.parse_query(query) == [
-             [n.var['x'], n['test']['foo'], n.var['y']],
-      Triple([n.var['x'], n['test']['bar'], n.var['z']], optional=True),
+             [Var.x, n['test']['foo'], Var.y],
+      Triple([Var.x, n['test']['bar'], Var.z], optional=True),
     ]
     
   def test_unknown(self) :
@@ -369,8 +370,8 @@ class PassCompleteReadsTestCase(unittest.TestCase):
     ret = self.parser.parse_query(query)
     #p('ret', ret)
     assert ret == [
-      [ n.var.weather, n.axpress['is'], 'current weather in bloomington, indiana', ],
-      [ n.var.weather, n.test.current_temperature, n.lit_var.current_temperature, ],
+      [ Var.weather, n.axpress['is'], 'current weather in bloomington, indiana', ],
+      [ Var.weather, n.test.current_temperature, LitVar.current_temperature, ],
     ]
 
   def test_simple_string_var(self) :
@@ -381,8 +382,8 @@ class PassCompleteReadsTestCase(unittest.TestCase):
     ret = self.parser.parse_query(query)
     #p('ret', ret)
     assert ret == [
-      [ n.var.book, n.axpress['is'], '%title%', ],
-      [ n.var.book, n.test.type, n.lit_var.type, ],
+      [ Var.book, n.axpress['is'], '%title%', ],
+      [ Var.book, n.test.type, LitVar.type, ],
     ]
 
 if __name__ == "__main__" :

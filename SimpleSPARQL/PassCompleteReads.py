@@ -9,7 +9,6 @@ from PassUtils import dictrecursiveupdate
 
 n = Namespaces.globalNamespaces()
 n.bind('sparql', '<http://dwiel.net/express/sparql/0.1/>')
-n.bind('var', '<http://dwiel.net/express/var/0.1/>')
 
 """
 TODO: allow for the many flag to not throw an error if there are many possible

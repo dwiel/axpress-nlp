@@ -14,6 +14,22 @@ from itertools import izip, imap
 import copy, time, random
 from collections import defaultdict
 
+"""
+some naming conventions:
+  var_triples are the triples which include outlitvars
+"""
+
+def logger(fn) :
+  def new_fn(*args, **kwargs) :
+    ret = fn(*args, **kwargs)
+    if args[1].get('depends') :
+      p('log-fn', fn.__name__)
+      p('args', args)
+      p('kwargs', kwargs)
+      p('ret', ret)
+    return ret
+  return new_fn
+
 def isstr(v) :
   return isinstance(v, basestring) and not isinstance(v, URIRef)
 
@@ -42,8 +58,6 @@ class Compiler :
       self.n = n
     else :
       self.n = Namespaces()
-    self.n.bind('out_lit_var', '<http://dwiel.net/axpress/out_lit_var/0.1/>')
-    self.n.bind('out_var', '<http://dwiel.net/axpress/out_var/0.1/>')
     
     self.parser = Parser(self.n)
     
@@ -174,19 +188,18 @@ class Compiler :
   def string_matches(self, value, qvalue) :
     return self.find_matches(value, qvalue) != None
   
-  #@logger
   def values_match(self, value, qvalue) :
     #self.debugp('values_match', value, qvalue)
-    if type(value) == URIRef :
+    if is_any_var(value) :
       if is_var(value) :
         return True
       elif is_meta_var(value) :
-        if type(qvalue) == URIRef :
+        if is_any_var(qvalue) :
           return is_any_var(qvalue) and not is_lit_var(qvalue)
         else :
           return False
       elif is_lit_var(value) :
-        if type(qvalue) == URIRef :
+        if is_any_var(qvalue) :
           return is_lit_var(qvalue) or not is_any_var(qvalue)
         else :
           return True
@@ -225,7 +238,9 @@ class Compiler :
       #print 'v',prettyquery(tv),'q',prettyquery(qv)
       if not self.values_match(tv, qv) :
         self._triples_hash[key] = False
+        #print 'v',prettyquery(tv),'q',prettyquery(qv), False
         return False
+    #print 'v',prettyquery(tv),'q',prettyquery(qv), True
     self._triples_hash[key] = True
     return True
   
@@ -236,17 +251,23 @@ class Compiler :
     return False
   
   def get_binding(self, triple, ftriple) :
+    #d = triple[1] == self.n.type.number and 'distance' in str(triple[2]) and 'distance' in str(ftriple[2])
+    
     binding = Bindings()
     for t, q in izip(triple, ftriple) :
+      #if d : p('x', t, q)
       if is_any_var(t) and self.values_match(t, q):
+        #if d : p(1)
         # if the same var is trying to be bound to two different values, 
         # not a valid binding
-        if t in binding and binding[var_name(t)] != q :
+        if t in binding and binding[t.name] != q :
           return Bindings()
-        binding[var_name(t)] = q
+        binding[t.name] = q
       elif (is_lit_var(t) or is_var(t)) and is_var(q) :
-        binding[var_name(t)] = q
+        #if d : p(2)
+        binding[t.name] = q
       elif isstr(t) and isstr(q) :
+        #if d : p(4)
         # BUG: if there is more than one way to match the string with the 
         # pattern this will only return the first
         #self.debugp('b', str(t), str(q))
@@ -255,6 +276,7 @@ class Compiler :
           for name, value in ret.iteritems() :
             binding[unicode(name)] = unicode(value)
       elif isinstance(t, list) :
+        #if d : p(5)
         # NOTE: copy and paste from above ...
         #self.debugp(str(t), str(q))
         for ti in t :
@@ -263,7 +285,13 @@ class Compiler :
             for name, value in ret.iteritems() :
               binding[unicode(name)] = unicode(value)
       elif t != q :
+        #if d : p(3)
         return Bindings()
+      elif is_lit_var(t) and is_out_lit_var(q) :
+        return Bindings()
+        #binding[t.name] = q
+      #else :
+        #if d : p(1000)
     return binding
   
   def find_bindings_for_triple(self, triple, facts, reqd_facts) :
@@ -378,13 +406,15 @@ class Compiler :
       possible_bindings = self.find_bindings_for_triple(ttriple, facts, reqd_facts)
       
       #for pbinding in possible_bindings :
-        #self.debugp('pbinding', pbinding, pbinding.matches_reqd_fact)
+        #p('pbinding', pbinding, pbinding.matches_reqd_fact)
+      #p('bindings', bindings)
       
       new_bindings = self.merge_bindings_sets(bindings, possible_bindings)
       
-      #self.debugp('nbind', new_bindings)
+      #new_bindings = list(new_bindings)
+      #p('nbind', new_bindings)
       #for nbinding in new_bindings :
-        #self.debugp('nbinding', nbinding, nbinding.matches_reqd_fact)
+        #p('nbinding', nbinding, nbinding.matches_reqd_fact)
       
       if len(new_bindings) > 0 :
         bindings = new_bindings
@@ -393,6 +423,8 @@ class Compiler :
         # care if every triple binds
         if reqd_facts != False :
           return False
+    
+    #p('bindings', bindings)
     
     # merge with initial_bindings after collecting bindings from the facts.  It
     # is more complex to start with the initial_bindings than to end with them
@@ -473,14 +505,14 @@ class Compiler :
       for i, triple in enumerate(translation[self.n.meta.input]) :
         if self.find_triple_match(triple, query) :
           matched_triples.add(i)
-      
+
       return "partial", matched_triples
     else :
       return True, ret
   
   # return all triples which have at least one var in vars
   def find_specific_var_triples(self, query, vars) :
-    return [triple for triple in query if any(map(lambda x:is_out_lit_var(x) and var_name(x) in vars, triple))]
+    return [triple for triple in query if any(map(lambda x:is_out_lit_var(x) and x.name in vars, triple))]
 
   def next_num(self) :
     self._next_num += 1
@@ -521,7 +553,7 @@ class Compiler :
         #t for t in translation_queue if t.get(n.meta.name) not in names
       #]
       #translation_queue.extend([h[0] for h in history])
-    
+      
     # HEURISTIC: stop DFS search at self.depth
     if history :
       #print '#'*80
@@ -591,6 +623,9 @@ class Compiler :
       # the 2nd value from testtranslation is bindings_set if we've gotten here
       bindings_set = more
       
+      if translation[n.meta.name] == 'color distance' :
+        p('bindings_set', bindings_set)
+      
       # we've found a match, now we just need to find the bindings.  This is
       # the step where we unify the new information (generated by output 
       # triples) with existing information.
@@ -608,7 +643,7 @@ class Compiler :
           if var in translation[n.meta.constant_vars] :
             new_bindings[var] = value
           elif is_any_var(value) :
-            new_var = n.lit_var[var_name(value)+'_'+str(self.next_num())]
+            new_var = LitVar(value.name+'_'+str(self.next_num()))
             new_bindings[var] = new_var
           else :
             assert "none shall pass"
@@ -642,14 +677,19 @@ class Compiler :
           if not translation[n.meta.input_function](input_bindings) :
             #self.debugp('didnt pass input function')
             continue
-        #self.debugp('query', query)
-        #self.debugp('output_triples', output_triples)
-        #self.debugp('initial_bindings', initial_bindings)
+        if translation[n.meta.name] == 'color distance' :
+          print '-'*80
+          p('query', query)
+          p('output_triples', output_triples)
+          p('initial_bindings', initial_bindings)
         
         # unify output_triples with query
         output_bindings_set = self.bind_vars(output_triples, query, False, initial_bindings = initial_bindings)
         if output_bindings_set == False :
           output_bindings_set = [initial_bindings]
+        
+        if translation[n.meta.name] == 'color distance' :
+          p('obs', output_bindings_set)
         
         for output_bindings in output_bindings_set :
           # if var is a lit var in the output_triples, then its output bindings
@@ -666,10 +706,10 @@ class Compiler :
           # unified_bindings maps old query variables to new query variables
           unified_bindings = {}
           for var in output_lit_vars :
-            new_lit_var = n.lit_var[var+'_out_'+str(self.next_num())]
+            new_lit_var = LitVar(var+'_out_'+str(self.next_num()))
             if var in output_bindings :
               if is_any_var(output_bindings[var]) :
-                unified_bindings[var_name(output_bindings[var])] = new_lit_var
+                unified_bindings[output_bindings[var].name] = new_lit_var
             output_bindings[var] = new_lit_var
           
           #self.debugp('unified_bindings', unified_bindings)
@@ -678,7 +718,7 @@ class Compiler :
           for var in find_vars(translation[n.meta.output], is_var) :
             #print var
             if var not in output_bindings :
-              output_bindings[var] = n.var[var+'_'+str(self.next_num())]
+              output_bindings[var] = Var(var+'_'+str(self.next_num()))
           
           #self.debugp('output_bindings', output_bindings)
           
@@ -713,11 +753,13 @@ class Compiler :
           #self.debugp('new_query', new_query)
           #self.debugp('output_bindings', output_bindings)
           
-          # TODO: this will need to be better fleshed out when we want to 
-          # support possible steps.  For now execution always goes to the elif 
-          # below
+          # TODO/NOTE: I think that all of this find_specific_var_triples stuff could
+          # happen in the post-processing stages.  That way, we wouldn't 
+          # needlessly run this computation on steps we don't wind up using ...
           var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
-          partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(var_triples, new_query, new_triples)
+          partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(
+            var_triples, new_query, new_triples
+          )
           #partial_triples = [triple for triple in partial_triples if triple in new_triples]
           
           yield {
@@ -749,7 +791,7 @@ class Compiler :
       elif is_out_var(tv) :
         # not sure if this is really right ...
         if is_any_var(qv) :
-          if var_name(tv) == var_name(qv) :
+          if tv.name == qv.name :
             return {tv : qv}
         return False
       elif is_out_lit_var(qv) :
@@ -762,7 +804,7 @@ class Compiler :
       elif is_lit_var(tv) and is_lit_var(qv) :
         return True
       elif is_any_var(qv) :
-        return var_name(tv) == var_name(qv)
+        return tv.name == qv.name
       return False
     else :
       return tv == qv
@@ -817,7 +859,7 @@ class Compiler :
   
   def find_partial_solution(self, var_triples, facts, interesting_facts) :
     """
-    returns a list triples from var_triples which have matches in facts
+    returns a list of triples from var_triples which have matches in facts
     """
     bindings = {}
     found_var_triples = []
@@ -842,10 +884,10 @@ class Compiler :
     # and so we must use a full uri
     def normalize(value) :
       if is_any_var(value) :
-        return n.var[var_name(value)]
+        return Var(value.name)
       else :
         return value
-    bindings = dict([(var_name(var), normalize(value)) for var, value in bindings.iteritems()])
+    bindings = dict([(var.name, normalize(value)) for var, value in bindings.iteritems()])
     return bindings, found_var_triples, fact_triples
   
   def found_solution(self, new_query) :
@@ -856,7 +898,7 @@ class Compiler :
     # var_triples are the triples which contain the variables which we are 
     # looking to bind
     var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
-    initial_bindings = {var: n.var[var] for var in find_vars(var_triples, lambda x:is_var(x) or is_lit_var(x))}
+    initial_bindings = {var: Var(var) for var in find_vars(var_triples, lambda x:is_var(x) or is_lit_var(x))}
     
     # see if the triples which contain the variables can bind to any of the 
     # other triples in the query
@@ -875,7 +917,7 @@ class Compiler :
           # WARNING: it is possible that multiple bindings will be valid in 
           # which case we should return a set of solutions rather than a 
           # solution
-          return {n.var[name] : v for name, v in bindings.iteritems()}
+          return {Var(name) : v for name, v in bindings.iteritems()}
     
     return False
 
@@ -935,12 +977,17 @@ class Compiler :
     # find the possible next steps
     steps = self.next_steps(query, history, new_triples)
     
+    #steps = list(steps)
+
     # remove any steps we've already taken
     steps = self.remove_steps_already_taken(steps, history)
     
     #self.debug_open_block('steps')
     #self.debugp(steps)
     #self.debug_close_block()
+    
+    #steps = list(steps)
+    #p('steps', steps)
     
     # look through all steps recursively to see if they result in a 
     # solution and should be added to the compile_node, the finished 'program'
@@ -954,6 +1001,8 @@ class Compiler :
       # the query to literal values (strings, numbers, uris, etc)
       found_solution = self.found_solution(step['new_query'])
       if found_solution :
+        #print '8' * (80*5)
+        #p('new_query', step['new_query'])
         step['solution'] = found_solution
       else :
         child_steps = self.search(step['new_query'], possible_stack, step['new_history'], step['new_triples'])
@@ -988,14 +1037,14 @@ class Compiler :
     replaces all instances of variables in query whose name is in the 
     reqd_bound_vars list with self.n.out_lit_var variables of the same name
     @arg query is a query to change
-    @arg reqd_bound_vars are variable to change
+    @arg reqd_bound_vars is a list which the function will change
     """
     for triple in query :
       for j, value in enumerate(triple) :
-        if is_lit_var(value) and var_name(value) in reqd_bound_vars :
-          triple[j] = self.n.out_lit_var[var_name(value)]
-        elif is_any_var(value) and var_name(value) in reqd_bound_vars :
-          triple[j] = self.n.out_var[var_name(value)]
+        if is_lit_var(value) and value.name in reqd_bound_vars :
+          triple[j] = OutLitVar(value.name)
+        elif is_any_var(value) and value.name in reqd_bound_vars :
+          triple[j] = OutVar(value.name)
   
   def extract_query_modifiers(self, query) :
     modifiers = {}
@@ -1013,37 +1062,62 @@ class Compiler :
     
     return new_query, modifiers
   
-  def extract_which_translations_fulfil_which_query_triple(self, node, depends = []) :
-    which_translations_fulfil_which_query_triple = []
-    if 'guaranteed' not in node :
-      return []
-    for step in node['guaranteed'] :
-      for triple in step['partial_solution_triples'] :
-        which_translations_fulfil_which_query_triple.append((tuple(triple), step, depends))
-      which_translations_fulfil_which_query_triple.extend(self.extract_which_translations_fulfil_which_query_triple(step, depends + [step]))
-    return which_translations_fulfil_which_query_triple
+  #def extract_which_translations_fulfil_which_query_triple(self, node, depends = []) :
+    #"""
+    #returns [
+      #(<triple>, <step>, <depends>),
+      #...
+    #]
+    #<depends> := [<step>]
+    
+    #triples are var_triples
+    #steps is the step which outputs triple
+    #depends is a list of all of the steps which came before this step
+    #"""
+    ## end recur
+    #if 'guaranteed' not in node :
+      #return []
+    
+    #which_translations_fulfil_which_query_triple = []
+    #for step in node['guaranteed'] :
+      #for triple in step['partial_solution_triples'] :
+        #which_translations_fulfil_which_query_triple.append(
+          #(tuple(triple), step, depends)
+        #)
+      
+      ## recur
+      #which_translations_fulfil_which_query_triple.extend(
+        #self.extract_which_translations_fulfil_which_query_triple(step, depends + [step])
+      #)
+    #return which_translations_fulfil_which_query_triple
   
-  def permute_combinations(self, combination, translation) :
-    """
-    a combination is a dict with each key as a solution triple and each value
-    as a translation which will return bindings for the triple.
-    This takes a translation, and by looking at its depencies determines if
-    TODO: finish figuring out what this does
-    """
-    new_combination = copy.copy(combination)
-    for dependency in translation['depends'] :
-      #p('dependency',dependency['translation'][n.meta.name])
-      #p('partial_solution_triples',dependency['partial_solution_triples'])
-      for depends_triple in dependency['partial_solution_triples'] :
-        depends_triple = tuple(depends_triple)
-        #p('depends_triple',depends_triple)
-        if depends_triple in combination :
-          if dependency is not combination[depends_triple] :
-            p('ret',False)
-            return False
-        else :
-          new_combination[depends_triple] = dependency
-    return new_combination
+  ##@logger
+  #def permute_combinations(self, combination, translation) :
+    #"""
+    #a combination is a dict with each key as a solution triple and each value
+    #as a translation which will return bindings for the triple.
+    #This takes a translation, and by looking at its depencies determines if ...
+    
+    #TODO: finish figuring out what this does
+    #"""
+    ##p('---- permute ----', len(translation['depends']))
+    #new_combination = copy.copy(combination)
+    #for dependency in translation['depends'] :
+      ## dependency is type step
+      ##p('  dependency', dependency['translation'][n.meta.name])
+      ##p('   partial_solution_triples', dependency['partial_solution_triples'])
+      #for depends_triple in dependency['partial_solution_triples'] :
+        #depends_triple = tuple(depends_triple)
+        ##p('    depends_triple', depends_triple)
+        ##p('    combination', combination.keys())
+        #if depends_triple in combination :
+          #if dependency is not combination[depends_triple] :
+            ##p('      ret', False)
+            #return False
+        #else :
+          ##p('      * new_combination added')
+          #new_combination[depends_triple] = dependency
+    #return new_combination
 
   def compile(self, query, reqd_bound_vars, input = [], output = []) :
     self.debug_reset()
@@ -1056,18 +1130,25 @@ class Compiler :
     
     query, modifiers = self.extract_query_modifiers(query)
     
+    # TODO: change axpress to parse _vars as outlitvars in the first place
+    # this replaces all litvars with outlitvars in query
+    # replaces all vars in reqd_bound_vars not already litvars with outvars ...
     self.make_vars_out_vars(query, reqd_bound_vars)
     
-    #debug('query',query)
+    #p('query',query)
     
     self.reqd_bound_vars = reqd_bound_vars
     var_triples = self.find_specific_var_triples(query, reqd_bound_vars)
     if var_triples == [] :
       raise Exception("Waring, required bound triples were provided, but not found in the query")
     
-    self.vars = reqd_bound_vars
-    self.vars = [var for var in self.vars if var.find('bnode') is not 0]
-    #debug('self.vars',self.vars)
+    #self.vars = reqd_bound_vars
+    #self.vars = [var for var in self.vars if var.find('bnode') is not 0]
+    ##p('self.vars', self.vars)
+    ##p('self.vars')
+    ##print repr(self.vars)
+    ##xxx = self.vars
+    #self.vars = ['filename', 'distance']
     
     possible_stack = []
     history = []
@@ -1079,12 +1160,10 @@ class Compiler :
       self.debugp("depth: %d" % self.depth)
       compile_root_node = self.search(query, possible_stack, history, query, True)
       self.depth += 1
-    
+      
     # if there were no paths through the search space we are done here
     if not compile_root_node :
       return compile_root_node
-    
-    self.debugp('compile_root_node', compile_root_node)
     
     def p_cnode(cnode, level = 0) :
       if 'translation' in cnode :
@@ -1092,141 +1171,256 @@ class Compiler :
       for g in cnode['guaranteed'] :
         p_cnode(g, level + 1)
     
+    #p('----- cnode -----')
     #p_cnode(compile_root_node)
     
-    # HIGH LEVEL:
-    # at this point, we must go through the resulting steps and figure out which
-    # are actually necessary.  It is quite possible that there are translations
-    # in the resulting path which don't need to be executed.  In some cases
-    # executing unneeded translations is just wasted computation, but in others
-    # if the translation has side effects, we must avoid executing them to 
-    # preserve correctness
-    
-    which_translations_fulfil_which_query_triple = self.extract_which_translations_fulfil_which_query_triple(compile_root_node)
-    
-    #p('which_translations_fulfil_which_query_triple', which_translations_fulfil_which_query_triple)
-    
-    which_translations_fulfil_which_query_triple_dict = {}
-    for triple, step, depends in which_translations_fulfil_which_query_triple :
-      obj = {'step' : step, 'depends' : depends}
-      if triple in which_translations_fulfil_which_query_triple_dict :
-        which_translations_fulfil_which_query_triple_dict[triple].append(obj)
+    steps = []
+    c = compile_root_node
+    while True :
+      steps.append(c)
+      if c['guaranteed'] :
+        c = c['guaranteed'][0]
       else :
-        which_translations_fulfil_which_query_triple_dict[triple] = [obj]
+        break
     
-    # generate path combinations
-    # a combination is a dictionary from triple to translation, which each 
-    # triple is from the var_triples set.  A full completion/solution will 
-    # have one translation for each var_triple.
-    #p('begin combinations')
-    combinations = [{}]
-    new_combinations = []
-    for triple, translations in which_translations_fulfil_which_query_triple_dict.iteritems() :
-      for translation in translations :
-        for combination in combinations :
-          # for each existing combination, if it already depends on a different
-          # solution for a triple that this new translation depends on, can
-          # not use it in a combination.
-          # if none of the existing combinations fits with this one, there is
-          # no solution
-          # if the dependencies of this
-          new_combination = self.permute_combinations(combination, translation)
-          if new_combination is not False:
-            new_combination[triple] = translation
-            new_combinations.append(new_combination)
-      if len(new_combinations) > 0 :
-        combinations = new_combinations
-        new_combinations = []
-      else :
-        p('not')
+    steps = steps[1:]
     
-    def print_combinations(combinations) :
-      p('len(combinations)',len(combinations))
-      for combination in combinations :
-        p('len(combination)',len(combination))
-        p('combination',combination.keys())
-        for triple, translation in combination.iteritems() :
-          p('triple',triple)
-          p('translation',translation['step'])
-          for dependency in translation['depends'] :
-            p('dependency',dependency['translation'][n.meta.name])
-            
-    #print_combinations(combinations)
+    new_ending = True
+    if new_ending :
+      """
+      at one point, steps was allowed to return many paths through the 
+      translation space and the rest of this code would make sure that the 
+      interleaving paths didn't wind up causing translations to be run twice
+      or run when they were not necessary, etc.  With DFS, this is no longer an
+      issue, and we have moved away from attempting to run every guaranteed path
+      and instead run just one of them, or the first few.  I've prooven that 
+      finding all paths is much more difficult because there are many ways which
+      translations can be combined into infite loops that are hard to detect
+      """
+      solution_bindings_set = {}
+      for step in steps :
+        step['input_bindings'] = dict([(var, binding) for (var, binding) in step['input_bindings'].iteritems() if not is_var(binding)])
+        
+        step['output_bindings'] = dict([(var, binding) for (var, binding) in step['output_bindings'].iteritems() if not is_var(binding)])
+        
+        # keep track of which variables will end up holding the solution
+        solution_bindings_set.update(step['partial_bindings'])
+        
+        # get rid of extra stuff in steps
+        del step['new_query']
+        del step['new_triples']
+        del step['possible']
+        del step['partial_facts_triples']
+        del step['partial_solution_triples']
+        del step['partial_bindings']
+        del step['new_history']
+        del step['guaranteed']
+
+      ret = {
+        'combinations' : [[{
+          'depends' : steps[:-1],
+          'step' : steps[-1]
+        }]],
+        'modifiers' : modifiers,
+        'solution_bindings_set' : [solution_bindings_set],
+      }
+      return ret
     
-    # we don't care which translations were for which triple any more
-    combinations = [combination.values() for combination in combinations]
+    ##def assert_cnode(cnode) :
+      ##next_steps = cnode['guaranteed']
+      ##assert len(next_steps) in [0, 1]
+      ##if next_steps :
+        ##map(assert_cnode, next_steps)
     
-    # we also don't care about guaranteed steps any more
-    for combination in combinations:
-      for translation in combination :
-        if 'guaranteed' in translation['step'] :
-          del translation['step']['guaranteed']
-        for depend in translation['depends'] :
-          if 'guaranteed' in depend :
-            del depend['guaranteed']
+    ##assert_cnode(compile_root_node)
     
-    # solution_bindings_set is a list of bindings which correspond to the list 
-    # of combinations.  Each bindings defines which variables each output 
-    # variable will be bound to
-    solution_bindings_set = []
-    for combination in combinations :
-      solution_bindings = {}
-      for translation in combination :
-        solution_bindings.update(translation['step']['partial_bindings'])
-      solution_bindings_set.append(solution_bindings)
+    ## HIGH LEVEL:
+    ## at this point, we must go through the resulting steps and figure out which
+    ## are actually necessary.  It is quite possible that there are translations
+    ## in the resulting path which don't need to be executed.  In some cases
+    ## executing unneeded translations is just wasted computation, but others 
+    ## have side effects, so we must avoid executing them to preserve correctness
     
-    new = []
-    s = set()
-    for b in solution_bindings_set :
-      key = tuple(sorted(b.items()))
-      if key not in s :
-        new.append(b)
-        s.add(key)
-    #solution_bindings_set = new
-    #p('solution_bindings_set', solution_bindings_set)
-    #p('new', new)
+    #which_translations_fulfil_which_query_triple = self.extract_which_translations_fulfil_which_query_triple(
+      #compile_root_node
+    #)
     
-    # if a translation listed in the root of the combinations is a dependency
-    # of another root, dont include it.  It will be computed anyway.
-    # so, first make a list of every dependency
-    all_depends = []
-    all_steps = []
-    for combination in combinations :
-      for translation in combination :
-        for depend in translation['depends'] :
-          if depend not in all_depends :
-            all_depends.append(depend)
-          if depend not in all_steps :
-            all_steps.append(depend)
-        if translation['step'] not in all_steps :
-          all_steps.append(translation['step'])
+    ##p('which_translations_fulfil_which_query_triple', which_translations_fulfil_which_query_triple)
     
-    #p('all_steps',all_steps)
-    #p('all_depends',all_depends)
-    #p([depend['translation'][n.meta.name] for depend in all_depends])
+    ## NOTE: see extract_which_translations_fulfil_which_query_triple for details
+    ## on this data structure
+    #which_translations_fulfil_which_query_triple_dict = defaultdict(list)
+    #for triple, step, depends in which_translations_fulfil_which_query_triple :
+      #which_translations_fulfil_which_query_triple_dict[triple].append(
+        #{'step' : step, 'depends' : depends}
+      #)
     
-    new_combinations = []
-    for combination in combinations :
-      new_combination = [translation for translation in combination if translation['step'] not in all_depends]
-      new_combinations.append(new_combination)
-    combinations = new_combinations
+    ##p('which_translations_fulfil_which_query_triple_dict', which_translations_fulfil_which_query_triple_dict)
     
-    #p('combinations',len(combinations[0]))
+    ## generate path combinations
+    ## OLD COMMENTS
+    ## a combination is a dictionary from triple to translation, which each 
+    ## triple is from the var_triples set.  A full completion/solution will 
+    ## have one translation for each var_triple.
+    ## NEW COMMENTS
+    ## a combination is a dictionary {
+    ##   <triple> : {
+    ##     'step' : <step>,
+    ##     'depends' : [<step>],
+    ##   },
+    ## }
+    ## note that step objects can be vary large due to 'guaranteed' values which
+    ## are themselves steps with guaranteed values which are themselves steps ...
+    ## 
+    ## each triple key is from the var_triples set - each triple has an outlitvar
+    ##
+    ## A full completion/solution will have one translation for each var_triple.
     
-    # get rid of unnecessary input bindings
-    for step in all_steps :
-      step['input_bindings'] = dict([(var, binding) for (var, binding) in step['input_bindings'].iteritems() if not is_var(binding)])
+    ##p('begin combinations')
+    #combinations = [{}]
+    #new_combinations = []
+    
+    ## TODO/WARNING: the order that triples enter here changes the results !!!
+    
+    ##p('keys', which_translations_fulfil_which_query_triple_dict.keys())
+    ##for triple, translations in which_translations_fulfil_which_query_triple_dict.iteritems() :
+    #sorted_keys = sorted(
+      #which_translations_fulfil_which_query_triple_dict.keys(),
+      #reverse=True,
+    #)
+    ## translations : {'step' : <step>, 'depends' : <depends>}
+    ##   <depends> : [<step>]
+    #for triple in sorted_keys :
+      #translations = which_translations_fulfil_which_query_triple_dict[triple]
       
-      step['output_bindings'] = dict([(var, binding) for (var, binding) in step['output_bindings'].iteritems() if not is_var(binding)])
-      #p("step['output_bindings']",step['output_bindings'])
+      ##p('triple', triple)
+      ##p('translations', len(translations))
+      #for translation in translations :
+        ## for each existing combination
+        #for combination in combinations :
+          ## if it already depends on a different solution for a triple that this
+          ## new translation depends on, can not use it in a combination.
+          ## 
+          ## if none of the existing combinations fits with this one, there is
+          ## no solution
+          ## 
+          ## if the dependencies of this
+          ##p('    c', combination.keys())
+          #new_combination = self.permute_combinations(combination, translation)
+          ##p('new_c', new_combination and new_combination.keys())
+          #if new_combination is not False:
+            #new_combination[triple] = translation
+            #new_combinations.append(new_combination)
+      #if len(new_combinations) > 0 :
+        #combinations = new_combinations
+        #new_combinations = []
+      #else :
+        ##p('not')
+        #pass
     
-    ret = {
-      'combinations' : combinations,
-      'modifiers' : modifiers,
-      'solution_bindings_set' : solution_bindings_set
-    }
-    self.debug_open_block('result')
-    self.debugp(ret)
-    self.debug_close_block()
-    return ret
+    #def print_combinations(combinations) :
+      #p('combinations', len(combinations))
+      #for combination in combinations :
+        #p('  combination')
+        #for triple, translation in combination.iteritems() :
+          #p('    triple', triple)
+          #p('     translation',translation['step']['translation'][n.meta.name])
+          #for dependency in translation['depends'] :
+            #p('      dependency',dependency['translation'][n.meta.name])
+      
+    ##print_combinations(combinations)
+    
+    #if len(combinations) > 1 :
+      #print '*' * 80*40
+    
+    ## we don't care which translations were for which triple any more
+    #combinations = [combination.values() for combination in combinations]
+    
+    ##p('combinations', combinations)
+    ## we also don't care about guaranteed steps any more
+    #for combination in combinations:
+      #for translation in combination :
+        #if 'guaranteed' in translation['step'] :
+          #del translation['step']['guaranteed']
+        #for depend in translation['depends'] :
+          #if 'guaranteed' in depend :
+            #del depend['guaranteed']
+    
+    ## solution_bindings_set is a list of bindings which correspond to the list 
+    ## of combinations.  Each bindings defines which variables each output 
+    ## variable will be bound to
+    #solution_bindings_set = []
+    #for combination in combinations :
+      #solution_bindings = {}
+      #for translation in combination :
+        #solution_bindings.update(translation['step']['partial_bindings'])
+      #solution_bindings_set.append(solution_bindings)
+    
+    #new = []
+    #s = set()
+    #for b in solution_bindings_set :
+      #key = tuple(sorted(b.items()))
+      #if key not in s :
+        #new.append(b)
+        #s.add(key)
+    ##solution_bindings_set = new
+    ##p('solution_bindings_set', solution_bindings_set)
+    ##p('new', new)
+    
+    ## if a translation listed in the root of the combinations is a dependency
+    ## of another root, dont include it.  It will be computed anyway.
+    ## so, first make a list of every dependency
+    #all_depends = []
+    #all_steps = []
+    #for combination in combinations :
+      #for translation in combination :
+        #for depend in translation['depends'] :
+          #if depend not in all_depends :
+            #all_depends.append(depend)
+          #if depend not in all_steps :
+            #all_steps.append(depend)
+        #if translation['step'] not in all_steps :
+          #all_steps.append(translation['step'])
+    
+    ##p('all_steps',all_steps)
+    ##p('all_depends',all_depends)
+    ##p([depend['translation'][n.meta.name] for depend in all_depends])
+    
+    #new_combinations = []
+    #for combination in combinations :
+      #new_combination = [translation for translation in combination if translation['step'] not in all_depends]
+      #new_combinations.append(new_combination)
+    #combinations = new_combinations
+    
+    ##p('combinations',len(combinations[0]))
+    
+    ## get rid of unnecessary input bindings
+    #for step in all_steps :
+      #step['input_bindings'] = dict([(var, binding) for (var, binding) in step['input_bindings'].iteritems() if not is_var(binding)])
+      
+      #step['output_bindings'] = dict([(var, binding) for (var, binding) in step['output_bindings'].iteritems() if not is_var(binding)])
+      ##p("step['output_bindings']",step['output_bindings'])
+    
+      ## get rid of extra stuff in steps
+      #del step['new_query']
+      #del step['new_triples']
+      #del step['possible']
+      #del step['partial_facts_triples']
+      #del step['partial_solution_triples']
+      #del step['partial_bindings']
+      #del step['new_history']
+      ##del step['depends']
+    
+    #ret = {
+      #'combinations' : combinations,
+      #'modifiers' : modifiers,
+      #'solution_bindings_set' : solution_bindings_set
+    #}
+    ##p('ret', ret)
+    #self.debug_open_block('result')
+    #self.debugp(ret)
+    #self.debug_close_block()
+    
+    ##p('ret', ret)
+    #return ret
     

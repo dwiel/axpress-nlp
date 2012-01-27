@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import Namespaces
 from Triple import Triple
-from Utils import p, is_lit_var, var_name, split_string, merge_string
+from Utils import p, is_lit_var, split_string, merge_string
+from Utils import Var, LitVar, MetaVar
 
 import re
 
@@ -75,8 +76,8 @@ class Parser() :
     if not n:
       n = Namespaces.Namespaces()
     
-    n.bind('meta_var', '<http://dwiel.net/express/meta_var/0.1/>')
-    n.bind('lit_var', '<http://dwiel.net/express/lit_var/0.1/>')
+    #n.bind('meta_var', '<http://dwiel.net/express/meta_var/0.1/>')
+    #n.bind('lit_var', '<http://dwiel.net/express/lit_var/0.1/>')
     
     self.n = n
     self.var = 0
@@ -94,7 +95,7 @@ class Parser() :
       'Triple([%s], %s)' % (', '.join(triple), isinstance(triple, Triple) and triple.optional)
       for triple in exp.triplelist(True)
     ])
-    triples = eval(code, {'n' : self.n, 'Triple' : Triple}, {})
+    triples = eval(code, {'n' : self.n, 'Triple' : Triple, 'Var' : Var, 'LitVar' : LitVar, 'MetaVar' : MetaVar}, {})
     
     if str_bindings :
       ## add triples for special strings
@@ -132,8 +133,8 @@ class Parser() :
       # if there were strings before, insert them back in now that its been parsed
       for triple in triples :
         for i, value in enumerate(triple) :
-          if is_lit_var(value) and var_name(value)[:4] == '_str' :
-            triple[i] = str_bindings[var_name(value)[4:]]
+          if is_lit_var(value) and value.name[:4] == '_str' :
+            triple[i] = str_bindings[value.name[4:]]
     
     return triples
   
@@ -256,7 +257,8 @@ class Parser() :
   
   def next_bnode(self) :
     self.var += 1
-    return 'n.var.bnode%s' % self.var
+    #return 'n.var.bnode%s' % self.var
+    return 'Var.bnode%s' % self.var
   
   def parse_expression_new(self, expression) :
     expression = expression.replace('\n', '')
@@ -372,15 +374,15 @@ class Parser() :
     g = re_lit_var.match(expression)
     if g is not None :
       #p('re_lit_var', expression[1:])
-      return 'n.lit_var["%s"]' % expression[1:]
+      return 'LitVar("%s")' % expression[1:]
     
     if re_meta_var.match(expression) :
       #p('re_meta_var', expression[1:])
-      return 'n.meta_var["%s"]' % expression[1:]
+      return 'MetaVar("%s")' % expression[1:]
     
     if re_var.match(expression) :
       #p('re_var', expression)
-      return 'n.var["%s"]' % expression
+      return 'Var("%s")' % expression
     
     # number (or other python expressions?)
     #p('just expression', expression)

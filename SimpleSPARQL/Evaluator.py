@@ -54,8 +54,8 @@ class Evaluator :
 			# substitute any values in the incoming bindings into the input_bindings
 			new_input_bindings = {}
 			for var, value in input_bindings.iteritems() :
-				if is_any_var(value) and var_name(value) in incoming_bindings :
-					new_input_bindings[var] = incoming_bindings[var_name(value)]
+				if is_any_var(value) and value.name in incoming_bindings :
+					new_input_bindings[var] = incoming_bindings[value.name]
 				else :
 					new_input_bindings[var] = input_bindings[var]
 			input_bindings = new_input_bindings
@@ -100,7 +100,7 @@ class Evaluator :
 				for var, value in result_bindings.iteritems() :
 					if var in output_bindings :
 						if is_any_var(output_bindings[var]) :
-							new_bindings[var_name(output_bindings[var])] = value
+							new_bindings[output_bindings[var].name] = value
 						else :
 							assert output_bindings[var] == value
 							new_bindings[var] = value
@@ -262,7 +262,7 @@ class Evaluator :
 				solution = {}
 				for var, binding in solution_bindings.iteritems() :
 					if is_var(binding) :
-						solution[var] = bindings[var_name(binding)]
+						solution[var] = bindings[binding.name]
 					else :
 						solution[var] = binding
 					#if is_var(binding) :

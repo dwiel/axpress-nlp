@@ -9,7 +9,6 @@ from PassUtils import dictrecursiveupdate
 
 n = Namespaces.globalNamespaces()
 n.bind('sparql', '<http://dwiel.net/express/sparql/0.1/>')
-n.bind('var', '<http://dwiel.net/express/var/0.1/>')
 
 class PassCompleteWrites(CompilationPass) :
 	def __init__(self, sparql) :

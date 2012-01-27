@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from Namespaces import Namespaces
-from PrettyQuery import prettyquery
 from Triple import Triple
 
 from rdflib import URIRef
@@ -8,100 +7,142 @@ from rdflib import URIRef
 import time, copy
 
 n = Namespaces()
-n.bind('var', '<http://dwiel.net/axpress/var/0.1/>')
-n.bind('meta_var', '<http://dwiel.net/express/meta_var/0.1/>')
-n.bind('lit_var', '<http://dwiel.net/express/lit_var/0.1/>')
-n.bind('out_var', '<http://dwiel.net/axpress/out_var/0.1/>')
-n.bind('out_lit_var', '<http://dwiel.net/axpress/out_lit_var/0.1/>')
 n.bind('bnode', '<http://dwiel.net/axpress/bnode/0.1/>')
 
-str_n_var = str(n.var)
-str_n_meta_var = str(n.meta_var)
-str_n_lit_var = str(n.lit_var)
-str_n_out_var = str(n.out_var)
-str_n_out_lit_var = str(n.out_lit_var)
-len_n_var = len(n.var)
-len_n_meta_var = len(n.meta_var)
-len_n_lit_var = len(n.lit_var)
-len_n_out_var = len(n.out_var)
-len_n_out_lit_var = len(n.out_lit_var)
+class VarType(type):
+  def __getattr__(cls, name) :
+    return cls(name)
+
+class Variable(object) :
+  # this allows Variable.image, etc
+  __metaclass__ = VarType
+  
+  def __init__(self, name) :
+    self.name = name
+  
+  def __eq__(self, other) :
+    if isinstance(other, Variable) :
+      return self.name == other.name
+    else :
+      return False
+  
+  def __ne__(self, other) :
+    if isinstance(other, Variable) :
+      return self.name != other.name
+    else :
+      return False
+  
+  def __str__(self) :
+    return self.__class__.__name__ + '.' + self.name
+  
+  __repr__ = __str__
+
+class Var(Variable) : pass
+class MetaVar(Variable) : pass
+class LitVar(Variable) : pass
+class OutVar(Variable) : pass
+class OutLitVar(Variable) : pass
+
+#str_n_var = str(n.var)
+#str_n_meta_var = str(n.meta_var)
+#str_n_lit_var = str(n.lit_var)
+#str_n_out_var = str(n.out_var)
+#str_n_out_lit_var = str(n.out_lit_var)
+
+#len_n_var = len(n.var)
+#len_n_meta_var = len(n.meta_var)
+#len_n_lit_var = len(n.lit_var)
+#len_n_out_var = len(n.out_var)
+#len_n_out_lit_var = len(n.out_lit_var)
 
 def is_any_var(data) :
-  if type(data) == URIRef :
-    if data.find(str_n_var) == 0 :
-      return True
-    elif data.find(str_n_meta_var) == 0 :
-      return True
-    elif data.find(str_n_lit_var) == 0 :
-      return True
-    elif data.find(str_n_out_var) == 0 :
-      return True
-    elif data.find(str_n_out_lit_var) == 0 :
-      return True
-  return False
+  return isinstance(data, Variable)
+  #if type(data) == URIRef :
+    #if data.find(str_n_var) == 0 :
+      #return True
+    #elif data.find(str_n_meta_var) == 0 :
+      #return True
+    #elif data.find(str_n_lit_var) == 0 :
+      #return True
+    #elif data.find(str_n_out_var) == 0 :
+      #return True
+    #elif data.find(str_n_out_lit_var) == 0 :
+      #return True
+  #return False
 
 def is_var(data) :
-  if type(data) == URIRef :
-    if data.find(str_n_var) == 0 :
-      return True
-  return False
+  return isinstance(data, Var)
+  #if type(data) == URIRef :
+    #if data.find(str_n_var) == 0 :
+      #return True
+  #return False
 
 def is_meta_var(data) :
-  if type(data) == URIRef :
-    if data.find(str_n_meta_var) == 0 :
-      return True
-  return False
+  return isinstance(data, MetaVar)
+  #if type(data) == URIRef :
+    #if data.find(str_n_meta_var) == 0 :
+      #return True
+  #return False
 
 def is_lit_var(data) :
-  if type(data) == URIRef :
-    if data.find(str_n_lit_var) == 0 :
-      return True
-  return False  
+  return isinstance(data, LitVar)
+  #if type(data) == URIRef :
+    #if data.find(str_n_lit_var) == 0 :
+      #return True
+  #return False  
 
 def is_out_var(data) :
-  if type(data) == URIRef :
-    if data.find(str_n_out_var) == 0 :
-      return True
-  return False
+  return isinstance(data, OutVar)
+  #if type(data) == URIRef :
+    #if data.find(str_n_out_var) == 0 :
+      #return True
+  #return False
 
 def is_out_lit_var(data) :
-  if type(data) == URIRef :
-    if data.find(str_n_out_lit_var) == 0 :
-      return True
-  return False
+  return isinstance(data, OutLitVar)
+  #if type(data) == URIRef :
+    #if data.find(str_n_out_lit_var) == 0 :
+      #return True
+  #return False
 
-def var_name(uri) :
-  if uri.find(str_n_var) == 0 :
-    return uri[len_n_var:]
-  elif uri.find(str_n_meta_var) == 0 :
-    return uri[len_n_meta_var:]
-  elif uri.find(str_n_lit_var) == 0 :
-    return uri[len_n_lit_var:]
-  elif uri.find(str_n_out_var) == 0 :
-    return uri[len_n_out_var:]
-  elif uri.find(str_n_out_lit_var) == 0 :
-    return uri[len_n_out_lit_var:]
-  else :
-    raise Exception('data is not a variable' % str(uri))
+def var_name(v) :
+  return v.name
+  #if uri.find(str_n_var) == 0 :
+    #return uri[len_n_var:]
+  #elif uri.find(str_n_meta_var) == 0 :
+    #return uri[len_n_meta_var:]
+  #elif uri.find(str_n_lit_var) == 0 :
+    #return uri[len_n_lit_var:]
+  #elif uri.find(str_n_out_var) == 0 :
+    #return uri[len_n_out_var:]
+  #elif uri.find(str_n_out_lit_var) == 0 :
+    #return uri[len_n_out_lit_var:]
+  #else :
+    #raise Exception('data is not a variable' % str(uri))
 
-def var_type(uri) :
-  if uri.find(n.var) == 0 :
-    return n.var
-  elif uri.find(n.meta_var) == 0 :
-    return n.meta_var
-  elif uri.find(n.lit_var) == 0 :
-    return n.lit_var
-  elif uri.find(n.out_var) == 0 :
-    return n.out_var
-  elif uri.find(n.out_lit_var) == 0 :
-    return n.out_lit_var
-  else :
-    raise Exception('data is not a variable' % str(uri))
+def var_type(v) :
+  assert is_any_var(v)
+  # NOTE: might want to change this to a bunch of ifs and isinstances
+  return type(var_type)
+  
+  #if uri.find(n.var) == 0 :
+    #return n.var
+  #elif uri.find(n.meta_var) == 0 :
+    #return n.meta_var
+  #elif uri.find(n.lit_var) == 0 :
+    #return n.lit_var
+  #elif uri.find(n.out_var) == 0 :
+    #return n.out_var
+  #elif uri.find(n.out_lit_var) == 0 :
+    #return n.out_lit_var
+  #else :
+    #raise Exception('data is not a variable' % str(uri))
 
 def var(data) :
-  if is_any_var(data) :
-    return data[len_n_var:]
-  return None
+  raise Exception("this is depricated?  how is it used?")
+  #if is_any_var(data) :
+    #return data[len_n_var:]
+  #return None
 
 def isstr(v) :
   return isinstance(v, basestring) and not isinstance(v, URIRef)
@@ -137,8 +178,8 @@ def sub_bindings_value(value, bindings) :
   """
   @returns new value and weather or not it was changed by the binding
   """
-  if is_any_var(value) and var_name(value) in bindings :
-    return bindings[var_name(value)]
+  if is_any_var(value) and value.name in bindings :
+    return bindings[value.name]
   elif isstr(value) :
     # substitute bindings into string
     const, vars = split_string(value)
@@ -257,7 +298,7 @@ def find_vars(query, is_a_var = is_any_var, find_string_vars = False) :
     return vars
   except AttributeError :
     if is_a_var(query) :
-      return set([var_name(query)])
+      return set([query.name])
     elif find_string_vars and isstr(query) :
       const, vars = split_string(query)
       return set(unicode(v) for v in vars)
@@ -314,9 +355,11 @@ def html_encode(s):
 spaces = ''
 
 def p(*args) :
+  from PrettyQuery import prettyquery
   print '%s%s' % (spaces, ' '.join([prettyquery(arg) for arg in args]))
 
 def debug(name, obj=None) :
+  from PrettyQuery import prettyquery
   name = name.replace(' ','_')
   print '%s<%s>%s</%s>' % (spaces, name, html_encode(prettyquery(obj)), name)
 
