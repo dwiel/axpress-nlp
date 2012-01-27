@@ -745,6 +745,8 @@ class Compiler :
           # TODO/NOTE: I think that all of this find_specific_var_triples stuff could
           # happen in the post-processing stages.  That way, we wouldn't 
           # needlessly run this computation on steps we don't wind up using ...
+          # that said ... this information should probably already be available
+          # somewhere if we were only keeping track of it
           var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
           partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(
             var_triples, new_query, new_triples
