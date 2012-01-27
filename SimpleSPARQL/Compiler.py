@@ -737,10 +737,10 @@ class Compiler :
               var in translation[n.meta.constant_vars]
           }
           
-          self.debugp('new_triples', new_triples)
-          self.debugp('new_query', new_query)
-          self.debugp('input_bindings', input_bindings)
-          self.debugp('output_bindings', output_bindings)
+          #self.debugp('new_triples', new_triples)
+          #self.debugp('new_query', new_query)
+          #self.debugp('input_bindings', input_bindings)
+          #self.debugp('output_bindings', output_bindings)
           
           # TODO/NOTE: I think that all of this find_specific_var_triples stuff could
           # happen in the post-processing stages.  That way, we wouldn't 
@@ -751,8 +751,8 @@ class Compiler :
           partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(
             var_triples, new_query, new_triples
           )
-          self.debugp('var_triples', var_triples)
-          self.debugp(partial_bindings, partial_solution_triples, partial_facts_triples)
+          #self.debugp('var_triples', var_triples)
+          #self.debugp(partial_bindings, partial_solution_triples, partial_facts_triples)
           #partial_triples = [triple for triple in partial_triples if triple in new_triples]
           
           yield {
@@ -986,7 +986,7 @@ class Compiler :
     # solution and should be added to the compile_node, the finished 'program'
     for step in steps :
       self.debug_open_block((step['translation'][n.meta.name] or '<unnamed>') + ' ' + color(hash(step['input_bindings'], step['output_bindings'])) + ' ' + prettyquery(step['input_bindings']))
-      self.debugps('new_triples', step['new_triples'])
+      #self.debugps('new_triples', step['new_triples'])
       
       # if the new information at this point is enough to fulfil the query, done
       # otherwise, recursively continue searching.
