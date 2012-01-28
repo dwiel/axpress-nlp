@@ -583,11 +583,9 @@ class Compiler :
         if True :
           past_partials = self.partials[translation[n.meta.id]]
           if past_partials :
-            for past_query, past_matched_triples in past_partials :
+            for past_lineage, past_query, past_matched_triples in past_partials :
               if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
                 combined_bindings = self.bind_vars(query, past_query, False, {})
-                #p('!!!!!!! potential merge', past_query, query, combined_bindings, past_matched_triples, matched_triples, translation[n.meta.input])
-                
                 # TODO: look for identical past_query and query
                 # TODO: look for past_query in direct lineage of query
                 # TODO  make sure that the two queries combined have more information that query by itself
@@ -600,16 +598,14 @@ class Compiler :
                 new_query.extend(query)
                 new_query.extend(altered_past_query)
                 
-                #p('new_query', new_query)
                 ret, more = self.testtranslation(translation, new_query, reqd_triples)
-                #p('ret', ret, more)
-                #p()
                 if ret == True :
+                  lineage += past_lineage
                   break
           
           if ret != True :
             # add this instance to past partials
-            self.partials[translation[n.meta.id]].append((query, matched_triples))
+            self.partials[translation[n.meta.id]].append((lineage, query, matched_triples))
             continue
         else :
           continue
@@ -769,7 +765,6 @@ class Compiler :
         # translation is willing to provide a variable, just not a literal one.
         # (see lastfm similar artist output variable similar_artist) and a query
         # wanting it to be literal
-        #raise Exception("Does this really happen?")
         return False
       elif is_lit_var(tv) and is_lit_var(qv) :
         return True
