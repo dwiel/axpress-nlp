@@ -534,23 +534,9 @@ class Compiler :
       translation_queue = self.translation_matrix[lineage[-1]['translation'].get(n.meta.id)]
     else :
       translation_queue = list(self.translations)
-    
-    ## HEURISTIC
-    ## sort translation queue so that the most recently applied translation is 
-    ## tested last.  This helps avoid infite applications of the same translation
-    #if lineage :
-      #names = [s['translation'].get(n.meta.name) for s in lineage]
-      #names = [name for name in names if name]
-      
-      #translation_queue = [
-        #t for t in translation_queue if t.get(n.meta.name) not in names
-      #]
-      #translation_queue.extend([s['translation'] for s in lineage])
       
     # HEURISTIC: stop DFS search at self.depth
     if lineage :
-      #print '#'*80
-      #print len(lineage)
       if len(lineage) >= self.depth :
         translation_queue = []
     
@@ -590,9 +576,14 @@ class Compiler :
             
             ret, more = self.testtranslation(translation, new_query, reqd_triples)
             if ret == True :
+              # TODO: only add steps that aren't already in lineage
               lineage += past_lineage
+              p('l', len(lineage))
+              p('lineage', lineage)
               break
         
+        # if no full match was found, add this step and lineage to the past 
+        # partials
         if ret != True :
           # add this instance to past partials
           self.partials[translation[n.meta.id]].append((lineage, query, matched_triples))
