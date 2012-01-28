@@ -491,16 +491,9 @@ class Compiler :
     # if a partial match did exist, but no bindings could be found, then this 
     # was a partial match
     if ret == False :
-      #p('cx'*39)
-      #p('name', translation[n.meta.name])
-      #p('input', translation[n.meta.input])
-      #p('reqd_triples', reqd_triples)
-      #p()
-      # loop for which triples matched and return that so that.  This can be
-      # used by an optimization which will only look at combinations of partial
-      # matches if together, they partially cover all triples.  This doesn't
-      # guarantee that they form a match, but it can guarantee when they won't
-      # form a match
+      # look for any triples that matched.  If there are any, than a partial 
+      # match has been found.  Partial matches are recorded because we might
+      # want to merge this partial match with another to get a full match
       matched_triples = set()
       for i, triple in enumerate(translation[self.n.meta.input]) :
         if self.find_triple_match(triple, query) :
