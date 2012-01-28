@@ -572,34 +572,30 @@ class Compiler :
       if ret == "partial" :
         matched_triples = more
         
-        # set to if True to enable partial translation merging
-        if True :
-          past_partials = self.partials[translation[n.meta.id]]
-          for past_lineage, past_query, past_matched_triples in past_partials :
-            if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
-              combined_bindings = self.bind_vars(query, past_query, False, {})
-              # TODO: look for identical past_query and query
-              # TODO: look for past_query in direct lineage of query
-              # TODO  make sure that the two queries combined have more information that query by itself
+        past_partials = self.partials[translation[n.meta.id]]
+        for past_lineage, past_query, past_matched_triples in past_partials :
+          if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
+            combined_bindings = self.bind_vars(query, past_query, False, {})
+            # TODO: look for identical past_query and query
+            # TODO: look for past_query in direct lineage of query
+            # TODO  make sure that the two queries combined have more information that query by itself
 
-              altered_past_query, altered_past_query_new_triples = sub_var_bindings_track_changes(past_query, combined_bindings)
-              # TODO: combine new_triples
-              
-              # combine two branches' queries
-              new_query = []
-              new_query.extend(query)
-              new_query.extend(altered_past_query)
-              
-              ret, more = self.testtranslation(translation, new_query, reqd_triples)
-              if ret == True :
-                lineage += past_lineage
-                break
-          
-          if ret != True :
-            # add this instance to past partials
-            self.partials[translation[n.meta.id]].append((lineage, query, matched_triples))
-            continue
-        else :
+            altered_past_query, altered_past_query_new_triples = sub_var_bindings_track_changes(past_query, combined_bindings)
+            # TODO: combine new_triples
+            
+            # combine two branches' queries
+            new_query = []
+            new_query.extend(query)
+            new_query.extend(altered_past_query)
+            
+            ret, more = self.testtranslation(translation, new_query, reqd_triples)
+            if ret == True :
+              lineage += past_lineage
+              break
+        
+        if ret != True :
+          # add this instance to past partials
+          self.partials[translation[n.meta.id]].append((lineage, query, matched_triples))
           continue
       if ret == False :
         continue 
