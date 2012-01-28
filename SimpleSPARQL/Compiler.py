@@ -519,10 +519,10 @@ class Compiler :
     return self._next_num
 
   #@logger
-  def next_steps(self, query, history, reqd_triples) :
+  def next_steps(self, query, lineage, reqd_triples) :
     """
     @arg query the query in triples set form
-    @arg history the history of steps already followed
+    @arg lineage the lineage of steps already followed
     @returns the set of next guaranteed_steps and possible_steps.
       Ensures that this set of translation and bindings haven't already been 
       searched.....
@@ -537,36 +537,36 @@ class Compiler :
     # There are some heuristics which alter the order that the translations are
     # searched in
     #translation_queue = list(self.translations)
-    if history :
-      translation_queue = self.translation_matrix[history[-1][0].get(n.meta.id)]
+    if lineage :
+      translation_queue = self.translation_matrix[lineage[-1]['translation'].get(n.meta.id)]
     else :
       translation_queue = list(self.translations)
     
     ## HEURISTIC
     ## sort translation queue so that the most recently applied translation is 
     ## tested last.  This helps avoid infite applications of the same translation
-    #if history :
-      #names = [h[0].get(n.meta.name) for h in history]
+    #if lineage :
+      #names = [s['translation'].get(n.meta.name) for s in lineage]
       #names = [name for name in names if name]
       
       #translation_queue = [
         #t for t in translation_queue if t.get(n.meta.name) not in names
       #]
-      #translation_queue.extend([h[0] for h in history])
+      #translation_queue.extend([s['translation'] for s in lineage])
       
     # HEURISTIC: stop DFS search at self.depth
-    if history :
+    if lineage :
       #print '#'*80
-      #print len(history)
-      if len(history) >= self.depth :
+      #print len(lineage)
+      if len(lineage) >= self.depth :
         translation_queue = []
     
     # main loop
     for translation in translation_queue :
       # OPTIMIZATION: skip this translation if it is the inverse of the last translation
       # WARNING: not 100% sure this is always going to work, but it does for now ...
-      if history :
-        inverse_function = history[-1][0].get(n.meta.inverse_function) 
+      if lineage :
+        inverse_function = lineage[-1]['translation'].get(n.meta.inverse_function) 
         if inverse_function :
           if inverse_function == translation[n.meta.name] :
             continue
@@ -741,7 +741,6 @@ class Compiler :
             'translation' : translation,
             'new_triples' : new_triples,
             'new_query' : new_query,
-            'guaranteed' : [],
           }
           #p('step', step)
           yield step
@@ -892,72 +891,60 @@ class Compiler :
     
     return False
 
-  def remove_steps_already_taken(self, steps, history) :
+  def remove_steps_already_taken(self, steps, lineage) :
     """
     remove any steps that we've already taken
     """
+    def eq(s1, s2) :
+      """ True iff step1 and step2 are equal """
+      return ((s1['translation'][n.meta.id] == s2['translation'][n.meta.id])
+                and
+              (s1['input_bindings'] == s2['input_bindings']))
+    
     for step in steps :
       # if we've already made this translation once before, skip it
-      if [step['translation'], step['input_bindings']] in history :
+      if any(eq(step, lstep) for lstep in lineage) :
         continue
-
-      # add this step to the history (though since this history object can be 
-      # forked by other guaranteed_steps, we must copy it before altering it)
-      new_history = copy.copy(history)
-      new_history.append([step['translation'], copy.copy(step['input_bindings'])])
-      
-      step['new_history'] = new_history
       
       yield step
-
-  #@logger
-  def search(self, query, possible_stack, history, new_triples, root = False) :
+  
+  def log_root(fn) :
+    def log_root_wrapper(self, *args, **kwargs) :
+      if 'root' in kwargs and kwargs['root'] :
+        self.debug_open_block('search')
+        ret = fn(self, *args, **kwargs)
+        self.debug_close_block()
+        return ret
+      else :
+        return fn(self,  *args, **kwargs)
+    return log_root_wrapper
+  
+  @log_root
+  def search(self, query, new_triples, lineage = [], root = False) :
     """
     follow guaranteed translations and add possible translations to the 
       possible_stack
     this is somewhat of an evaluator ...
     @arg query is the query to start from
-    @arg possible_stack is a list which is filled in with next next possible 
-      translations to follow after the guaranteed translations have already been
-      followed completely
-    @history is a list of all the paths we've already explored so we don't 
-      repeat them.
     @new_triples is a set of triples which are new as of the previous 
       translation.  This next translation must take them into account.  If they
       are not needed, then an earlier step could have gotten there already and
       the most recent step was unnecessary
-    @return the compiled guaranteed path (see thoughts for more info on this 
-      structure)
+    @lineage is a list of the steps we've taken to get here
+    @return the compiled guaranteed path
     """
     
-    if root :
-      self.debug_open_block('search')
     #self.debugp('query', query)
     
-    # TODO: refactor out possible
-    # this is where the result of the work done in this function is ultimately 
-    # stored.  Possible isn't really used any more, it might in the future.
-    # would be awesome to refactor this out at some point.
-    # compile_node['guaranteed'] will be a list of steps that are gauranteed to
-    # be valid
-    compile_node = {
-      'guaranteed' : [],
-    }
-    
     # find the possible next steps
-    steps = self.next_steps(query, history, new_triples)
+    steps = self.next_steps(query, lineage, new_triples)
     
-    #steps = list(steps)
-
     # remove any steps we've already taken
-    steps = self.remove_steps_already_taken(steps, history)
+    steps = self.remove_steps_already_taken(steps, lineage)
     
     #self.debug_open_block('steps')
     #self.debugp(steps)
     #self.debug_close_block()
-    
-    #steps = list(steps)
-    #p('steps', steps)
     
     # look through all steps recursively to see if they result in a 
     # solution and should be added to the compile_node, the finished 'program'
@@ -968,39 +955,21 @@ class Compiler :
       # otherwise, recursively continue searching.
       # found_solution is filled with the bindings which bind out_lit_vars from 
       # the query to literal values (strings, numbers, uris, etc)
+      # TODO: found_solution might be able to return enough information to 
+      # completely remove the partial solution step at the end of compilation
       found_solution = self.found_solution(step['new_query'])
       if found_solution :
-        #print '8' * (80*5)
-        #p('new_query', step['new_query'])
-        step['solution'] = found_solution
+        lineage.append(step)
+        #self.debugp("solution", found_solution, lineage)
+        self.debug_close_block()
+        return lineage
       else :
         # recur
         # TODO: pass lineage into search so it can be stored for partial solution merges
-        child_steps = self.search(step['new_query'], possible_stack, step['new_history'], step['new_triples'])
-        if child_steps :
-          # this will happen if one of the steps that followed from this one
-          # had a solution
-          found_solution = True
-          
-          # step['guaranteed'] is a list of steps to get to the solution which 
-          # is built up recursively.  step['guaranteed'] will always be [] 
-          # before these lines
-          assert step['guaranteed'] == []
-          step['guaranteed'].extend(child_steps['guaranteed'])
-        
-      self.debug_close_block()
-      
-      # if we've found a solution through this step, add it to the list
-      if found_solution :
-        compile_node['guaranteed'].append(step)
-    
-    if root:
-      self.debug_close_block()
-    
-    if compile_node['guaranteed'] :
-      return compile_node
-    else :
-      return False
+        ret = self.search(step['new_query'], step['new_triples'], lineage + [step])
+        self.debug_close_block()
+        if ret :
+          return ret
   
   def make_vars_out_vars(self, query, reqd_bound_vars) :
     """
@@ -1032,63 +1001,6 @@ class Compiler :
     
     return new_query, modifiers
   
-  #def extract_which_translations_fulfil_which_query_triple(self, node, depends = []) :
-    #"""
-    #returns [
-      #(<triple>, <step>, <depends>),
-      #...
-    #]
-    #<depends> := [<step>]
-    
-    #triples are var_triples
-    #steps is the step which outputs triple
-    #depends is a list of all of the steps which came before this step
-    #"""
-    ## end recur
-    #if 'guaranteed' not in node :
-      #return []
-    
-    #which_translations_fulfil_which_query_triple = []
-    #for step in node['guaranteed'] :
-      #for triple in step['partial_solution_triples'] :
-        #which_translations_fulfil_which_query_triple.append(
-          #(tuple(triple), step, depends)
-        #)
-      
-      ## recur
-      #which_translations_fulfil_which_query_triple.extend(
-        #self.extract_which_translations_fulfil_which_query_triple(step, depends + [step])
-      #)
-    #return which_translations_fulfil_which_query_triple
-  
-  ##@logger
-  #def permute_combinations(self, combination, translation) :
-    #"""
-    #a combination is a dict with each key as a solution triple and each value
-    #as a translation which will return bindings for the triple.
-    #This takes a translation, and by looking at its depencies determines if ...
-    
-    #TODO: finish figuring out what this does
-    #"""
-    ##p('---- permute ----', len(translation['depends']))
-    #new_combination = copy.copy(combination)
-    #for dependency in translation['depends'] :
-      ## dependency is type step
-      ##p('  dependency', dependency['translation'][n.meta.name])
-      ##p('   partial_solution_triples', dependency['partial_solution_triples'])
-      #for depends_triple in dependency['partial_solution_triples'] :
-        #depends_triple = tuple(depends_triple)
-        ##p('    depends_triple', depends_triple)
-        ##p('    combination', combination.keys())
-        #if depends_triple in combination :
-          #if dependency is not combination[depends_triple] :
-            ##p('      ret', False)
-            #return False
-        #else :
-          ##p('      * new_combination added')
-          #new_combination[depends_triple] = dependency
-    #return new_combination
-
   def compile(self, query, reqd_bound_vars, input = [], output = []) :
     self.debug_reset()
     self.partials = defaultdict(list)
@@ -1112,289 +1024,61 @@ class Compiler :
     if var_triples == [] :
       raise Exception("Waring, required bound triples were provided, but not found in the query")
     
-    #self.vars = reqd_bound_vars
-    #self.vars = [var for var in self.vars if var.find('bnode') is not 0]
-    ##p('self.vars', self.vars)
-    ##p('self.vars')
-    ##print repr(self.vars)
-    ##xxx = self.vars
-    #self.vars = ['filename', 'distance']
-    
     possible_stack = []
-    history = []
     
     # an iterative deepening search
     self.depth = 1
-    compile_root_node = None
-    while not compile_root_node and self.depth < 8:
+    steps = None
+    while not steps and self.depth < 8:
       self.debugp("depth: %d" % self.depth)
-      compile_root_node = self.search(query, possible_stack, history, query, True)
+      steps = self.search(query, query, lineage = [], root = True)
+      self.debugp('steps', steps)
       self.depth += 1
-      
+    
     # if there were no paths through the search space we are done here
-    if not compile_root_node :
-      return compile_root_node
-    
-    def p_cnode(cnode, level = 0) :
-      if 'translation' in cnode :
-        print '  '*level, cnode['translation'][n.meta.name]
-      for g in cnode['guaranteed'] :
-        p_cnode(g, level + 1)
-    
-    #p('----- cnode -----')
-    #p_cnode(compile_root_node)
-    
-    steps = []
-    c = compile_root_node
-    while True :
-      steps.append(c)
-      if c['guaranteed'] :
-        c = c['guaranteed'][0]
-      else :
-        break
-    
-    steps = steps[1:]
-    
-    new_ending = True
-    if new_ending :
-      """
-      at one point, steps was allowed to return many paths through the 
-      translation space and the rest of this code would make sure that the 
-      interleaving paths didn't wind up causing translations to be run twice
-      or run when they were not necessary, etc.  With DFS, this is no longer an
-      issue, and we have moved away from attempting to run every guaranteed path
-      and instead run just one of them, or the first few.  I've prooven that 
-      finding all paths is much more difficult because there are many ways which
-      translations can be combined into infite loops that are hard to detect
-      """
-      solution_bindings_set = {}
-      for step in steps :
-        step['input_bindings'] = dict([(var, binding) for (var, binding) in step['input_bindings'].iteritems() if not is_var(binding)])
-        
-        step['output_bindings'] = dict([(var, binding) for (var, binding) in step['output_bindings'].iteritems() if not is_var(binding)])
-        
-        # figure out if any parts of the output of this step satisfy part of 
-        # the solution
-        var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
-        partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(
-          var_triples, step['new_query'], step['new_triples']
-        )
+    if not steps :
+      return False
 
-        # keep track of which variables will end up holding the solution
-        solution_bindings_set.update(partial_bindings)
-        
-        # get rid of extra stuff in steps
-        del step['new_query']
-        del step['new_triples']
-        del step['new_history']
-        del step['guaranteed']
+    #p('steps', steps)
+    
+    """
+    at one point, steps was allowed to return many paths through the 
+    translation space and the rest of this code would make sure that the 
+    interleaving paths didn't wind up causing translations to be run twice
+    or run when they were not necessary, etc.  With DFS, this is no longer an
+    issue, and we have moved away from attempting to run every guaranteed path
+    and instead run just one of them, or the first few.  I've prooven that 
+    finding all paths is much more difficult because there are many ways which
+    translations can be combined into infite loops that are hard to detect
+    """
+    solution_bindings_set = {}
+    for step in steps :
+      step['input_bindings'] = dict([(var, binding) for (var, binding) in step['input_bindings'].iteritems() if not is_var(binding)])
+      
+      step['output_bindings'] = dict([(var, binding) for (var, binding) in step['output_bindings'].iteritems() if not is_var(binding)])
+      
+      # figure out if any parts of the output of this step satisfy part of 
+      # the solution
+      #self.debugp('step', step)
+      var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
+      partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(
+        var_triples, step['new_query'], step['new_triples']
+      )
 
-      ret = {
-        'combinations' : [[{
-          'depends' : steps[:-1],
-          'step' : steps[-1]
-        }]],
-        'modifiers' : modifiers,
-        'solution_bindings_set' : [solution_bindings_set],
-      }
-      #p('ret', ret)
-      return ret
-    
-    ##def assert_cnode(cnode) :
-      ##next_steps = cnode['guaranteed']
-      ##assert len(next_steps) in [0, 1]
-      ##if next_steps :
-        ##map(assert_cnode, next_steps)
-    
-    ##assert_cnode(compile_root_node)
-    
-    ## HIGH LEVEL:
-    ## at this point, we must go through the resulting steps and figure out which
-    ## are actually necessary.  It is quite possible that there are translations
-    ## in the resulting path which don't need to be executed.  In some cases
-    ## executing unneeded translations is just wasted computation, but others 
-    ## have side effects, so we must avoid executing them to preserve correctness
-    
-    #which_translations_fulfil_which_query_triple = self.extract_which_translations_fulfil_which_query_triple(
-      #compile_root_node
-    #)
-    
-    ##p('which_translations_fulfil_which_query_triple', which_translations_fulfil_which_query_triple)
-    
-    ## NOTE: see extract_which_translations_fulfil_which_query_triple for details
-    ## on this data structure
-    #which_translations_fulfil_which_query_triple_dict = defaultdict(list)
-    #for triple, step, depends in which_translations_fulfil_which_query_triple :
-      #which_translations_fulfil_which_query_triple_dict[triple].append(
-        #{'step' : step, 'depends' : depends}
-      #)
-    
-    ##p('which_translations_fulfil_which_query_triple_dict', which_translations_fulfil_which_query_triple_dict)
-    
-    ## generate path combinations
-    ## OLD COMMENTS
-    ## a combination is a dictionary from triple to translation, which each 
-    ## triple is from the var_triples set.  A full completion/solution will 
-    ## have one translation for each var_triple.
-    ## NEW COMMENTS
-    ## a combination is a dictionary {
-    ##   <triple> : {
-    ##     'step' : <step>,
-    ##     'depends' : [<step>],
-    ##   },
-    ## }
-    ## note that step objects can be vary large due to 'guaranteed' values which
-    ## are themselves steps with guaranteed values which are themselves steps ...
-    ## 
-    ## each triple key is from the var_triples set - each triple has an outlitvar
-    ##
-    ## A full completion/solution will have one translation for each var_triple.
-    
-    ##p('begin combinations')
-    #combinations = [{}]
-    #new_combinations = []
-    
-    ## TODO/WARNING: the order that triples enter here changes the results !!!
-    
-    ##p('keys', which_translations_fulfil_which_query_triple_dict.keys())
-    ##for triple, translations in which_translations_fulfil_which_query_triple_dict.iteritems() :
-    #sorted_keys = sorted(
-      #which_translations_fulfil_which_query_triple_dict.keys(),
-      #reverse=True,
-    #)
-    ## translations : {'step' : <step>, 'depends' : <depends>}
-    ##   <depends> : [<step>]
-    #for triple in sorted_keys :
-      #translations = which_translations_fulfil_which_query_triple_dict[triple]
+      # keep track of which variables will end up holding the solution
+      solution_bindings_set.update(partial_bindings)
       
-      ##p('triple', triple)
-      ##p('translations', len(translations))
-      #for translation in translations :
-        ## for each existing combination
-        #for combination in combinations :
-          ## if it already depends on a different solution for a triple that this
-          ## new translation depends on, can not use it in a combination.
-          ## 
-          ## if none of the existing combinations fits with this one, there is
-          ## no solution
-          ## 
-          ## if the dependencies of this
-          ##p('    c', combination.keys())
-          #new_combination = self.permute_combinations(combination, translation)
-          ##p('new_c', new_combination and new_combination.keys())
-          #if new_combination is not False:
-            #new_combination[triple] = translation
-            #new_combinations.append(new_combination)
-      #if len(new_combinations) > 0 :
-        #combinations = new_combinations
-        #new_combinations = []
-      #else :
-        ##p('not')
-        #pass
-    
-    #def print_combinations(combinations) :
-      #p('combinations', len(combinations))
-      #for combination in combinations :
-        #p('  combination')
-        #for triple, translation in combination.iteritems() :
-          #p('    triple', triple)
-          #p('     translation',translation['step']['translation'][n.meta.name])
-          #for dependency in translation['depends'] :
-            #p('      dependency',dependency['translation'][n.meta.name])
-      
-    ##print_combinations(combinations)
-    
-    #if len(combinations) > 1 :
-      #print '*' * 80*40
-    
-    ## we don't care which translations were for which triple any more
-    #combinations = [combination.values() for combination in combinations]
-    
-    ##p('combinations', combinations)
-    ## we also don't care about guaranteed steps any more
-    #for combination in combinations:
-      #for translation in combination :
-        #if 'guaranteed' in translation['step'] :
-          #del translation['step']['guaranteed']
-        #for depend in translation['depends'] :
-          #if 'guaranteed' in depend :
-            #del depend['guaranteed']
-    
-    ## solution_bindings_set is a list of bindings which correspond to the list 
-    ## of combinations.  Each bindings defines which variables each output 
-    ## variable will be bound to
-    #solution_bindings_set = []
-    #for combination in combinations :
-      #solution_bindings = {}
-      #for translation in combination :
-        #solution_bindings.update(translation['step']['partial_bindings'])
-      #solution_bindings_set.append(solution_bindings)
-    
-    #new = []
-    #s = set()
-    #for b in solution_bindings_set :
-      #key = tuple(sorted(b.items()))
-      #if key not in s :
-        #new.append(b)
-        #s.add(key)
-    ##solution_bindings_set = new
-    ##p('solution_bindings_set', solution_bindings_set)
-    ##p('new', new)
-    
-    ## if a translation listed in the root of the combinations is a dependency
-    ## of another root, dont include it.  It will be computed anyway.
-    ## so, first make a list of every dependency
-    #all_depends = []
-    #all_steps = []
-    #for combination in combinations :
-      #for translation in combination :
-        #for depend in translation['depends'] :
-          #if depend not in all_depends :
-            #all_depends.append(depend)
-          #if depend not in all_steps :
-            #all_steps.append(depend)
-        #if translation['step'] not in all_steps :
-          #all_steps.append(translation['step'])
-    
-    ##p('all_steps',all_steps)
-    ##p('all_depends',all_depends)
-    ##p([depend['translation'][n.meta.name] for depend in all_depends])
-    
-    #new_combinations = []
-    #for combination in combinations :
-      #new_combination = [translation for translation in combination if translation['step'] not in all_depends]
-      #new_combinations.append(new_combination)
-    #combinations = new_combinations
-    
-    ##p('combinations',len(combinations[0]))
-    
-    ## get rid of unnecessary input bindings
-    #for step in all_steps :
-      #step['input_bindings'] = dict([(var, binding) for (var, binding) in step['input_bindings'].iteritems() if not is_var(binding)])
-      
-      #step['output_bindings'] = dict([(var, binding) for (var, binding) in step['output_bindings'].iteritems() if not is_var(binding)])
-      ##p("step['output_bindings']",step['output_bindings'])
-    
-      ## get rid of extra stuff in steps
-      #del step['new_query']
-      #del step['new_triples']
-      #del step['possible']
-      #del step['partial_facts_triples']
-      #del step['partial_solution_triples']
-      #del step['partial_bindings']
-      #del step['new_history']
-      ##del step['depends']
-    
-    #ret = {
-      #'combinations' : combinations,
-      #'modifiers' : modifiers,
-      #'solution_bindings_set' : solution_bindings_set
-    #}
-    ##p('ret', ret)
-    #self.debug_open_block('result')
-    #self.debugp(ret)
-    #self.debug_close_block()
-    
-    ##p('ret', ret)
-    #return ret
-    
+      # get rid of extra stuff in steps
+      del step['new_query']
+      del step['new_triples']
+
+    ret = {
+      'combinations' : [[{
+        'depends' : steps[:-1],
+        'step' : steps[-1]
+      }]],
+      'modifiers' : modifiers,
+      'solution_bindings_set' : [solution_bindings_set],
+    }
+    #self.debugp('ret', ret)
+    return ret
