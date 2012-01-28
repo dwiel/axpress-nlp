@@ -780,7 +780,6 @@ class Compiler :
     """
     bindings = {}
     for tv, qv in izip(triple, qtriple) :
-      #p(tv, qv, self.find_solution_values_match(tv, qv))
       ret = self.find_solution_values_match(tv, qv)
       if not ret :
         return False
@@ -794,9 +793,6 @@ class Compiler :
     """
     for ftriple in facts :
       bindings = self.find_solution_triples_match(triple, ftriple)
-      #p(triple)
-      #p(ftriple)
-      #p()
       if bindings :
         if bindings :
           return bindings, ftriple
@@ -828,8 +824,6 @@ class Compiler :
     """
     bindings = {}
     for triple in var_triples :
-      #p('triple', triple)
-      #p('facts', facts)
       new_bindings, ftriple = self.find_solution_triple(triple, facts)
       if new_bindings :
         if new_bindings == True :
