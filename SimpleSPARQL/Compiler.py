@@ -998,7 +998,6 @@ class Compiler :
   
   def compile(self, query, reqd_bound_vars, input = [], output = []) :
     self.debug_reset()
-    self.partials = defaultdict(list)
     
     if isinstance(query, basestring) :
       query = [line.strip() for line in query.split('\n')]
@@ -1019,13 +1018,12 @@ class Compiler :
     if var_triples == [] :
       raise Exception("Waring, required bound triples were provided, but not found in the query")
     
-    possible_stack = []
-    
     # an iterative deepening search
     self.depth = 1
     steps = None
     while not steps and self.depth < 8:
       self.debugp("depth: %d" % self.depth)
+      self.partials = defaultdict(list)
       steps = self.search(query, query, lineage = [], root = True)
       self.debugp('steps', steps)
       self.depth += 1
