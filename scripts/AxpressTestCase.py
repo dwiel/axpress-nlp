@@ -661,10 +661,18 @@ class AxpressTestCase(unittest.TestCase):
     ]
   
 if __name__ == "__main__" :
+  import atexit
+  def at() :
+    print 'cum_comp_time', axpress.cum_comp_time
+    print 'cum_eval_time', axpress.cum_eval_time
+  atexit.register(at)
+
   #print '<root>'
   #import cProfile
   #cProfile.run('unittest.main()')
-  unittest.main()
+  try :
+    unittest.main()
+  except Exception, e:
+    print e
   #print '</root>'
-
 

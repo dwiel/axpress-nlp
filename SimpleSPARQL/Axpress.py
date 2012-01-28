@@ -26,6 +26,8 @@ class Axpress() :
       multiline_parser = MultilineParser.MultilineParser(self.n, self)
     self.multiline_parser = multiline_parser
     self.options = options
+    self.cum_comp_time = 0
+    self.cum_eval_time = 0
   
   def register_translation(self, translation) :
     self.compiler.register_translation(translation)
@@ -66,6 +68,7 @@ class Axpress() :
       #p('ret_comp',ret_comp)
       if 'time' in self.options :
         print 'compile time:',end_compile-begin_compile
+        self.cum_comp_time += end_compile-begin_compile
       if ret_comp == False :
         raise CompilerException("Couldn't compile ... sorry I don't have more here")
       begin_eval = time.time()
@@ -74,6 +77,7 @@ class Axpress() :
       end_eval = time.time()
       if 'time' in self.options :
         print 'eval time:',end_eval-begin_eval
+        self.cum_eval_time += end_eval-begin_eval
       for ret in ret_eval :
         for var in provided_bindings :
           ret[var] = bindings[var]

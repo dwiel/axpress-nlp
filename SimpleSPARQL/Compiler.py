@@ -579,14 +579,14 @@ class Compiler :
       if ret == "partial" :
         matched_triples = more
         
-        def test_against_partials() :
+        # set to if True to enable partial translation merging
+        if True :
           past_partials = self.partials[translation[n.meta.id]]
           if past_partials :
-            #p('2nd find', past_partials)
             for past_query, past_matched_triples in past_partials :
               if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
                 combined_bindings = self.bind_vars(query, past_query, False, {})
-                p('!!!!!!! potential merge', past_query, query, combined_bindings, past_matched_triples, matched_triples, translation[n.meta.input])
+                #p('!!!!!!! potential merge', past_query, query, combined_bindings, past_matched_triples, matched_triples, translation[n.meta.input])
                 
                 # TODO: look for identical past_query and query
                 # TODO: look for past_query in direct lineage of query
@@ -600,20 +600,16 @@ class Compiler :
                 new_query.extend(query)
                 new_query.extend(altered_past_query)
                 
-                p('new_query', new_query)
+                #p('new_query', new_query)
                 ret, more = self.testtranslation(translation, new_query, reqd_triples)
-                p('ret', ret, more)
-                p()
+                #p('ret', ret, more)
+                #p()
                 if ret == True :
-                  return ret, more
-          return False, None
-        
-        # set to if True to enable partial translation merging
-        if False :
-          ret, more = test_against_partials()
-          self.partials[translation[n.meta.id]].append((query, matched_triples))
+                  break
           
           if ret != True :
+            # add this instance to past partials
+            self.partials[translation[n.meta.id]].append((query, matched_triples))
             continue
         else :
           continue
@@ -668,14 +664,15 @@ class Compiler :
         #self.debugp('input_bindings', input_bindings)
         #self.debugp('initial_bindings', initial_bindings)
         
+        # if the translation has an input_function, run it here to see if these
+        # input_bindings pass the test
         if n.meta.input_function in translation :
-          #self.debugp('n.meta.input_function', translation[n.meta.input_function])
           if not translation[n.meta.input_function](input_bindings) :
-            #self.debugp('didnt pass input function')
             continue
         
         # unify output_triples with query
         output_bindings_set = self.bind_vars(output_triples, query, False, initial_bindings = initial_bindings)
+        # if no unification is found, just use the initial_bindings
         if output_bindings_set == False :
           output_bindings_set = [initial_bindings]
         
@@ -703,8 +700,8 @@ class Compiler :
           #self.debugp('unified_bindings', unified_bindings)
           #self.debugp('output_bindings', output_bindings)
           
+          # make sure all vanila vars have unique names
           for var in find_vars(translation[n.meta.output], is_var) :
-            #print var
             if var not in output_bindings :
               output_bindings[var] = Var(var+'_'+str(self.next_num()))
           
@@ -712,14 +709,10 @@ class Compiler :
           
           # generate the new query by adding the output triples with 
           # output bindings substituted in
-          #p('output_bindings', output_bindings)
           new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
-          #self.debugps('new_triples', new_triples)
-          #self.debugps('unified_bindings', unified_bindings)
-          #self.debugps('query', query)
+
           new_query, new_query_new_triples = sub_var_bindings_track_changes(query, unified_bindings)
-          #self.debugps('new_query', new_query)
-          #self.debugps('new_query_new_triples', new_query_new_triples)
+
           new_query.extend(new_triples)
           new_triples.extend(new_query_new_triples)
           
@@ -742,31 +735,16 @@ class Compiler :
           #self.debugp('input_bindings', input_bindings)
           #self.debugp('output_bindings', output_bindings)
           
-          # TODO/NOTE: I think that all of this find_specific_var_triples stuff could
-          # happen in the post-processing stages.  That way, we wouldn't 
-          # needlessly run this computation on steps we don't wind up using ...
-          # that said ... this information should probably already be available
-          # somewhere if we were only keeping track of it
-          var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
-          partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(
-            var_triples, new_query, new_triples
-          )
-          #self.debugp('var_triples', var_triples)
-          #self.debugp(partial_bindings, partial_solution_triples, partial_facts_triples)
-          #partial_triples = [triple for triple in partial_triples if triple in new_triples]
-          
-          yield {
+          step = {
             'input_bindings' : input_bindings,
             'output_bindings' : output_bindings,
             'translation' : translation,
             'new_triples' : new_triples,
             'new_query' : new_query,
             'guaranteed' : [],
-            'possible' : [],
-            'partial_solution_triples' : partial_solution_triples,
-            'partial_facts_triples' : partial_facts_triples,
-            'partial_bindings' : partial_bindings,
           }
+          #p('step', step)
+          yield step
   
   def find_solution_values_match(self, tv, qv) :
     """
@@ -964,7 +942,6 @@ class Compiler :
     # be valid
     compile_node = {
       'guaranteed' : [],
-      'possible' : [],
     }
     
     # find the possible next steps
@@ -986,7 +963,6 @@ class Compiler :
     # solution and should be added to the compile_node, the finished 'program'
     for step in steps :
       self.debug_open_block((step['translation'][n.meta.name] or '<unnamed>') + ' ' + color(hash(step['input_bindings'], step['output_bindings'])) + ' ' + prettyquery(step['input_bindings']))
-      #self.debugps('new_triples', step['new_triples'])
       
       # if the new information at this point is enough to fulfil the query, done
       # otherwise, recursively continue searching.
@@ -998,6 +974,8 @@ class Compiler :
         #p('new_query', step['new_query'])
         step['solution'] = found_solution
       else :
+        # recur
+        # TODO: pass lineage into search so it can be stored for partial solution merges
         child_steps = self.search(step['new_query'], possible_stack, step['new_history'], step['new_triples'])
         if child_steps :
           # this will happen if one of the steps that followed from this one
@@ -1009,7 +987,6 @@ class Compiler :
           # before these lines
           assert step['guaranteed'] == []
           step['guaranteed'].extend(child_steps['guaranteed'])
-          step['possible'].extend(child_steps['possible'])
         
       self.debug_close_block()
       
@@ -1196,16 +1173,19 @@ class Compiler :
         
         step['output_bindings'] = dict([(var, binding) for (var, binding) in step['output_bindings'].iteritems() if not is_var(binding)])
         
+        # figure out if any parts of the output of this step satisfy part of 
+        # the solution
+        var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
+        partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(
+          var_triples, step['new_query'], step['new_triples']
+        )
+
         # keep track of which variables will end up holding the solution
-        solution_bindings_set.update(step['partial_bindings'])
+        solution_bindings_set.update(partial_bindings)
         
         # get rid of extra stuff in steps
         del step['new_query']
         del step['new_triples']
-        del step['possible']
-        del step['partial_facts_triples']
-        del step['partial_solution_triples']
-        del step['partial_bindings']
         del step['new_history']
         del step['guaranteed']
 
@@ -1217,6 +1197,7 @@ class Compiler :
         'modifiers' : modifiers,
         'solution_bindings_set' : [solution_bindings_set],
       }
+      #p('ret', ret)
       return ret
     
     ##def assert_cnode(cnode) :
