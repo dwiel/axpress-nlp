@@ -827,8 +827,6 @@ class Compiler :
     returns a list of triples from var_triples which have matches in facts
     """
     bindings = {}
-    found_var_triples = []
-    fact_triples = []
     for triple in var_triples :
       #p('triple', triple)
       #p('facts', facts)
@@ -838,9 +836,6 @@ class Compiler :
           pass
         else :
           bindings.update(new_bindings)
-        if ftriple in interesting_facts :
-          found_var_triples.append(triple)
-          fact_triples.append(ftriple)
     
     # make bindings just to the variable name not the full URI (if the value of
     # the binding is a varialbe, make sure it is in the n.var namespace)
@@ -853,7 +848,7 @@ class Compiler :
       else :
         return value
     bindings = dict([(var.name, normalize(value)) for var, value in bindings.iteritems()])
-    return bindings, found_var_triples, fact_triples
+    return bindings
   
   def found_solution(self, new_query) :
     # NOTE: it is quite possible that the output unification step has enough 
@@ -1021,7 +1016,7 @@ class Compiler :
     # an iterative deepening search
     self.depth = 1
     steps = None
-    while not steps and self.depth < 8:
+    while not steps and self.depth < 15:
       self.debugp("depth: %d" % self.depth)
       self.partials = defaultdict(list)
       steps = self.search(query, query, lineage = [], root = True)
@@ -1054,7 +1049,7 @@ class Compiler :
       # the solution
       #self.debugp('step', step)
       var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
-      partial_bindings, partial_solution_triples, partial_facts_triples = self.find_partial_solution(
+      partial_bindings = self.find_partial_solution(
         var_triples, step['new_query'], step['new_triples']
       )
 
