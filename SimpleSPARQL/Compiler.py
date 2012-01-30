@@ -326,11 +326,11 @@ class Compiler :
           new_bindings[k] = v
         elif not is_any_var(b[k]) and is_out_lit_var(v) :
           new_bindings[k] = b[k]
-        # TODO: I think these can be removed ...
-        elif is_lit_var(b[k]) and is_var(v   ) and v.name == k :
-          new_bindings[k] = b[k]
-        elif is_lit_var(v   ) and is_var(b[k]) and b[k].name == k :
-          new_bindings[k] = v
+        ## TODO: I think these can be removed ...
+        #elif is_lit_var(b[k]) and is_var(v   ) and v.name == k :
+          #new_bindings[k] = b[k]
+        #elif is_lit_var(v   ) and is_var(b[k]) and b[k].name == k :
+          #new_bindings[k] = v
         else :
           return False
       else :

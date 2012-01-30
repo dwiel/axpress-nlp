@@ -660,6 +660,13 @@ class AxpressTestCase(unittest.TestCase):
       }
     ]
   
+  def testDayOfWeek(self):
+    ret = axpress.read_translate("""
+      foo[a.is] = "friday at 7"
+      foo[simple_display.text] = _out
+    """)
+    assert len(ret) == 1
+
 if __name__ == "__main__" :
   import atexit
   def at() :
