@@ -41,7 +41,6 @@ def loadTranslations(axpress, n) :
     dt[dt.datetime] = dt.compose(date, time)
   """)
   def fn(vars) :
-    print vars
     vars['datetime'] = datetime.datetime.combine(vars['date'], vars['time'])
   rule("date+time", """
     d[dt.date] = _date
@@ -51,9 +50,7 @@ def loadTranslations(axpress, n) :
   """, fn)
   
   def fn(vars) :
-    print vars
     vars['text'] = str(vars['dt'])
-    print vars
   rule("display datetime", """
     foo[dt.datetime] = _dt
   """, """

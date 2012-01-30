@@ -660,9 +660,24 @@ class AxpressTestCase(unittest.TestCase):
       }
     ]
   
-  def testDayOfWeek(self):
+  def testDayOfFridayAt7(self):
+    # NOTE: which is this?  7am or 7pm ?
     ret = axpress.read_translate("""
       foo[a.is] = "friday at 7"
+      foo[simple_display.text] = _out
+    """)
+    assert len(ret) == 1
+
+  def testDayOfTodayAtNoon(self):
+    ret = axpress.read_translate("""
+      foo[a.is] = "today at noon"
+      foo[simple_display.text] = _out
+    """)
+    assert len(ret) == 1
+
+  def testDayOfTodayAt3(self):
+    ret = axpress.read_translate("""
+      foo[a.is] = "today at 3"
       foo[simple_display.text] = _out
     """)
     assert len(ret) == 1

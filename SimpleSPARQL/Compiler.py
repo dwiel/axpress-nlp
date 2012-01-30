@@ -163,8 +163,13 @@ class Compiler :
     return self._next_translation_id
   
   def translation_can_follow(self, this, next) :
+    """ a translation can follow if any of the output triples of this match
+    with any of the input triples from next """
     for triple in this[n.meta.output] :
       for ntriple in next[n.meta.input] :
+        # NOTE WARNING error here!
+        if this[n.meta.name] == "date at time" and next[n.meta.name] == "today a" :
+          p('m', ntriple, triple, self.triples_match(ntriple, triple))
         if self.triples_match(ntriple, triple) :
           return True
     
@@ -224,6 +229,7 @@ class Compiler :
       return ret
     
     if isstr(value) and isstr(qvalue) :
+      #return self.string_matches(value, qvalue) or self.string_matches(qvalue, value)
       return self.string_matches(value, qvalue)
     
     if value == qvalue :
@@ -326,11 +332,6 @@ class Compiler :
           new_bindings[k] = v
         elif not is_any_var(b[k]) and is_out_lit_var(v) :
           new_bindings[k] = b[k]
-        ## TODO: I think these can be removed ...
-        #elif is_lit_var(b[k]) and is_var(v   ) and v.name == k :
-          #new_bindings[k] = b[k]
-        #elif is_lit_var(v   ) and is_var(b[k]) and b[k].name == k :
-          #new_bindings[k] = v
         else :
           return False
       else :
@@ -532,18 +533,34 @@ class Compiler :
     # the translation_queue is a list of translations that will be searched.  
     # There are some heuristics which alter the order that the translations are
     # searched in
-    #translation_queue = list(self.translations)
+    # TODO if there is a lineage, should translation_queue should be a 
+    # combination of the tq from the end of both merged paths
     if lineage and 'new_lineage' not in lineage[-1] :
       translation_queue = self.translation_matrix[lineage[-1]['translation'].get(n.meta.id)]
     else :
       translation_queue = list(self.translations)
+    # NOTE setting translation_queue to all translations all the time causes
+    # errors.  This is because we can go in all kinds of weird directions ...
       
     # HEURISTIC: stop DFS search at self.depth
     if lineage :
       if len(lineage) >= self.depth :
         translation_queue = []
     
-    # HACK
+    self.debugp('tq', [t[n.meta.name] for t in translation_queue])
+    
+    """
+    ###
+    Proposed solution to merge messiness:
+    new fn test_and_merge which takes in the translation_queue and generates
+    query, translation, bindings_set, new_lineage
+    Not sure what this quad is called ...
+    
+    This shouldn't be too hard, but I could see it getting hairy ... so I'm 
+    waiting to do it
+    """
+    
+    # HACK: should be alleviated by above proposal
     query_backup = copy.copy(query)
     # main loop
     for translation in translation_queue :
@@ -559,9 +576,6 @@ class Compiler :
             continue
       
       #self.debug('testing ' + translation[n.meta.name])
-      #p('testing', translation[n.meta.name])
-      # NOTE: I think this is where I need to check for partial matches in order
-      # to tack on the DFS stack onto the translation_queue
       ret, more = self.testtranslation(translation, query, reqd_triples)
       if ret == "partial" :
         matched_triples = more
