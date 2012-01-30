@@ -42,12 +42,22 @@ def loadTranslations(axpress, n) :
   """)
   def fn(vars) :
     print vars
-    vars['datetime'] = datetime.combine(vars['date'], vars['time'])
+    vars['datetime'] = datetime.datetime.combine(vars['date'], vars['time'])
   rule("date+time", """
     d[dt.date] = _date
     t[dt.time] = _time
   """, """
     dt.compose(date, time) = _datetime
+  """, fn)
+  
+  def fn(vars) :
+    print vars
+    vars['text'] = str(vars['dt'])
+    print vars
+  rule("display datetime", """
+    foo[dt.datetime] = _dt
+  """, """
+    foo[simple_display.text] = _text
   """, fn)
   
   "%unix_timestamp%"

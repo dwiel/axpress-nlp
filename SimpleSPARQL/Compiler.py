@@ -69,40 +69,44 @@ class Compiler :
     
     self.log_debug = debug
     self.debug_reset()
-    self.debug_on = False
+
+  def nop(*args, **kwargs) :
+    pass
   
+  def debug_off(self) :
+    self.debug = nop
+    self.debugp = nop
+    self.debugps = nop
+    self.debug_open_block = nop
+    self.debug_close_block = nop
+
   def debug_reset(self) :
     self.debug_str = ""
     self.debug_block_id = 0
   
   def debug(self, str, endline='<br>') :
-    if self.debug_on :
-      self.debug_str += str + endline
+    self.debug_str += str + endline
 
   def debugp(self, *args) :
-    if self.debug_on :
-      self.debug('<xmp>' + ' '.join([prettyquery(arg) for arg in args]) + '</xmp>', '')
+    self.debug('<xmp>' + ' '.join([prettyquery(arg) for arg in args]) + '</xmp>', '')
     
   def debugps(self, *args) :
-    if self.debug_on :
-      self.debug(' '.join([prettyquery(arg) for arg in args]))
+    self.debug(' '.join([prettyquery(arg) for arg in args]))
   
   def debug_open_block(self, title) :
     """ this is used to generate HTML debug output.  Reset the output first by
     calling debug_reset, then make the compile call, then get the output by 
     calling debugp """
     
-    if self.debug_on :
-      self.debug_str += """
-        <div class="logblock">
-        <div class="logblock-title" id="block-title-%d">%s</div>
-        <div class="logblock-body" id="block-body-%d">
-      """ % (self.debug_block_id, title, self.debug_block_id)
-      self.debug_block_id += 1
+    self.debug_str += """
+      <div class="logblock">
+      <div class="logblock-title" id="block-title-%d">%s</div>
+      <div class="logblock-body" id="block-body-%d" style="display:none">
+    """ % (self.debug_block_id, title, self.debug_block_id)
+    self.debug_block_id += 1
   
   def debug_close_block(self) :
-    if self.debug_on :
-      self.debug_str += """</div></div>"""
+    self.debug_str += """</div></div>"""
   
   def register_translation(self, translation) :
     n = self.n
@@ -251,47 +255,40 @@ class Compiler :
     return False
   
   def get_binding(self, triple, ftriple) :
-    #d = triple[1] == self.n.type.number and 'distance' in str(triple[2]) and 'distance' in str(ftriple[2])
-    
     binding = Bindings()
     for t, q in izip(triple, ftriple) :
-      #if d : p('x', t, q)
       if is_any_var(t) and self.values_match(t, q):
-        #if d : p(1)
         # if the same var is trying to be bound to two different values, 
         # not a valid binding
         if t in binding and binding[t.name] != q :
           return Bindings()
         binding[t.name] = q
       elif (is_lit_var(t) or is_var(t)) and is_var(q) :
-        #if d : p(2)
-        binding[t.name] = q
+        # prefer_litvars is set in bind_vars.  In some cases we never want to 
+        # bind a litvar to a var because it means we would be loosing 
+        # information
+        if self.prefer_litvars and is_lit_var(t) :
+          binding[q.name] = t
+        else :
+          binding[t.name] = q
       elif isstr(t) and isstr(q) :
-        #if d : p(4)
         # BUG: if there is more than one way to match the string with the 
         # pattern this will only return the first
-        #self.debugp('b', str(t), str(q))
         ret = self.find_matches(str(t), str(q))
         if ret != None:
           for name, value in ret.iteritems() :
             binding[unicode(name)] = unicode(value)
       elif isinstance(t, list) :
-        #if d : p(5)
         # NOTE: copy and paste from above ...
-        #self.debugp(str(t), str(q))
         for ti in t :
           ret = self.find_matches(str(ti), str(q))
           if ret != None:
             for name, value in ret.iteritems() :
               binding[unicode(name)] = unicode(value)
       elif t != q :
-        #if d : p(3)
         return Bindings()
       elif is_lit_var(t) and is_out_lit_var(q) :
         return Bindings()
-        #binding[t.name] = q
-      #else :
-        #if d : p(1000)
     return binding
   
   def find_bindings_for_triple(self, triple, facts, reqd_facts) :
@@ -329,6 +326,11 @@ class Compiler :
           new_bindings[k] = v
         elif not is_any_var(b[k]) and is_out_lit_var(v) :
           new_bindings[k] = b[k]
+        # TODO: I think these can be removed ...
+        elif is_lit_var(b[k]) and is_var(v   ) and v.name == k :
+          new_bindings[k] = b[k]
+        elif is_lit_var(v   ) and is_var(b[k]) and b[k].name == k :
+          new_bindings[k] = v
         else :
           return False
       else :
@@ -369,7 +371,7 @@ class Compiler :
     
     return new_bindings
 
-  def bind_vars(self, translation, facts, reqd_facts, initial_bindings = {}) :
+  def bind_vars(self, translation, facts, reqd_facts, initial_bindings = {}, prefer_litvars = False) :
     """
     @arg translation is a list of triples (the input part of the translation)
     @arg facts is a list of triples (the currently known facts)
@@ -386,6 +388,8 @@ class Compiler :
     #self.debugp('facts', facts)
     #self.debugp('reqd_facts', reqd_facts)
     #self.debugp('initial_bindings', initial_bindings)
+    
+    self.prefer_litvars = prefer_litvars
     
     # loop through each triple.  find possible bindings for each triple.  If 
     # this triple's bindings conflict with previous triple's bindings then 
@@ -521,7 +525,6 @@ class Compiler :
       searched.....
     """
     #p('query', query)
-    #p('reqd_triples', reqd_triples)
     n = self.n
     
     guaranteed_steps = []
@@ -530,7 +533,7 @@ class Compiler :
     # There are some heuristics which alter the order that the translations are
     # searched in
     #translation_queue = list(self.translations)
-    if lineage :
+    if lineage and 'new_lineage' not in lineage[-1] :
       translation_queue = self.translation_matrix[lineage[-1]['translation'].get(n.meta.id)]
     else :
       translation_queue = list(self.translations)
@@ -540,8 +543,13 @@ class Compiler :
       if len(lineage) >= self.depth :
         translation_queue = []
     
+    # HACK
+    query_backup = copy.copy(query)
     # main loop
     for translation in translation_queue :
+      query = query_backup
+      new_lineage = False
+      
       # OPTIMIZATION: skip this translation if it is the inverse of the last translation
       # WARNING: not 100% sure this is always going to work, but it does for now ...
       if lineage :
@@ -559,28 +567,41 @@ class Compiler :
         matched_triples = more
         
         past_partials = self.partials[translation[n.meta.id]]
+        # TODO: explore all of these combinations, not just the first or the 
+        # last
         for past_lineage, past_query, past_matched_triples in past_partials :
+          query = query_backup
           if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
-            combined_bindings = self.bind_vars(query, past_query, False, {})
+            self.debug_open_block('merge for ' + translation[n.meta.name])
+            
+            combined_bindings_set = self.bind_vars(query, past_query, False, {}, prefer_litvars = True)
+            #self.debugp('combined_bindings_set', combined_bindings_set)
             # TODO: look for identical past_query and query
             # TODO: look for past_query in direct lineage of query
             # TODO  make sure that the two queries combined have more information that query by itself
-
-            altered_past_query, altered_past_query_new_triples = sub_var_bindings_track_changes(past_query, combined_bindings)
-            # TODO: combine new_triples
             
-            # combine two branches' queries
-            new_query = []
-            new_query.extend(query)
-            new_query.extend(altered_past_query)
+            # TODO: remove placeholder [] triple
+            combined_query = query + past_query
             
-            ret, more = self.testtranslation(translation, new_query, reqd_triples)
+            # TODO: actually iterate over these ...
+            for combined_bindings in combined_bindings_set :
+              new_query, new_triples = sub_var_bindings_track_changes(combined_query, combined_bindings)
+            
+            # remove duplicate triples
+            new_new_query = []
+            for triple in new_query :
+              if triple not in new_new_query :
+                new_new_query.append(triple)
+              else :
+                pass
+            new_query = new_new_query
+            
+            ret, more = self.testtranslation(translation, new_query, new_triples)
             if ret == True :
-              # TODO: only add steps that aren't already in lineage
-              lineage += past_lineage
-              p('l', len(lineage))
-              p('lineage', lineage)
-              break
+              new_lineage = copy.copy(past_lineage)
+              query = new_query
+            
+            self.debug_close_block()
         
         # if no full match was found, add this step and lineage to the past 
         # partials
@@ -717,6 +738,8 @@ class Compiler :
             'new_triples' : new_triples,
             'new_query' : new_query,
           }
+          if new_lineage :
+            step['new_lineage'] = new_lineage
           #p('step', step)
           yield step
   
@@ -797,7 +820,7 @@ class Compiler :
       bindings.update(new_bindings)
     return bindings or True
   
-  def find_partial_solution(self, var_triples, facts, interesting_facts) :
+  def find_partial_solution(self, var_triples, facts) :
     """
     returns a list of triples from var_triples which have matches in facts
     """
@@ -905,6 +928,7 @@ class Compiler :
     # remove any steps we've already taken
     steps = self.remove_steps_already_taken(steps, lineage)
     
+    #steps = list(steps)
     #self.debug_open_block('steps')
     #self.debugp(steps)
     #self.debug_close_block()
@@ -914,6 +938,15 @@ class Compiler :
     for step in steps :
       self.debug_open_block((step['translation'][n.meta.name] or '<unnamed>') + ' ' + color(hash(step['input_bindings'], step['output_bindings'])) + ' ' + prettyquery(step['input_bindings']))
       
+      # add this step to the lineage, but before that, add any new steps that
+      # were injected by the step itself (in the case of a merged path)
+      new_lineage = copy.copy(lineage)
+      if 'new_lineage' in step :
+        for s in step['new_lineage'] :
+          if s not in lineage :
+            new_lineage.append(s)
+      new_lineage += [step]
+      
       # if the new information at this point is enough to fulfil the query, done
       # otherwise, recursively continue searching.
       # found_solution is filled with the bindings which bind out_lit_vars from 
@@ -922,14 +955,13 @@ class Compiler :
       # completely remove the partial solution step at the end of compilation
       found_solution = self.found_solution(step['new_query'])
       if found_solution :
-        lineage.append(step)
-        #self.debugp("solution", found_solution, lineage)
         self.debug_close_block()
-        return lineage
+        return new_lineage
       else :
         # recur
         # TODO: pass lineage into search so it can be stored for partial solution merges
-        ret = self.search(step['new_query'], step['new_triples'], lineage + [step])
+        #self.debugp('new_search')
+        ret = self.search(step['new_query'], step['new_triples'], new_lineage)
         self.debug_close_block()
         if ret :
           return ret
@@ -989,11 +1021,10 @@ class Compiler :
     # an iterative deepening search
     self.depth = 1
     steps = None
-    while not steps and self.depth < 15:
+    while not steps and self.depth < 12:
       self.debugp("depth: %d" % self.depth)
       self.partials = defaultdict(list)
       steps = self.search(query, query, lineage = [], root = True)
-      self.debugp('steps', steps)
       self.depth += 1
     
     # if there were no paths through the search space we are done here
@@ -1012,6 +1043,8 @@ class Compiler :
     finding all paths is much more difficult because there are many ways which
     translations can be combined into infite loops that are hard to detect
     """
+    #p('steps', [(id(s), s['translation'][n.meta.name]) for s in steps])
+    
     solution_bindings_set = {}
     for step in steps :
       step['input_bindings'] = dict([(var, binding) for (var, binding) in step['input_bindings'].iteritems() if not is_var(binding)])
@@ -1020,10 +1053,9 @@ class Compiler :
       
       # figure out if any parts of the output of this step satisfy part of 
       # the solution
-      #self.debugp('step', step)
       var_triples = self.find_specific_var_triples(step['new_query'], self.reqd_bound_vars)
       partial_bindings = self.find_partial_solution(
-        var_triples, step['new_query'], step['new_triples']
+        var_triples, step['new_query']
       )
 
       # keep track of which variables will end up holding the solution
@@ -1032,6 +1064,8 @@ class Compiler :
       # get rid of extra stuff in steps
       del step['new_query']
       del step['new_triples']
+      if 'new_lineage' in step :
+        del step['new_lineage']
 
     ret = {
       'combinations' : [[{

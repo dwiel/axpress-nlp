@@ -229,7 +229,6 @@ class Evaluator :
     #p('number of combinations',len(compiled['combinations']))
     final_bindings_set = []
     for combination, solution_bindings in izip(compiled['combinations'], compiled['solution_bindings_set']) :
-      #p('len(combination)',len(combination))
       #p('combination',combination.keys())
       combination_bindings_set = [{}]
       for translation in combination :
@@ -257,6 +256,7 @@ class Evaluator :
         #p('translation[partial_bindings]',translation['step']['partial_bindings'])
       
       #p('combination_bindings_set',combination_bindings_set)
+      #p('len(combination)',len(combination))
       #p('solution_bindings',solution_bindings)
       for bindings in self.each_binding_set(combination_bindings_set) :
         solution = {}

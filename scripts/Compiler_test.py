@@ -252,6 +252,29 @@ class CompilerTestCase(unittest.TestCase):
       False, []
     )
   
+  def test_get_binding(self):
+    ret = compiler.get_binding(
+      [ Var.t_623, n.dt.time, LitVar.time_out_646, ],
+      [ Var.t_623, n.dt.time, Var.time_621, ],
+    )
+    # make sure that the if there is a lit var bound to a var, the litvar stays
+    # and the vars disappear
+    # NOTE: We don't always want it to work like this ...
+    assert ret == {
+      't_623' : Var.t_623,
+      'time_621' : LitVar.time_out_646,
+    }
+  
+  def test_bind_vars_special(self) :
+    ret = compiler.bind_vars([
+      [ Var.x, n.dt.time, LitVar.time_out_646, ],
+      [ Var.x, n.dt.time, Var.time_621, ],
+      [ Var.x, n.dt.date, LitVar.date_out_646, ],
+    ], [
+      [ Var.x, n.dt.date, Var.date_621, ],
+    ], False)
+    p('ret', ret)
+  
   def test_bind_vars(self):
     # try binding vars with extra data that doesn't need binding
     translation = [

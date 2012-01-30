@@ -125,6 +125,8 @@ def loadTranslations(axpress, n) :
       vars['date'] = date.today()
     else :
       vars['date'] = date.today() + timedelta(days = 7 - dow_i_today + dow_i)
+  # dow is just any old day of week, friday for example
+  # this dow is the specific friday that is this friday
   rule("this dow str - naked", """
     this_dow[a.is] = "%dow_str%"
   """, """
@@ -137,10 +139,14 @@ def loadTranslations(axpress, n) :
     dow[dt.day_of_week_string] = "%dow_str%"
     dow[dt.this_day_of_week] = this_dow
   """)
+  # NOTE: "dow[dt.this_day_of_week] = d" should debatably be in the output
+  # rather than the input.  But without putting it in the input, this causes
+  # explosions.  Not really sure if having it in the output is ever actually
+  # benefitial .........
   rule("this dow", """
     dow[dt.day_of_week_int] = _dow_i
-  """, """
     dow[dt.this_day_of_week] = d
+  """, """
     d[dt.date] = _date
   """, this_day_of_week)
   
@@ -167,22 +173,22 @@ def loadTranslations(axpress, n) :
   """)
   rule("next dow", """
     dow[dt.day_of_week_int] = _dow_i
-  """, """
     dow[dt.next_day_of_week] = d
+  """, """
     d[dt.date] = _date
   """, next_day_of_week)
   
-  def last_day_of_week(dow_i) :
+  def last_day_of_week(vars) :
     d = date.today()
     dow_i_today = d.weekday()
     
-    if dow_i > dow_i_today :
-      return date.today() - timedelta(days = dow_i - dow_i_today)
-    elif dow_i == dow_i_today :
-      return date.today() - timedelta(days = 7)
+    if vars['dow_i'] > dow_i_today :
+      vars['date'] = date.today() - timedelta(days = vars['dow_i'] - dow_i_today)
+    elif vars['dow_i'] == dow_i_today :
+      vars['date'] = date.today() - timedelta(days = 7)
     else :
       # TODO: double check this part
-      return date.today() - timedelta(days = 7 - dow_i_today + dow_i)
+      vars['date'] = date.today() - timedelta(days = 7 - dow_i_today + vars['dow_i'])
   rule("last dow str", """
     last_dow[a.is] = "last %dow_str%"
   """, """
@@ -191,8 +197,8 @@ def loadTranslations(axpress, n) :
   """)
   rule("last dow", """
     dow[dt.day_of_week_int] = _dow_i
-  """, """
     dow[dt.last_day_of_week] = d
+  """, """
     d[dt.date] = _date
   """, last_day_of_week)
   
