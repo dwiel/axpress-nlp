@@ -113,7 +113,7 @@ def loadTranslations(axpress, n) :
   axpress.register_translation({
     n.meta.name : 's members in musical_group',
     n.meta.input : """
-      member[axpress.is] = "members in %group_s%"
+      member[axpress.is] = "(band |)members (in|of) %group_s%"
     """,
     n.meta.output : """
       group[axpress.is] = "%group_s%"

@@ -578,28 +578,44 @@ class Compiler :
       #self.debug('testing ' + translation[n.meta.name])
       ret, more = self.testtranslation(translation, query, reqd_triples)
       if ret == "partial" :
+        #continue
         matched_triples = more
         
         past_partials = self.partials[translation[n.meta.id]]
         # TODO: explore all of these combinations, not just the first or the 
         # last
+        # TODO: use heuristics to pick which past_partial to try first:
+        #     *** keep stats about p of tip of branch1 combining with tip of 
+        #         branch2 to fulfil this translation
+        #     * comparing how recently the two paths diverged might correlate
+        #     * prefer combined_bindings_set with more litvars
         for past_lineage, past_query, past_matched_triples in past_partials :
           query = query_backup
           if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
             self.debug_open_block('merge for ' + translation[n.meta.name])
             
-            combined_bindings_set = self.bind_vars(query, past_query, False, {}, prefer_litvars = True)
-            #self.debugp('combined_bindings_set', combined_bindings_set)
-            # TODO: look for identical past_query and query
-            # TODO: look for past_query in direct lineage of query
-            # TODO  make sure that the two queries combined have more information that query by itself
+            # OPTIMIZATION make sure that past_query isn't a subset of query
+            # NOTE: might be faster to compare lineages
+            if all(triple in query for triple in past_query) :
+              continue
             
-            # TODO: remove placeholder [] triple
-            combined_query = query + past_query
+            # we prefer litvars here because we don't care which direction the
+            # bindings go, so long as we preserve any knowledge we've gained.
+            # so we don't ever want to replace litvars with vars
+            # NOTE: what to do when replacing a litvar with a different litvar
+            # ... I think that is when we've gotten to a pretty hairy situation.
+            # we can't know if they will unify or not until we start evaluating
+            # which breaks everything.
+            # I think for now we have to try to avoid this situation ....
+            combined_bindings_set = self.bind_vars(
+              query, past_query, False, {}, prefer_litvars = True
+            )
             
             # TODO: actually iterate over these ...
             for combined_bindings in combined_bindings_set :
-              new_query, new_triples = sub_var_bindings_track_changes(combined_query, combined_bindings)
+              new_query, new_triples = sub_var_bindings_track_changes(
+                query + past_query, combined_bindings
+              )
             
             # remove duplicate triples
             new_new_query = []
@@ -610,9 +626,11 @@ class Compiler :
                 pass
             new_query = new_new_query
             
+            # test to see if this new merged query has enough information to
+            # trigger this translation
             ret, more = self.testtranslation(translation, new_query, new_triples)
             if ret == True :
-              new_lineage = copy.copy(past_lineage)
+              new_lineage = past_lineage
               query = new_query
             
             self.debug_close_block()
@@ -973,7 +991,6 @@ class Compiler :
         return new_lineage
       else :
         # recur
-        # TODO: pass lineage into search so it can be stored for partial solution merges
         #self.debugp('new_search')
         ret = self.search(step['new_query'], step['new_triples'], new_lineage)
         self.debug_close_block()
@@ -1022,6 +1039,7 @@ class Compiler :
     
     # TODO: change axpress to parse _vars as outlitvars in the first place
     # this replaces all litvars with outlitvars in query
+    # that said, this isn't a costly function in the grand scheme of things
     # replaces all vars in reqd_bound_vars not already litvars with outvars ...
     self.make_vars_out_vars(query, reqd_bound_vars)
     

@@ -515,7 +515,7 @@ class AxpressTestCase(unittest.TestCase):
   
   def testSimpleFreebaseStringQuery4(self):
     ret = axpress.read_translate("""
-      x[axpress.is] = "members in Phish"
+      x[axpress.is] = "band members in Phish"
       x[freebase.mid] = _mid
       x[freebase.name] = _name
     """)
