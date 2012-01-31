@@ -97,6 +97,10 @@ def loadTranslations(axpress, n) :
     """, fn)
   named_time('noon', time(hour=12))
   named_time('midnight', time(hour=0))
+  
+  # TODO:
+  # quarter past
+  # 5 after 7
 
   # simple display
   def display_fn(vars) :
