@@ -20,8 +20,6 @@ def loadTranslations(axpress, n) :
   
   "%time% (on |in |)%date%"
   "%date% at %time%"
-  # TODO: convert output from a.is to more specific
-  # this doesn't work because of multipath join bug ... darn
   rule("time on date", """
     dt[a.is] = "%time_s% (on |in |)%date_s%"
   """, """
