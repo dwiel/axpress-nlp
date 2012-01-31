@@ -67,6 +67,8 @@ class Compiler :
     self._next_num = 0
     self._next_translation_id = 0
     
+    self.match_strings_both_ways = False
+    
     self.log_debug = debug
     self.debug_reset()
 
@@ -141,6 +143,10 @@ class Compiler :
     constant_vars = list(invars.intersection(outvars))
     translation[n.meta.constant_vars] = constant_vars
     
+    translation[n.meta.in_lit_vars] = find_vars(
+      translation[n.meta.input], is_lit_var, find_string_vars = True
+    )
+    
     import inspect
     filename = inspect.currentframe().f_back.f_back.f_code.co_filename
     
@@ -166,14 +172,15 @@ class Compiler :
     for triple in this[n.meta.output] :
       for ntriple in next[n.meta.input] :
         # NOTE WARNING error here!
-        if this[n.meta.name] == "date at time" and next[n.meta.name] == "today a" :
-          p('m', ntriple, triple, self.triples_match(ntriple, triple))
+        #if this[n.meta.name] == "date at time" and next[n.meta.name] == "today a" :
+          #p('m', ntriple, triple, self.triples_match(ntriple, triple))
         if self.triples_match(ntriple, triple) :
           return True
     
     return False
   
   def compile_translations(self) :
+    self.match_strings_both_ways = True
     self.translation_matrix = {}
     for id, translation in self.translations_by_id.iteritems() :
       self.translation_matrix[id] = [
@@ -182,7 +189,8 @@ class Compiler :
       #p('t', translation[n.meta.name], [t[n.meta.name] for t in self.translation_matrix[id]])
     #print 'avg', sum(len(ts) for ts in self.translation_matrix.values())/float(len(self.translation_matrix))
     #print [len(ts) for ts in self.translation_matrix.values()]
-    print [t[n.meta.name] for t in self.translations if len(t[n.meta.input]) != 1]
+    #print [t[n.meta.name] for t in self.translations if len(t[n.meta.input]) != 1]
+    self.match_strings_both_ways = False
   
   def find_matches(self, value, qvalue) :
     const, vars = split_string(value)
@@ -227,8 +235,10 @@ class Compiler :
       return ret
     
     if isstr(value) and isstr(qvalue) :
-      #return self.string_matches(value, qvalue) or self.string_matches(qvalue, value)
-      return self.string_matches(value, qvalue)
+      if self.match_strings_both_ways :
+        return self.string_matches(value, qvalue) or self.string_matches(qvalue, value)
+      else :
+        return self.string_matches(value, qvalue)
     
     if value == qvalue :
       return True
@@ -531,7 +541,7 @@ class Compiler :
       Ensures that this set of translation and bindings haven't already been 
       searched.....
     """
-    #p('orig_query', orig_query)
+    #self.debugp('orig_query', orig_query)
     guaranteed_steps = []
     
     # the translation_queue is a list of translations that will be searched.  
@@ -561,7 +571,7 @@ class Compiler :
       translation_queue = filter(test_for_inverse, translation_queue)
     
     # show the list of translations that show up in the queue
-    self.debugp('tq', [t[n.meta.name] for t in translation_queue])
+    #self.debugp('tq', [t[n.meta.name] for t in translation_queue])
     
     def merge_partial(translation, matched_triples) :
       # this function gets called if this translation was partially matched
@@ -576,11 +586,11 @@ class Compiler :
       #     * comparing how recently the two paths diverged might correlate
       #     * prefer combined_bindings_set with more litvars
       # TODO: n-way merges instead of just 2-way merges ...
+      #self.debugp('past_partials', len(past_partials))
       for past_lineage, past_query, past_matched_triples in past_partials :
         # make sure that the triples that these two partials atleast cover
         # all input triples
         if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
-          self.debug_open_block('merge for ' + translation[n.meta.name])
           
           # OPTIMIZATION make sure that past_query isn't a subset of orig_query
           # NOTE: might be faster to compare lineages instead of queries
@@ -609,15 +619,13 @@ class Compiler :
             ret, more = self.testtranslation(translation, new_query, new_triples)
             if ret == True :
               found_merge = True
+              self.debug_open_block('merge for ' + translation[n.meta.name])
               yield new_query, translation, more, past_lineage
-          
-          self.debug_close_block()
+              self.debug_close_block()
       
-      # if no full match was found add this step and lineage to past partials
-      # NOTE: maybe we should add to partials no matter what ...
-      if not found_merge :
-        # add this instance to past partials
-        self.partials[translation[n.meta.id]].append((lineage, orig_query, matched_triples))
+      # add this instance to past partials
+      #self.debugp('storing partial', translation[n.meta.name])
+      self.partials[translation[n.meta.id]].append((lineage, orig_query, matched_triples))
     
     def test_and_merge() :
       """ test each translation against the current query.  If there is a 
@@ -665,6 +673,11 @@ class Compiler :
         input_bindings = bindings
         # output_bindings map from translation space to query space
         output_bindings = {}
+        
+        input_bindings_vars = [var for (var, binding) in input_bindings.iteritems() if not is_var(binding)]
+        missing_vars = translation[n.meta.in_lit_vars] - set(input_bindings_vars)
+        if len(missing_vars) :
+          continue
         
         # initial_bindings are the bindings that we already know from the 
         # input unification that must also hold true for output unification
@@ -754,6 +767,8 @@ class Compiler :
           #self.debugp('new_query', new_query)
           #self.debugp('input_bindings', input_bindings)
           #self.debugp('output_bindings', output_bindings)
+          
+          new_query = self.remove_duplicate_triples(new_query)
           
           step = {
             'input_bindings' : input_bindings,
@@ -1099,5 +1114,5 @@ class Compiler :
       'modifiers' : modifiers,
       'solution_bindings_set' : [solution_bindings_set],
     }
-    #self.debugp('ret', ret)
+    #p('ret', ret)
     return ret
