@@ -86,6 +86,17 @@ def loadTranslations(axpress, n) :
   """, """
     t[dt.time] = _time
   """, t_fn, input_fn)
+  
+  def named_time(name, t) :
+    def fn(vars) :
+      vars['time'] = t
+    rule(name, """
+      t[a.is] = "%s"
+    """ % name, """
+      t[dt.time] = _time
+    """, fn)
+  named_time('noon', time(hour=12))
+  named_time('midnight', time(hour=0))
 
   # simple display
   def display_fn(vars) :
