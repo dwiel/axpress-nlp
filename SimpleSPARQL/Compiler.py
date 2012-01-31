@@ -72,6 +72,11 @@ class Compiler :
     self.log_debug = debug
     self.debug_reset()
 
+  def next_num(self) :
+    """ for generating unique lit_var name """
+    self._next_num += 1
+    return self._next_num
+    
   def nop(*args, **kwargs) :
     pass
   
@@ -192,6 +197,10 @@ class Compiler :
     #print [t[n.meta.name] for t in self.translations if len(t[n.meta.input]) != 1]
     self.match_strings_both_ways = False
   
+  
+  ##############################################################################
+  # MATCHING
+  
   def find_matches(self, value, qvalue) :
     const, vars = split_string(value)
     regex = merge_string(const, ['(?P<%s>.+?)' % var for var in vars])
@@ -267,6 +276,16 @@ class Compiler :
       if self.triples_match(triple, qtriple) :
         return True
     return False
+  
+  def partial_match_exists(self, pattern, reqd_triples) :
+    # check that one of the reqd_triples match part of the query
+    for triple in pattern :
+      if self.find_triple_match(triple, reqd_triples) :
+        return True
+    return False
+    
+  ##############################################################################
+  # BINDINGS
   
   def get_binding(self, triple, ftriple) :
     binding = Bindings()
@@ -469,14 +488,10 @@ class Compiler :
     
     #self.debugp('matches', matches, bindings)
     return bindings
-  
-  def partial_match_exists(self, pattern, reqd_triples) :
-    # check that one of the reqd_triples match part of the query
-    for triple in pattern :
-      if self.find_triple_match(triple, reqd_triples) :
-        return True
-    return False
-    
+
+  ##############################################################################
+  # testtranslation and next_steps
+
   def testtranslation(self, translation, query, reqd_triples) :
     """
     @returns matches, bindings
@@ -520,10 +535,6 @@ class Compiler :
   def find_specific_var_triples(self, query, vars) :
     return [triple for triple in query if any(map(lambda x:is_out_lit_var(x) and x.name in vars, triple))]
 
-  def next_num(self) :
-    self._next_num += 1
-    return self._next_num
-    
   #@logger
   def next_steps(self, orig_query, lineage, reqd_triples) :
     """
@@ -774,6 +785,9 @@ class Compiler :
           #p('step', step)
           yield step
   
+  ##############################################################################
+  # find solution
+  
   def find_solution_values_match(self, tv, qv) :
     """
     does the pattern (value) in tv match the value of qv?
@@ -908,10 +922,11 @@ class Compiler :
     
     return False
 
+  ##############################################################################
+  # SEARCH
+  
   def remove_steps_already_taken(self, steps, lineage) :
-    """
-    remove any steps that we've already taken
-    """
+    """ remove any steps that we've already taken """
     def eq(s1, s2) :
       """ True iff step1 and step2 are equal """
       return ((s1['translation'][n.meta.id] == s2['translation'][n.meta.id])
@@ -995,6 +1010,9 @@ class Compiler :
         self.debug_close_block()
         if ret :
           return ret
+  
+  ##############################################################################
+  # compile
   
   def make_vars_out_vars(self, query, reqd_bound_vars) :
     """
