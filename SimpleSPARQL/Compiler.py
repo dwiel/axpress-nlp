@@ -109,8 +109,6 @@ class Compiler :
     self.debug_str += """</div></div>"""
   
   def register_translation(self, translation) :
-    n = self.n
-    
     # make sure all of the required keys are present
     required = [n.meta.input, n.meta.output, n.meta.name]
     missing = [key for key in required if key not in translation]
@@ -515,24 +513,28 @@ class Compiler :
   def next_num(self) :
     self._next_num += 1
     return self._next_num
+    
+  def remove_duplicate_triples(self, triples) :
+    """ return a new list of triples with duplicates removed """
+    new_triples = []
+    for triple in triples :
+      if triple not in new_triples :
+        new_triples.append(triple)
+    return new_triples
 
   #@logger
-  def next_steps(self, query, lineage, reqd_triples) :
+  def next_steps(self, orig_query, lineage, reqd_triples) :
     """
-    @arg query the query in triples set form
+    @arg orig_query the origional query in triples set form
     @arg lineage the lineage of steps already followed
     @returns the set of next guaranteed_steps and possible_steps.
       Ensures that this set of translation and bindings haven't already been 
       searched.....
     """
-    #p('query', query)
-    n = self.n
-    
+    #p('orig_query', orig_query)
     guaranteed_steps = []
     
     # the translation_queue is a list of translations that will be searched.  
-    # There are some heuristics which alter the order that the translations are
-    # searched in
     # TODO if there is a lineage, should translation_queue should be a 
     # combination of the tq from the end of both merged paths
     if lineage and 'new_lineage' not in lineage[-1] :
@@ -547,105 +549,95 @@ class Compiler :
       if len(lineage) >= self.depth :
         translation_queue = []
     
+    # OPTIMIZATION: skip this translation if it is the inverse of the last translation
+    # WARNING: not 100% sure this is always going to work, but it does for now ...
+    def test_for_inverse(translation) :
+      inverse_function = lineage[-1]['translation'].get(n.meta.inverse_function) 
+      if inverse_function :
+        if inverse_function == translation[n.meta.name] :
+          return False
+      return True
+    if lineage :
+      translation_queue = filter(test_for_inverse, translation_queue)
+    
+    # show the list of translations that show up in the queue
     self.debugp('tq', [t[n.meta.name] for t in translation_queue])
     
-    """
-    ###
-    Proposed solution to merge messiness:
-    new fn test_and_merge which takes in the translation_queue and generates
-    query, translation, bindings_set, new_lineage
-    Not sure what this quad is called ...
-    
-    This shouldn't be too hard, but I could see it getting hairy ... so I'm 
-    waiting to do it
-    """
-    
-    # HACK: should be alleviated by above proposal
-    query_backup = copy.copy(query)
-    # main loop
-    for translation in translation_queue :
-      query = query_backup
-      new_lineage = False
+    def merge_partial(translation, matched_triples) :
+      # this function gets called if this translation was partially matched
       
-      # OPTIMIZATION: skip this translation if it is the inverse of the last translation
-      # WARNING: not 100% sure this is always going to work, but it does for now ...
-      if lineage :
-        inverse_function = lineage[-1]['translation'].get(n.meta.inverse_function) 
-        if inverse_function :
-          if inverse_function == translation[n.meta.name] :
+      found_merge = False
+      
+      # all of the search paths that have partially matched this translation
+      past_partials = self.partials[translation[n.meta.id]]
+      # NOTE: use heuristics to pick which past_partial to try first:
+      #     *** keep stats about p of tip of branch1 combining with tip of 
+      #         branch2 to fulfil this translation
+      #     * comparing how recently the two paths diverged might correlate
+      #     * prefer combined_bindings_set with more litvars
+      # TODO: n-way merges instead of just 2-way merges ...
+      for past_lineage, past_query, past_matched_triples in past_partials :
+        # make sure that the triples that these two partials atleast cover
+        # all input triples
+        if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
+          self.debug_open_block('merge for ' + translation[n.meta.name])
+          
+          # OPTIMIZATION make sure that past_query isn't a subset of orig_query
+          # NOTE: might be faster to compare lineages instead of queries
+          if all(triple in orig_query for triple in past_query) :
             continue
-      
-      #self.debug('testing ' + translation[n.meta.name])
-      ret, more = self.testtranslation(translation, query, reqd_triples)
-      if ret == "partial" :
-        #continue
-        matched_triples = more
-        
-        past_partials = self.partials[translation[n.meta.id]]
-        # TODO: explore all of these combinations, not just the first or the 
-        # last
-        # TODO: use heuristics to pick which past_partial to try first:
-        #     *** keep stats about p of tip of branch1 combining with tip of 
-        #         branch2 to fulfil this translation
-        #     * comparing how recently the two paths diverged might correlate
-        #     * prefer combined_bindings_set with more litvars
-        for past_lineage, past_query, past_matched_triples in past_partials :
-          query = query_backup
-          if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
-            self.debug_open_block('merge for ' + translation[n.meta.name])
-            
-            # OPTIMIZATION make sure that past_query isn't a subset of query
-            # NOTE: might be faster to compare lineages
-            if all(triple in query for triple in past_query) :
-              continue
-            
-            # we prefer litvars here because we don't care which direction the
-            # bindings go, so long as we preserve any knowledge we've gained.
-            # so we don't ever want to replace litvars with vars
-            # NOTE: what to do when replacing a litvar with a different litvar
-            # ... I think that is when we've gotten to a pretty hairy situation.
-            # we can't know if they will unify or not until we start evaluating
-            # which breaks everything.
-            # I think for now we have to try to avoid this situation ....
-            combined_bindings_set = self.bind_vars(
-              query, past_query, False, {}, prefer_litvars = True
+          
+          # merge past_query and orig_query:
+          # as we merge past_query and orig_query, if a litvar and a var bind,
+          # keep the litvar, it has a known computation, where the var does not
+          # NOTE: there may be problems binding litvars to other litvars.  The
+          # two could have different values, but we won't know until runtime.
+          merged_bindings_set = self.bind_vars(
+            orig_query, past_query, False, {}, prefer_litvars = True
+          )
+          
+          # all the ways orig_query and past_query can be merged
+          for merged_bindings in merged_bindings_set :
+            new_query, new_triples = sub_var_bindings_track_changes(
+              orig_query + past_query, merged_bindings
             )
             
-            # TODO: actually iterate over these ...
-            for combined_bindings in combined_bindings_set :
-              new_query, new_triples = sub_var_bindings_track_changes(
-                query + past_query, combined_bindings
-              )
-            
-            # remove duplicate triples
-            new_new_query = []
-            for triple in new_query :
-              if triple not in new_new_query :
-                new_new_query.append(triple)
-              else :
-                pass
-            new_query = new_new_query
+            new_query = self.remove_duplicate_triples(new_query)
             
             # test to see if this new merged query has enough information to
             # trigger this translation
             ret, more = self.testtranslation(translation, new_query, new_triples)
             if ret == True :
-              new_lineage = past_lineage
-              query = new_query
-            
-            self.debug_close_block()
-        
-        # if no full match was found, add this step and lineage to the past 
-        # partials
-        if ret != True :
-          # add this instance to past partials
-          self.partials[translation[n.meta.id]].append((lineage, query, matched_triples))
-          continue
-      if ret == False :
-        continue 
+              found_merge = True
+              yield new_query, translation, more, past_lineage
+          
+          self.debug_close_block()
       
+      # if no full match was found add this step and lineage to past partials
+      # NOTE: maybe we should add to partials no matter what ...
+      if not found_merge :
+        # add this instance to past partials
+        self.partials[translation[n.meta.id]].append((lineage, orig_query, matched_triples))
+    
+    def test_and_merge() :
+      """ test each translation against the current query.  If there is a 
+      partial match, also yield all possible merges """
+      for translation in translation_queue :
+        #self.debug('testing ' + translation[n.meta.name])
+        ret, more = self.testtranslation(translation, orig_query, reqd_triples)
+        if ret == "partial" :
+          # in this case more is a list of the triples that matched
+          for x in merge_partial(translation, more) :
+            yield x
+        elif ret == False :
+          continue 
+        else :
+          # in this case more is a bindings_set
+          yield orig_query, translation, more, False
+    
+    # main loop
+    for query, translation, bindings_set, new_lineage in test_and_merge() :
       # the 2nd value from testtranslation is bindings_set if we've gotten here
-      bindings_set = more
       
       # we've found a match, now we just need to find the bindings.  This is
       # the step where we unify the new information (generated by output 
