@@ -305,6 +305,15 @@ def find_vars(query, is_a_var = is_any_var, find_string_vars = False) :
     else :
       return set()
 
+def remove_duplicate_triples(triples) :
+  """ return a new list of triples with duplicates removed """
+  new_triples = []
+  for triple in triples :
+    if triple not in new_triples :
+      new_triples.append(triple)
+  return new_triples
+
+
 class UniqueURIGenerator() :
   """
   usage:

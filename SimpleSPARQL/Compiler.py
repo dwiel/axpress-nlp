@@ -524,14 +524,6 @@ class Compiler :
     self._next_num += 1
     return self._next_num
     
-  def remove_duplicate_triples(self, triples) :
-    """ return a new list of triples with duplicates removed """
-    new_triples = []
-    for triple in triples :
-      if triple not in new_triples :
-        new_triples.append(triple)
-    return new_triples
-
   #@logger
   def next_steps(self, orig_query, lineage, reqd_triples) :
     """
@@ -612,7 +604,7 @@ class Compiler :
               orig_query + past_query, merged_bindings
             )
             
-            new_query = self.remove_duplicate_triples(new_query)
+            new_query = remove_duplicate_triples(new_query)
             
             # test to see if this new merged query has enough information to
             # trigger this translation
@@ -768,7 +760,7 @@ class Compiler :
           #self.debugp('input_bindings', input_bindings)
           #self.debugp('output_bindings', output_bindings)
           
-          new_query = self.remove_duplicate_triples(new_query)
+          new_query = remove_duplicate_triples(new_query)
           
           step = {
             'input_bindings' : input_bindings,
