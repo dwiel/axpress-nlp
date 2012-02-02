@@ -385,6 +385,18 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       [ Var.book, n.axpress['is'], '%title%', ],
       [ Var.book, n.test.type, LitVar.type, ],
     ]
+  
+  def test_broken_once(self) :
+    query = """
+      r = test.new(dt, "bzzt ... alarm!")
+      dt[test.datetime] = "%datetime%"
+    """
+    ret = self.parser.parse_query(query)
+    #p('ret', ret)
+    assert ret == [
+      [ n.test.new, Var.dt, "bzzt ... alarm!", Var.r],
+      [ Var.dt, n.test.datetime, "%datetime%"],
+    ]
 
 if __name__ == "__main__" :
   unittest.main()
