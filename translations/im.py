@@ -7,7 +7,7 @@ GTALK_SERVER = "talk.google.com"
 TO_GMAIL_ID = "zdwiel@gmail.com"
 
 def send_im(vars) :
-  message = vars['message']
+  message = vars['msg']
   addr = vars['addr']
   
   jid=xmpp.protocol.JID(FROM_GMAIL_ID)
@@ -22,7 +22,7 @@ def send_im(vars) :
   cl.send(xmpp.Message(addr, message))
   cl.disconnect()
   
-  vars['response'] = "said %s to %s" % (message, addr)
+  vars['response'] = "sent %s to %s" % (message, addr)
 
 def loadTranslations(axpress, n) :
   n.bind('im', '<http://dwiel.net/axpress/im/0.1/>')
@@ -43,15 +43,16 @@ def loadTranslations(axpress, n) :
   # TODO: allow optionally accepting a person's name here for the response
   rule("send im", """
     person[person.email_address] = _addr
-    message[string.text] = _message
-    response = im.send(person, message)
+    message[string.text] = _msg
+    ret = im.send(person, message)
   """, """
-    response[string.text] = _response
+    ret[string.text] = _response
   """, send_im)
   
   rule("say hi", """
-    foo[axpress.is] = "say hi to %person_str%"
-    person[axpress.is] = person_str
+    foo[axpress.is] = "(say|send) hi to %person_str%"
   """, """
-    foo = im.send(person, 'hi')
+    person[axpress.is] = "%person_str%"
+    message[string.text] = 'hi'
+    foo = im.send(person, message)
   """)

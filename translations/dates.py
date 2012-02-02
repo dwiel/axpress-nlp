@@ -112,13 +112,11 @@ def loadTranslations(axpress, n) :
   # Q: if today is wednesday, does "tuesday" mean yesterday or next tuesday?
   # A: this tuesday for now
   def this_day_of_week(vars) :
-    print 'this_day_of_week', vars
     dow_i = vars['dow_i']
     
     d = date.today()
     dow_i_today = d.weekday()
     
-    print dow_i_today, dow_i
     if dow_i > dow_i_today :
       vars['date'] = date.today() + timedelta(days = dow_i - dow_i_today)
     elif dow_i == dow_i_today :
@@ -132,13 +130,13 @@ def loadTranslations(axpress, n) :
   """, """
     dow[dt.day_of_week_string] = "%dow_str%"
     dow[dt.this_day_of_week] = this_dow
-  """)
+  """, input_function = dow_string_input_function)
   rule("this dow str - this", """
     this_dow[a.is] = "this %dow_str%"
   """, """
     dow[dt.day_of_week_string] = "%dow_str%"
     dow[dt.this_day_of_week] = this_dow
-  """)
+  """, input_function = dow_string_input_function)
   # NOTE: "dow[dt.this_day_of_week] = d" should debatably be in the output
   # rather than the input.  But without putting it in the input, this causes
   # explosions.  Not really sure if having it in the output is ever actually
@@ -152,13 +150,11 @@ def loadTranslations(axpress, n) :
   
   # next thursday
   def next_day_of_week(vars) :
-    print 'next_day_of_week', vars
     dow_i = vars['dow_i']
     
     d = date.today()
     dow_i_today = d.weekday()
     
-    print dow_i_today, dow_i
     if dow_i > dow_i_today :
       vars['date'] = date.today() + timedelta(days = dow_i - dow_i_today)
     elif dow_i == dow_i_today :
@@ -170,7 +166,7 @@ def loadTranslations(axpress, n) :
   """, """
     dow[dt.day_of_week_string] = "%dow_str%"
     dow[dt.next_day_of_week] = next_dow
-  """)
+  """, input_function = dow_string_input_function)
   rule("next dow", """
     dow[dt.day_of_week_int] = _dow_i
     dow[dt.next_day_of_week] = d
@@ -233,7 +229,6 @@ def loadTranslations(axpress, n) :
   
   # simple display
   def fn(vars) :
-    print 'fn', vars
     vars['out'] = str(vars['date'])
   rule("display date", """
     d[dt.date] = _date

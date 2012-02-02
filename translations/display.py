@@ -76,3 +76,13 @@ def loadTranslations(axpress, n) :
     """,
     n.meta.function : direct_related,
   })
+  
+  axpress.register_translation({
+    n.meta.name : 'string.text -> simple_display.text',
+    n.meta.input : """
+      x[string.text] = text
+    """,
+    n.meta.output : """
+      x[simple_display.text] = text
+    """,
+  })

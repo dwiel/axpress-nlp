@@ -55,7 +55,43 @@ def loadTranslations(axpress, n) :
     foo[simple_display.text] = _text
   """, fn)
   
+  # NOTE: this should be writable in many fewer lines:
+  """
+  x[a.is] = "%dt.unit_time% from now" | "in %dt.unit_time%"
+    =>
+  x[dt.datetime] = _dt
+    fn
+  return datetime.datetime.now() + unit_time
+  """
+
+  rule("from now a", """
+    x[axpress.is] = "%unit_time% from now" | "in %unit_time%"
+  """, """
+    x[dt.unit_time_from_now][axpress.is] = "%unit_time%"
+  """)
+  def from_now(vars) :
+    vars['dt'] = datetime.datetime.now() + vars['ut']
+  rule("from now", """
+    x[dt.unit_time_from_now][dt.unit_time] = _ut
+  """, """
+    x[dt.datetime] = _dt
+  """, from_now)
+  
+  ############# unit time
+  "5 minutes"
+  "12 days"
+  "1.5 hours"
+  "3 days (and |)5 minutes"
+  def unit_time_min(vars) :
+    vars['ut'] = timedelta(minutes = vars['number'])
+  rule("x minutes", """
+    x[axpress.is] = "%number% (min|mins|minute|minutes)"
+  """, """
+    x[dt.unit_time] = _ut
+  """, unit_time_min)
+  
+
   "%unix_timestamp%"
-  "in %unit_time%"
   "%unit_time% ago"
-  "%unit_time% from now"
+  "%minutes% till %hour%"
+  
