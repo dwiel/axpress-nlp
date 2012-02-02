@@ -69,6 +69,7 @@ class Compiler :
     
     self.match_strings_both_ways = False
     
+    self.block_depth = 0
     self.log_debug = debug
     self.debug_reset()
 
@@ -111,9 +112,11 @@ class Compiler :
       <div class="logblock-body" id="block-body-%d" style="display:none">
     """ % (self.debug_block_id, title, self.debug_block_id)
     self.debug_block_id += 1
+    self.block_depth += 1
   
   def debug_close_block(self) :
     self.debug_str += """</div></div>"""
+    self.block_depth -= 1
   
   def register_translation(self, translation) :
     # make sure all of the required keys are present
@@ -510,7 +513,7 @@ class Compiler :
     #p('translation[self.n.meta.input]', translation[self.n.meta.input])
     #p('query', query)
     #p('reqd_triples', reqd_triples)
-    if not self.partial_match_exists(translation[self.n.meta.input], reqd_triples) :
+    if reqd_triples and not self.partial_match_exists(translation[self.n.meta.input], reqd_triples) :
       return False, None
       
     ret = self.bind_vars(
@@ -588,13 +591,12 @@ class Compiler :
       #         branch2 to fulfil this translation
       #     * comparing how recently the two paths diverged might correlate
       #     * prefer combined_bindings_set with more litvars
-      # TODO: n-way merges instead of just 2-way merges ...
+      # TODO: n-way merges instead of just 2-way merges ... ouch!
       #self.debugp('past_partials', len(past_partials))
       for past_lineage, past_query, past_matched_triples in past_partials :
         # make sure that the triples that these two partials atleast cover
         # all input triples
         if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
-          
           # OPTIMIZATION make sure that past_query isn't a subset of orig_query
           # NOTE: might be faster to compare lineages instead of queries
           if all(triple in orig_query for triple in past_query) :
@@ -627,7 +629,7 @@ class Compiler :
               self.debug_close_block()
       
       # add this instance to past partials
-      #self.debugp('storing partial', translation[n.meta.name])
+      #p('storing partial', translation[n.meta.name], matched_triples)
       self.partials[translation[n.meta.id]].append((lineage, orig_query, matched_triples))
     
     def test_and_merge() :
