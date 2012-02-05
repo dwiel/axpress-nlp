@@ -27,18 +27,8 @@ def send_im(vars) :
 def loadTranslations(axpress) :
   axpress.n.bind('im', '<http://dwiel.net/axpress/im/0.1/>')
   axpress.n.bind('person', '<http://dwiel.net/axpress/person/0.1/>')
+  rule = axpress.rule
 
-  def rule(name, input, output, fn=None, input_function=None, **kwargs) :
-    options = {
-      'name'   : name,
-      'input'  : input,
-      'output' : output,
-      'function' : fn,
-      'input_function' : input_function
-    }
-    options.update(kwargs)
-    axpress.register_translation(options)
-  
   # this seems to be something different ... or maybe not :)
   # TODO: allow optionally accepting a person's name here for the response
   rule("send im", """

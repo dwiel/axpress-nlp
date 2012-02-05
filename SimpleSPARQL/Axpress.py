@@ -29,6 +29,9 @@ class Axpress() :
     self.cum_comp_time = 0
     self.cum_eval_time = 0
   
+  def rule(self, *args, **kwargs) :
+    self.compiler.rule(*args, **kwargs)
+
   def register_translation(self, translation) :
     self.compiler.register_translation(translation)
     

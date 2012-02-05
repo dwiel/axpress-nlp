@@ -6,22 +6,12 @@ from SimpleSPARQL.PrettyQuery import prettyquery as p
 
 def loadTranslations(axpress) :
   axpress.n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
+  rule = axpress.rule
   
   # NOTE: dt.time is represented by python timedelta from midnight, no date information is present
   
   import datetime
 
-  def rule(name, input, output, fn=None, input_function=None, **kwargs) :
-    options = {
-      'name'   : name,
-      'input'  : input,
-      'output' : output,
-      'function' : fn,
-      'input_function' : input_function
-    }
-    options.update(kwargs)
-    axpress.register_translation(options)
-  
   "%time% (on |in |)%date%"
   "%date% at %time%"
   rule("time on date", """

@@ -118,6 +118,21 @@ class Compiler :
     self.debug_str += """</div></div>"""
     self.block_depth -= 1
   
+  def rule(self, name, input, output, fn=None, input_function=None, **kwargs) :
+    """ shorthand for full length register_translation """
+    assert isinstance(name, basestring)
+    assert isinstance(input, basestring)
+    assert isinstance(output, basestring)
+    options = {
+      'name'   : name,
+      'input'  : input,
+      'output' : output,
+      'function' : fn,
+      'input_function' : input_function
+    }
+    options.update(kwargs)
+    self.register_translation(options)
+
   def register_translation(self, translation) :
     # make sure all of the required keys are present
     required = ['input', 'output', 'name']

@@ -2,19 +2,9 @@ from SimpleSPARQL.PrettyQuery import prettyquery as p
 
 def loadTranslations(axpress) :
   axpress.n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
+  rule = axpress.rule
   
   from datetime import timedelta
-  
-  def rule(name, input, output, fn=None, input_function=None, **kwargs) :
-    options = {
-      'name'   : name,
-      'input'  : input,
-      'output' : output,
-      'function' : fn,
-      'input_function' : input_function
-    }
-    options.update(kwargs)
-    axpress.register_translation(options)
   
   # for some reason this didn't work out ...
   #def dow(possibilities, day_name) :

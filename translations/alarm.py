@@ -52,21 +52,8 @@ alarm_queue = []
 def loadTranslations(axpress) :
   axpress.n.bind('alarm', '<http://dwiel.net/axpress/alarm/0.1/>')
   axpress.n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
+  rule = axpress.rule
 
-  def rule(name, input, output, fn=None, input_function=None, **kwargs) :
-    assert isinstance(name, basestring)
-    assert isinstance(input, basestring)
-    assert isinstance(output, basestring)
-    options = {
-      'name'   : name,
-      'input'  : input,
-      'output' : output,
-      'function' : fn,
-      'input_function' : input_function
-    }
-    options.update(kwargs)
-    axpress.register_translation(options)
-  
   def alarm_new(vars) :
     dt = vars['dt']
     message = vars['message']

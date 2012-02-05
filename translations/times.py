@@ -2,22 +2,12 @@ from SimpleSPARQL.PrettyQuery import prettyquery as p
 
 def loadTranslations(axpress) :
   axpress.n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
+  rule = axpress.rule
   
   # NOTE: dt.time is represented by python datetime.time
   
   from datetime import time
 
-  def rule(name, input, output, fn=None, input_function=None, **kwargs) :
-    options = {
-      'name'   : name,
-      'input'  : input,
-      'output' : output,
-      'function' : fn,
-      'input_function' : input_function
-    }
-    options.update(kwargs)
-    axpress.register_translation(options)
-  
   "5( |)pm"
   "5 oclock( this afternoon)" # this afternoon isnt a time or a datetime maybe a daterange?
   "5 tonight" # am or pm ?
