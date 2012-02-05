@@ -138,6 +138,12 @@ def var_type(v) :
   #else :
     #raise Exception('data is not a variable' % str(uri))
 
+def var_type_name(t) :
+  if type(t) != type :
+    t = type(t)
+  
+  return t.__name__
+
 def var(data) :
   raise Exception("this is depricated?  how is it used?")
   #if is_any_var(data) :

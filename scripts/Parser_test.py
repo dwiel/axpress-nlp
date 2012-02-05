@@ -253,10 +253,10 @@ class PassCompleteReadsTestCase(unittest.TestCase):
   
   def test_parseKeyword(self):
     query = """
-      count[file.count] = _count
+      c[file.count] = _count
     """
     assert self.parser.parse_query(query) == [
-      [Var.count, n.file['count'], LitVar.count],
+      [Var.c, n.file['count'], LitVar.count],
     ]
   
   def test_parseBrokenQuery(self):

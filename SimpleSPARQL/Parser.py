@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import Namespaces
 from Triple import Triple
-from Utils import p, is_lit_var, split_string, merge_string
-from Utils import Var, LitVar, MetaVar
+from Utils import p, is_lit_var, is_any_var, split_string, merge_string
+from Utils import Var, LitVar, MetaVar, var_type_name
 
 import re
 
@@ -136,7 +136,29 @@ class Parser() :
           if is_lit_var(value) and value.name[:4] == '_str' :
             triple[i] = str_bindings[value.name[4:]]
     
+    # run some sanity checks
+    self.check_for_inconsistent_var_litvar(triples) 
+    
     return triples
+  
+  def check_for_inconsistent_var_litvar(self, triples) :
+    """ check to see if a var is a Var in one place and a LitVar in another """
+    # var_types := {var_name : var}
+    #   is populated as we iterate over all of the values.  any vars we find are
+    #   added to var_types so we can make sure that other vars of the same name
+    #   have the same type
+    var_types = {}
+    for triple in triples :
+      for v in triple :
+        if is_any_var(v) :
+          if v.name in var_types :
+            if var_types[v.name] != type(v) :
+              t1 = str(type(v))
+              raise Exception("inconsistent var type. %s and %s" % (
+                var_type_name(v), var_type_name(var_types[v.name])
+              ))
+          else :
+            var_types[v.name] = type(v)
   
   def flatten(self, seq):
     """
