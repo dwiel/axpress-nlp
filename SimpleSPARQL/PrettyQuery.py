@@ -27,8 +27,8 @@ def prettyquery_helper(query, tabs = '', indent = '  ', namespaces = n) :
   """
   s = ""
   if isinstance(query, dict) :
-    if namespaces.meta.name in query :
-      s += "{Translation : " + query[namespaces.meta.name] + "}"
+    if 'name' in query :
+      s += "{Translation : " + query['name'] + "}"
     else :
       s += '{\n'
       prettykeys = [(prettyquery_helper(k, tabs+indent, indent), k) for k in query]
