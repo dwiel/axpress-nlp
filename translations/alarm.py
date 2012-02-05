@@ -16,6 +16,10 @@
 # delete
 "(delete|remove|kill) (my |)%datetime% alarm"
 
+# display
+"(show (me |)(all (of |)|)(my |)alarms"
+"(show (me |)(all (of |)|)(my |)alarms %datetime_range%"
+
 # named days
 "haloween"
 "christmas"
@@ -31,11 +35,13 @@
 "in the future"
 
 # later:
+"email me tomorrow at 4pm reminding me to call mom"
+"IM me in 3 hours reminding me to go home"
+
+# phone calls are too expensive for now ...
 "set an alarm for tomorrow at 5, remind me with a phone call"
 "set a phone call alarm for tomorrow at 6"
 "call my phone tomorrow at 3pm"
-"email me tomorrow at 4pm reminding me to call mom"
-"IM me in 3 hours reminding me to go home"
 
 from datetime import datetime
 
@@ -69,7 +75,7 @@ def loadTranslations(axpress, n) :
       alarm_queue.append((dt, message))
       vars['response'] = "alright, I've alarm set for %s" % str(dt)
     else :
-      vars['response'] = "%s is in the past ..." % str(dt)
+      vars['response'] = "no alarm set since %s is in the past." % str(dt)
   
   # raw set alarm function
   rule("new alarm", """
@@ -89,3 +95,29 @@ def loadTranslations(axpress, n) :
     when[axpress.is] = "%datetime%"
     what[string.text] = "bzzt ... alarm!"
   """)
+  
+  def alarm_kill_all(vars) :
+    num_alarms = len(alarm_queue)
+    alarm_queue = []
+    vars['response'] = "removed all (%d) of your alarms" % num_alarms
+  rule("kill all alarms", """
+    a[axpress.is] = "(kill|del|delete|rm|remove)( all|) alarm(s|)"
+  """, """
+    a[string.text] = _response
+  """, alarm_kill_all)
+  
+  def alarm_count(vars) :
+    num_alarms = len(alarm_queue)
+    if num_alarms == 0 :
+      num_alarms = 'no alarms'
+    elif num_alarms == 1 :
+      num_alarms = '1 alarm'
+    else :
+      num_alarms = '%d alarm' % num_alarms
+    vars['response'] = "you have %s" % num_alarms    
+  rule("count alarms", """
+    a[axpress.is] = "(alarm count|how many alarms( do I have|)|count alarms)"
+  """, """
+    a[string.text] = _response
+  """, alarm_count)
+  

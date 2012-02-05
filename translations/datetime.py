@@ -1,5 +1,9 @@
 from SimpleSPARQL.PrettyQuery import prettyquery as p
 
+# TODO:
+"%unix_timestamp%"
+"%minutes% till %hour%"
+
 def loadTranslations(axpress, n) :
   n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
   
@@ -96,8 +100,9 @@ def loadTranslations(axpress, n) :
           return False
       return is_number
     
+  # in 10 hours
   rule("from now a", """
-    x[axpress.is] = "%timedelta% from now" | "in %timedelta%"
+    x[axpress.is] = "%timedelta% (from now|into the future|in the future)" | "in %timedelta%"
   """, """
     x[dt.timedelta_from_now][axpress.is] = "%timedelta%"
   """)
@@ -109,11 +114,24 @@ def loadTranslations(axpress, n) :
     x[dt.datetime] = _dt
   """, from_now)
   
-  ############# unit time
+  # 5 minutes ago
+  rule("timedelta ago a", """
+    x[axpress.is] = "%timedelta% (ago|in the past)"
+  """, """
+    x[dt.timedelta_ago][axpress.is] = "%timedelta%"
+  """)
+  def ago(vars) :
+    vars['dt'] = datetime.datetime.now() - vars['td']
+  rule("timedelta ago", """
+    x[dt.timedelta_ago][dt.timedelta] = _td
+  """, """
+    x[dt.datetime] = _dt
+  """, ago)
+
+  ############# timedelta
   "5 minutes"
   "12 days"
   "1.5 hours"
-  "3 days (and |)5 minutes"
   def make_timedelta(name, matches) :
     def timedelta_fn(vars) :
       vars['td'] = datetime.timedelta(**{name : float(vars['number'])})
@@ -137,10 +155,13 @@ def loadTranslations(axpress, n) :
   make_timedelta('years',        '(y|yr|year|years)')
   make_timedelta('decades',      '(decade|decades)')
   
+  # timdelta summing
+  "3 days (and |)5 minutes"
   def add_timedeltas(vars) :
     vars['td_out'] = vars['td1'] + vars['td2']
+  # NOTE: allowing 3 days 5 mins explodes search ...
   rule('add timedeltas a', """
-    td_out[axpress.is] = "%td1_str%( |)(and|\+)( |)%td2_str%"
+    td_out[axpress.is] = "%td1_str%( |)(and|\+|,)( |)%td2_str%"
   """, """
     td1[axpress.is] = "%td1_str%"
     td2[axpress.is] = "%td2_str%"
@@ -153,8 +174,4 @@ def loadTranslations(axpress, n) :
   """, """
     t_out[dt.timedelta] = _td_out
   """, add_timedeltas)
-  
-  "%unix_timestamp%"
-  "%timedelta% ago"
-  "%minutes% till %hour%"
   
