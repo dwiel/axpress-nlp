@@ -89,12 +89,19 @@
       * ! also, with the weather example, there are a bunch of paths that are 
           very similar.  Like dew point, or barometeric pressure, etc.  How can
           those code paths be DRY?
-  * !!! find stores nearby
-  * check email, calendar - just for matching siri, good example
+  * !!! yelp
+    * pizza
+    * beer and buffalo wings
+    * nearby stores
+  * !!! check email, calendar - just for matching siri, good example
     * get/set address, phone number, birthday
     * when is my meeting with Joe?
+  * !!! search on wikipedia
   * set an alarm - some UI stuff to figure out how this works
+    * android: http://developer.android.com/reference/android/provider/AlarmClock.html
+    * on desktop, this app doesn't make a whole lot of sense
     * should be relatively easy, but makes more sense on phone ...
+    * nicer looking - show countdown timer for short alarms
     * fine for now to leave most of the work on the server side
     * allow setting sounds from freesound
     * - wake me up every morning at 8 am
@@ -108,20 +115,16 @@
     * my brithday
     * mom's birthday
       - connect to facebook/google/other
-  * yelp
-    * - pizza
-    * - beer and buffalo wings
   * asking about what is possible (introspection)
     * maybe not easy ...
   * search google for X
-  * search on wikipedia
   * open x's webpage (google feeling lucky? freebase?)
   * web or android?
     web - connect to X with X
     android - same kind of thing, but different interface?
   * ^^^^^^ MVP ^^^^^^
   * trueknowledge api ...
-  * http://we.speaktoit.com/viewtopic.php?f=2&t=15
+  * see for ideas: http://we.speaktoit.com/viewtopic.php?f=2&t=15
   * lookup X on netflix
   * lookup X on amazon
   * like a song
