@@ -35,11 +35,6 @@ def logger(fn) :
 def isstr(v) :
   return isinstance(v, basestring) and not isinstance(v, URIRef)
 
-def lua_repr(v) :
-  r = repr(v)
-  r = re.sub(r"^u('.*')$", r"\1", r)
-  return r
-  
 def hash(inbindings, outbindings) :
   import hashlib
   m = hashlib.md5()
