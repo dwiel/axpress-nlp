@@ -14,6 +14,9 @@ from itertools import izip, imap
 import copy, time, random
 from collections import defaultdict
 
+# for catching re errors
+import sre_constants
+
 import time
 
 """
@@ -203,7 +206,10 @@ class Compiler :
   def find_matches(self, value, qvalue) :
     const, vars = split_string(value)
     regex = merge_string(const, ['(?P<%s>.+?)' % var for var in vars])
-    g = re.search('^%s$' % regex, qvalue)
+    try :
+      g = re.search('^%s$' % regex, qvalue)
+    except sre_constants.error, e :
+      raise Exception(str(e) + " - '%s', '%s'" % ('^%s$' % regex, qvalue))
     if g :
       #self.debugp('r', regex, qvalue, {var : g.group(var) for var in vars})
       return {var : g.group(var) for var in vars}
