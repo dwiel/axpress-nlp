@@ -766,12 +766,12 @@ class Compiler :
               var in translation[n.meta.constant_vars]
           }
           
+          new_query = remove_duplicate_triples(new_query)
+          
           #self.debugp('new_triples', new_triples)
           #self.debugp('new_query', new_query)
           #self.debugp('input_bindings', input_bindings)
           #self.debugp('output_bindings', output_bindings)
-          
-          new_query = remove_duplicate_triples(new_query)
           
           step = {
             'input_bindings' : input_bindings,
