@@ -54,25 +54,57 @@ def loadTranslations(axpress, n) :
   """, """
     foo[simple_display.text] = _text
   """, fn)
-  
+
+  def fn(vars) :
+    vars['text'] = str(vars['td'])
+  rule("display timedelta", """
+    foo[dt.timedelta] = _td
+  """, """
+    foo[simple_display.text] = _text
+  """, fn)
+
   # NOTE: this should be writable in many fewer lines:
   """
-  x[a.is] = "%dt.unit_time% from now" | "in %dt.unit_time%"
+  x[a.is] = "%dt.timedelta% from now" | "in %dt.timedelta%"
     =>
   x[dt.datetime] = _dt
     fn
-  return datetime.datetime.now() + unit_time
+  return datetime.datetime.now() + timedelta
   """
-
+  
+  def make_is_number(name) :
+    """ makes an input_function which tests in name is a valid number
+    note: name can be a name of a varialbe or a list of names
+    """
+    if isinstance(name, basestring) :
+      def is_number(vars) :
+        try :
+          float(vars[name])
+          return True
+        except ValueError:
+          return False
+      return is_number
+    else :
+      # more than one name to test
+      names = name
+      def is_number(vars) :
+        try :
+          p('n', names)
+          map(lambda name:float(vars[name]), names)
+          return True
+        except ValueError:
+          return False
+      return is_number
+    
   rule("from now a", """
-    x[axpress.is] = "%unit_time% from now" | "in %unit_time%"
+    x[axpress.is] = "%timedelta% from now" | "in %timedelta%"
   """, """
-    x[dt.unit_time_from_now][axpress.is] = "%unit_time%"
+    x[dt.timedelta_from_now][axpress.is] = "%timedelta%"
   """)
   def from_now(vars) :
-    vars['dt'] = datetime.datetime.now() + vars['ut']
+    vars['dt'] = datetime.datetime.now() + vars['td']
   rule("from now", """
-    x[dt.unit_time_from_now][dt.unit_time] = _ut
+    x[dt.timedelta_from_now][dt.timedelta] = _td
   """, """
     x[dt.datetime] = _dt
   """, from_now)
@@ -82,16 +114,47 @@ def loadTranslations(axpress, n) :
   "12 days"
   "1.5 hours"
   "3 days (and |)5 minutes"
-  def unit_time_min(vars) :
-    vars['ut'] = timedelta(minutes = vars['number'])
-  rule("x minutes", """
-    x[axpress.is] = "%number% (min|mins|minute|minutes)"
-  """, """
-    x[dt.unit_time] = _ut
-  """, unit_time_min)
+  def make_timedelta(name, matches) :
+    def timedelta_fn(vars) :
+      vars['td'] = datetime.timedelta(**{name : float(vars['number'])})
+    rule("x %s" % name, """
+      x[axpress.is] = "%number%( |)xxx"
+    """.replace('xxx', matches), """
+      x[dt.timedelta] = _td
+    """,
+    timedelta_fn,
+    input_function = make_is_number('number'))
   
-
+  # TODO: more complete, see http://en.wikipedia.org/wiki/Unit_of_time
+  make_timedelta('microseconds', '(microsec|microsecs|microsecond|microseconds)')
+  make_timedelta('milliseconds', '(ms|millisec|millisecs|millisecond|milliseconds)')
+  make_timedelta('seconds',      '(s|sec|second|seconds)')
+  make_timedelta('minutes',      '(m|min|mins|minute|minutes)')
+  make_timedelta('hours',        '(h|hr|hrs|hour|hours)')
+  make_timedelta('days',         '(d|day|days)')
+  make_timedelta('weeks',        '(w|wk|week|weeks)')
+  make_timedelta('months',       '(m|month|months)')
+  make_timedelta('years',        '(y|yr|year|years)')
+  make_timedelta('decades',      '(decade|decades)')
+  
+  def add_timedeltas(vars) :
+    vars['td_out'] = vars['td1'] + vars['td2']
+  rule('add timedeltas a', """
+    td_out[axpress.is] = "%td1_str%( |)(and|\+)( |)%td2_str%"
+  """, """
+    td1[axpress.is] = "%td1_str%"
+    td2[axpress.is] = "%td2_str%"
+    td_out = dt.add_timedeltas(td1, td2)
+  """)
+  rule('add timedeltas', """
+    t1[dt.timedelta] = _td1
+    t2[dt.timedelta] = _td2
+    t_out = dt.add_timedeltas(t1, t2)
+  """, """
+    t_out[dt.timedelta] = _td_out
+  """, add_timedeltas)
+  
   "%unix_timestamp%"
-  "%unit_time% ago"
+  "%timedelta% ago"
   "%minutes% till %hour%"
   
