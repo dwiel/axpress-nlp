@@ -123,8 +123,15 @@
     web - connect to X with X
     android - same kind of thing, but different interface?
   * ^^^^^^ MVP ^^^^^^
-  * trueknowledge api ...
-  * see for ideas: http://we.speaktoit.com/viewtopic.php?f=2&t=15
+  * location based reminders
+  * location based actions ...
+  * time based actions ...
+  * wakeup phrase (will be different on diff devices ...)
+  * name apps
+  * trueknowledge api ... $$$
+  * see for ideas:
+    * http://we.speaktoit.com/viewtopic.php?f=2&t=15
+    * http://www.bulletproof.com/eva/
   * lookup X on netflix
   * lookup X on amazon
   * like a song

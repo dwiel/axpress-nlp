@@ -1,7 +1,7 @@
 import re
 
-def loadTranslations(axpress, n) :
-  n.bind('person', '<http://dwiel.net/axpress/person/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('person', '<http://dwiel.net/axpress/person/0.1/>')
 
   def rule(name, input, output, fn=None, input_function=None, **kwargs) :
     options = {

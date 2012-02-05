@@ -23,6 +23,6 @@ def loadTranslations(axpress, n) :
       except AttributeError, e:
         continue
       
-      loadTranslations(axpress, n)
+      loadTranslations(axpress)
 
   axpress.compiler.compile_translations()

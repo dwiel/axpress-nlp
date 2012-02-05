@@ -101,8 +101,8 @@ Not directly related to relase, but some documentation about it might be
 good ... might inform of changes in style/code
 """
 
-def loadTranslations(axpress, n) :
-  n.bind('wunderground', '<http://dwiel.net/axpress/wunderground/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('wunderground', '<http://dwiel.net/axpress/wunderground/0.1/>')
 
   axpress.register_translation({
     'name' : 's current weather',

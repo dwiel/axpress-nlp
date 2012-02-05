@@ -4,8 +4,8 @@ from SimpleSPARQL.PrettyQuery import prettyquery as p
 "%unix_timestamp%"
 "%minutes% till %hour%"
 
-def loadTranslations(axpress, n) :
-  n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
   
   # NOTE: dt.time is represented by python timedelta from midnight, no date information is present
   

@@ -1,6 +1,6 @@
-def loadTranslations(axpress, n) :
+def loadTranslations(axpress) :
   pass
-  #n.bind('string', '<http://dwiel.net/axpress/string/0.1/>')
+  #axpress.n.bind('string', '<http://dwiel.net/axpress/string/0.1/>')
 
   #def string_add(vars) :
     #vars['sout'] = vars['s1'] + vars['s2']

@@ -1,5 +1,5 @@
-def loadTranslations(axpress, n) :
-  n.bind('yahoo', '<http://dwiel.net/axpress/yahoo/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('yahoo', '<http://dwiel.net/axpress/yahoo/0.1/>')
 
   # http://lethain.com/entry/2008/jul/11/search-recipes-for-yahoo-s-boss-in-python/
   # yahoo search bindings

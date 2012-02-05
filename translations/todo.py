@@ -2,9 +2,9 @@ from mako.template import Template
 
 import hashlib
 
-def loadTranslations(axpress, n) :
-  n.bind('list', '<http://dwiel.net/axpress/list/0.1/>')
-  n.bind('simple_display', '<http://dwiel.net/axpress/simple_display/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('list', '<http://dwiel.net/axpress/list/0.1/>')
+  axpress.n.bind('simple_display', '<http://dwiel.net/axpress/simple_display/0.1/>')
   
   def hash(x) :
     m = hashlib.md5()

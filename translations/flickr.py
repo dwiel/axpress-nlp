@@ -1,6 +1,6 @@
 #import flickrapi
 
-def loadTranslations(axpress, n) :
+def loadTranslations(axpress) :
   def flickr_make_url(photo) :
     # 'http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}.jpg'
     # 'http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}_[mstb].jpg'
@@ -30,7 +30,7 @@ def loadTranslations(axpress, n) :
       'image[file.url] = _url',
     ],
     'function' : flickr_photos_search,
-    n.cache.expiration_length : 2678400,
+    'cache_expiration_length' : 2678400,
     'requires' : 'flickrapi', # TODO: make this work
   })
   

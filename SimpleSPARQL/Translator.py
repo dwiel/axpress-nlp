@@ -314,8 +314,8 @@ class Translator :
 				history.append([translation, copy.copy(binding)])
 				
 				# if this translation expects to be cached, use a cache
-				if n.cache.expiration_length in translation :
-					output_bindings_list = self.cache.call(translation, binding)					
+				if 'cache_expiration_length' in translation :
+					output_bindings_list = self.cache.call(translation, binding)
 				else :
 					# call the function
 					output_bindings = translation['function'](binding)

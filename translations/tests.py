@@ -9,10 +9,10 @@ import time
 import json
 import glob
 
-def loadTranslations(axpress, n) :
-  n.bind('file', '<http://dwiel.net/express/file/0.1/>')
-  n.bind('html', '<http://dwiel.net/express/html/0.1/>')
-  n.bind('test', '<http://dwiel.net/express/test/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('file', '<http://dwiel.net/express/file/0.1/>')
+  axpress.n.bind('html', '<http://dwiel.net/express/html/0.1/>')
+  axpress.n.bind('test', '<http://dwiel.net/express/test/0.1/>')
   
   def _sum(vars) :
     vars['sum'] = vars['x'] + vars['y']

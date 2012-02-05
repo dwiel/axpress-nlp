@@ -19,7 +19,7 @@ class Cache :
 		}])
 		if ret[n.sparql.status] == n.sparql.ok and \
 		   ret[n.sparql.result] and \
-			 ret[n.sparql.result][0][n.cache.date] + translation[n.cache.expiration_length] > time.time() :
+			 ret[n.sparql.result][0][n.cache.date] + translation['expiration_length'] > time.time() :
 			return ret[n.sparql.result][0][n.cache.value]
 		else :
 			old_vars = copy.copy(vars)

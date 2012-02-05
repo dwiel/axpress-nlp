@@ -14,9 +14,9 @@ def unescape(s):
   return re.sub('&(%s);' % '|'.join(name2codepoint),
           lambda m: unichr(name2codepoint[m.group(1)]), s)
 
-def loadTranslations(axpress, n) :
-  n.bind('music', '<http://dwiel.net/axpress/music/0.1/>')
-  n.bind('lastfm', '<http://dwiel.net/axpress/lastfm/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('music', '<http://dwiel.net/axpress/music/0.1/>')
+  axpress.n.bind('lastfm', '<http://dwiel.net/axpress/lastfm/0.1/>')
 
   # WARNING: the output of this transformation does not always result in > 1 
   # set of bindings.  (If the artist is not in lastfm - or if there is no inet?)
@@ -68,7 +68,7 @@ def loadTranslations(axpress, n) :
     'function' : lastfm_similar,
     'scale' : 100,
     'expected_time' : 1,
-    n.cache.expiration_length : 2678400, # 1 month in seconds
+    'cache_expiration_length' : 2678400, # 1 month in seconds
   })
   
   def lastfm_user_recent_tracks(vars) :

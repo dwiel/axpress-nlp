@@ -24,9 +24,9 @@ def send_im(vars) :
   
   vars['response'] = "sent %s to %s" % (message, addr)
 
-def loadTranslations(axpress, n) :
-  n.bind('im', '<http://dwiel.net/axpress/im/0.1/>')
-  n.bind('person', '<http://dwiel.net/axpress/person/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('im', '<http://dwiel.net/axpress/im/0.1/>')
+  axpress.n.bind('person', '<http://dwiel.net/axpress/person/0.1/>')
 
   def rule(name, input, output, fn=None, input_function=None, **kwargs) :
     options = {

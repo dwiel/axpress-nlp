@@ -49,9 +49,9 @@ alarm_queue = []
 # new thread, test if any alarms have been set, etc.
 # or if on android, set alarm through native interface
 
-def loadTranslations(axpress, n) :
-  n.bind('alarm', '<http://dwiel.net/axpress/alarm/0.1/>')
-  n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('alarm', '<http://dwiel.net/axpress/alarm/0.1/>')
+  axpress.n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
 
   def rule(name, input, output, fn=None, input_function=None, **kwargs) :
     assert isinstance(name, basestring)

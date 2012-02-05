@@ -1,6 +1,6 @@
-def loadTranslations(axpress, n) :
-  n.bind('color', '<http://dwiel.net/express/color/0.1/>')
-  n.bind('html', '<http://dwiel.net/express/html/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('color', '<http://dwiel.net/express/color/0.1/>')
+  axpress.n.bind('html', '<http://dwiel.net/express/html/0.1/>')
 
   def red(vars) :
     vars['c'] = "FF0000"

@@ -1,10 +1,10 @@
 from itertools import izip
 from PIL import Image
 
-def loadTranslations(axpress, n) :  
-  n.bind('pil', '<http://dwiel.net/express/python/pil/0.1/>')
-  n.bind('image', '<http://dwiel.net/express/image/0.1/>')
-  n.bind('html', '<http://dwiel.net/express/html/0.1/>')
+def loadTranslations(axpress) :  
+  axpress.n.bind('pil', '<http://dwiel.net/express/python/pil/0.1/>')
+  axpress.n.bind('image', '<http://dwiel.net/express/image/0.1/>')
+  axpress.n.bind('html', '<http://dwiel.net/express/html/0.1/>')
 
   def load_image(vars) :
     im = Image.open(vars['filename'])

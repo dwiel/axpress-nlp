@@ -3,8 +3,8 @@ import urllib2
 import freebase
 import json
 
-def loadTranslations(axpress, n) :  
-  n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
+def loadTranslations(axpress) :  
+  axpress.n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
 
   # STRING MUSINGS
   """

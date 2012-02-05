@@ -1,7 +1,7 @@
 from SimpleSPARQL.PrettyQuery import prettyquery as p
 
-def loadTranslations(axpress, n) :
-  n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('dt', '<http://dwiel.net/axpress/datetime/0.1/>')
   
   # NOTE: dt.time is represented by python datetime.time
   

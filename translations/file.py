@@ -1,7 +1,7 @@
 import glob
 
-def loadTranslations(axpress, n) :
-  n.bind('glob', '<http://dwiel.net/express/python/glob/0.1/>')
+def loadTranslations(axpress) :
+  axpress.n.bind('glob', '<http://dwiel.net/express/python/glob/0.1/>')
 
   axpress.register_translation({
     'name' : 'string: files matching %pattern%',

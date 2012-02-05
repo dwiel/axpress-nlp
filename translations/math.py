@@ -1,6 +1,6 @@
 
 
-def loadTranslations(axpress, n) :
+def loadTranslations(axpress) :
   pass
   #def parse_number(vars) :
     #vars['number'] = float(vars['x'])
