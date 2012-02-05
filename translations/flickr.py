@@ -18,28 +18,28 @@ def loadTranslations(axpress, n) :
     vars['url'] = urls[:5]
     
   axpress.register_translation({
-    n.meta.name : 'flickr photos search',
-    n.meta.input : [
+    'name' : 'flickr photos search',
+    'input' : [
       'image[flickr.tag] = _tag',
 #     'image[flickr.tag] ?= tag', # TODO: ?= means optionally equal to
 #     'optional(image[flickr.tag] = tag)',
 #     'optional(image[flickr.user_id] = user_id)',
 #     ...
     ],
-    n.meta.output : [
+    'output' : [
       'image[file.url] = _url',
     ],
-    n.meta.function : flickr_photos_search,
+    'function' : flickr_photos_search,
     n.cache.expiration_length : 2678400,
-    n.meta.requires : 'flickrapi', # TODO: make this work
+    'requires' : 'flickrapi', # TODO: make this work
   })
   
   axpress.register_translation({
-    n.meta.name : 'string: images with tag',
-    n.meta.input : """
+    'name' : 'string: images with tag',
+    'input' : """
       image[axpress.is] = "images tagged %tag%"
     """,
-    n.meta.output : """
+    'output' : """
       image[flickr.tag] = tag
     """,
   })
@@ -48,13 +48,13 @@ def loadTranslations(axpress, n) :
   #def string_tag(vars):
     #vars['tag_out'] = vars['tag_str']
   #axpress.register_translation({
-    #n.meta.name : 'string: tag?',
-    #n.meta.input : """
+    #'name' : 'string: tag?',
+    #'input' : """
       #tag[axpress.is] = "%tag_str%"
     #""",
-    #n.meta.output : """
+    #'output' : """
       #tag[axpress.is] = _tag_out
     #""",
-    #n.meta.function : string_tag,
+    #'function' : string_tag,
   #})
   

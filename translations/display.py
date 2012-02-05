@@ -13,14 +13,14 @@ def loadTranslations(axpress, n) :
     str += "</ul>"
     return str
   axpress.register_translation({
-    n.meta.name : 'filename as html',
-    n.meta.input : """
+    'name' : 'filename as html',
+    'input' : """
       file[file.filename] = _filename
     """,
-    n.meta.output : """
+    'output' : """
       file[display.html] = _html
     """,
-    n.meta.function : display_html_filenames,
+    'function' : display_html_filenames,
   })
 
   def simple_render(bindings_set) :
@@ -38,16 +38,16 @@ def loadTranslations(axpress, n) :
       </div>
       """).render_unicode(**vars)
   axpress.register_translation({
-    n.meta.name : 'freebase simple render',
-    n.meta.input : """
+    'name' : 'freebase simple render',
+    'input' : """
       x[freebase.name] = name
       x[freebase.mid] = _mid
       x[freebase.blurb] = _blurb
     """,
-    n.meta.output : """
+    'output' : """
       x[simple_display.text] = _html
     """,
-    n.meta.multi_function : simple_render,
+    'multi_function' : simple_render,
   })
   
   def direct_related(vars) :
@@ -65,24 +65,24 @@ def loadTranslations(axpress, n) :
       """).render_unicode(**vars)
     #vars['out'] = unicode(vars['direct']) + unicode(vars['related'])
   axpress.register_translation({
-    n.meta.name : 'two pane render',
-    n.meta.input : """
+    'name' : 'two pane render',
+    'input' : """
       x[simple_display.direct_label] = _direct_label
       x[simple_display.direct] = _direct
       x[simple_display.related][simple_display.text] = _related
     """,
-    n.meta.output : """
+    'output' : """
       x[simple_display.text] = _out
     """,
-    n.meta.function : direct_related,
+    'function' : direct_related,
   })
   
   axpress.register_translation({
-    n.meta.name : 'string.text -> simple_display.text',
-    n.meta.input : """
+    'name' : 'string.text -> simple_display.text',
+    'input' : """
       x[string.text] = text
     """,
-    n.meta.output : """
+    'output' : """
       x[simple_display.text] = text
     """,
   })

@@ -19,11 +19,11 @@ def loadTranslations(axpress, n) :
   need to also be free of side-effects
   """
   axpress.register_translation({
-    n.meta.name : 'author of book',
-    n.meta.input : """
+    'name' : 'author of book',
+    'input' : """
       author[axpress.is] = "author of %book_str%"
     """,
-    n.meta.output : """
+    'output' : """
       # boilerplate
       book[axpress.is] = "%book_str%"
       
@@ -38,17 +38,17 @@ def loadTranslations(axpress, n) :
   def author_of_book(vars) :
     vars['author_guid'] = "author" + vars['book_guid']
   axpress.register_translation({
-    n.meta.name : 'author of book lookup',
-    n.meta.input : """
+    'name' : 'author of book lookup',
+    'input' : """
       book[freebase.guid] = _book_guid
       book[freebase.type] = '/book/written_work'
       book[freebase./book/written_work/author] = author
     """,
-    n.meta.output : """
+    'output' : """
       author[freebase.type] = '/book/author'
       author[freebase.guid] = _author_guid
     """,
-    n.meta.function : author_of_book
+    'function' : author_of_book
   })
   
   def book_from_title(vars) :
@@ -60,24 +60,24 @@ def loadTranslations(axpress, n) :
     if vars['title'] == 'Gaviotas' :
       return True
   axpress.register_translation({
-    n.meta.name : 'book from title',
-    n.meta.input : """
+    'name' : 'book from title',
+    'input' : """
       book[axpress.is] = "%title%"
     """,
-    n.meta.input_function : book_from_title_test,
-    n.meta.output : """
+    'input_function' : book_from_title_test,
+    'output' : """
       book[freebase.guid] = _guid
       book[freebase.type] = '/book/written_work'
     """,
-    n.meta.function : book_from_title,
+    'function' : book_from_title,
   })
   
   axpress.register_translation({
-    n.meta.name : 's albums by musician',
-    n.meta.input : """
+    'name' : 's albums by musician',
+    'input' : """
       album[axpress.is] = "albums by %artist_s%"
     """,
-    n.meta.output : """
+    'output' : """
       artist[axpress.is] = "%artist_s%"
       album[freebase./music/album/artist] = artist
       artist[freebase.type] = '/music/artist'
@@ -97,25 +97,25 @@ def loadTranslations(axpress, n) :
     return result['album']
   
   axpress.register_translation({
-    n.meta.name : 'lookup albums by musician',
-    n.meta.input : """
+    'name' : 'lookup albums by musician',
+    'input' : """
       artist[freebase.mid] = _artist_mid
       artist[freebase.type] = '/music/artist'
       album[freebase./music/album/artist] = artist
     """,
-    n.meta.output : """
+    'output' : """
       album[freebase.mid] = _mid
       album[freebase.name] = _name
     """,
-    n.meta.function : lookup_albums_by_musician,
+    'function' : lookup_albums_by_musician,
   })
   
   axpress.register_translation({
-    n.meta.name : 's members in musical_group',
-    n.meta.input : """
+    'name' : 's members in musical_group',
+    'input' : """
       member[axpress.is] = "(band |)members (in|of) %group_s%"
     """,
-    n.meta.output : """
+    'output' : """
       group[axpress.is] = "%group_s%"
       group[freebase.type] = '/music/musical_group'
       group[freebase./music/group_member] = member
@@ -137,25 +137,25 @@ def loadTranslations(axpress, n) :
     return [member[u'/music/group_membership/member'] for member in result['member']]
   
   axpress.register_translation({
-    n.meta.name : 'lookup members in group',
-    n.meta.input : """
+    'name' : 'lookup members in group',
+    'input' : """
       group[freebase.mid] = _mid
       group[freebase.type] = '/music/musical_group'
       group[freebase./music/group_member] = member
     """,
-    n.meta.output : """
+    'output' : """
       member[freebase.mid] = _mid
       member[freebase.name] = _name
     """,
-    n.meta.function : lookup_members_in_group,
+    'function' : lookup_members_in_group,
   })
   
   #axpress.register_translation({
-    #n.meta.name : 's birthday',
-    #n.meta.input : """
+    #'name' : 's birthday',
+    #'input' : """
       #birthday[axpress.is] = "%person_s%'s birthday"
     #""",
-    #n.meta.output : """
+    #'output' : """
       #person[axpress.is] = "%person_s%"
       #person[freebase.type] = '/people/person'
       #person[freebase./people/person/date_of_birth] = birthday
@@ -172,23 +172,23 @@ def loadTranslations(axpress, n) :
     #return result['birthday']
   
   #axpress.register_translation({
-    #n.meta.name : 'lookup birthday',
-    #n.meta.input : """
+    #'name' : 'lookup birthday',
+    #'input' : """
       #person[freebase.mid] = _mid
       #person[freebase.type] = '/people/person'
     #""",
-    #n.meta.output : """
+    #'output' : """
       #person[freebase./people/person/date_of_birth] = _birthday
     #""",
-    #n.meta.function : lookup_birthday
+    #'function' : lookup_birthday
   #})
   
   axpress.register_translation({
-    n.meta.name : 's birthplace',
-    n.meta.input : """
+    'name' : 's birthplace',
+    'input' : """
       birthplace[axpress.is] = "%person_s% birthplace"
     """,
-    n.meta.output : """
+    'output' : """
       person[axpress.is] = "%person_s%"
       person[freebase.type] = '/people/person'
       person[freebase./people/person/place_of_birth] = birthplace
@@ -209,26 +209,26 @@ def loadTranslations(axpress, n) :
     return result['place_of_birth']
   
   axpress.register_translation({
-    n.meta.name : 'lookup birthplace',
-    n.meta.input : """
+    'name' : 'lookup birthplace',
+    'input' : """
       person[freebase.type] = '/people/person'
       person[freebase.mid] = _person_mid
     """,
-    n.meta.output : """
+    'output' : """
       person[freebase./people/person/place_of_birth] = birthplace
       birthplace[freebase.mid] = _mid
       birthplace[freebase.name] = _name
     """,
-    n.meta.function : lookup_birthplace,
+    'function' : lookup_birthplace,
   })
   
   # NOTE: this seems to always get matched
   axpress.register_translation({
-    n.meta.name : 'remove the',
-    n.meta.input : """
+    'name' : 'remove the',
+    'input' : """
       x[axpress.is] = "the %anything%"
     """,
-    n.meta.output : """
+    'output' : """
       x[axpress.is] = "%anything%"
     """
   })
@@ -245,17 +245,17 @@ def loadTranslations(axpress, n) :
     return result['/location/location/geolocation']
   
   axpress.register_translation({
-    n.meta.name : 'lookup location lat lon',
-    n.meta.input : """
+    'name' : 'lookup location lat lon',
+    'input' : """
       location[freebase.mid] = _mid
       location[freebase.type] = '/location/location'
     """,
-    n.meta.output : """
+    'output' : """
       location[freebase./location/location/geolocation] = geo
       geo[freebase./location/geocode/latitude] = _latitude
       geo[freebase./location/geocode/longitude] = _longitude
     """,
-    n.meta.function : lookup_location_lat_lon,
+    'function' : lookup_location_lat_lon,
   })
   
   def curl(url) :
@@ -293,15 +293,15 @@ def loadTranslations(axpress, n) :
     
     #.encode("<utf-8>")
   axpress.register_translation({
-    n.meta.name : 'freebase search',
-    n.meta.input : """
+    'name' : 'freebase search',
+    'input' : """
       book[axpress.is] = "%title%"
       book[freebase.type] = _type
     """,
-    n.meta.output : """
+    'output' : """
       book[freebase.mid] = _mid
     """,
-    n.meta.function : freebase_search,
+    'function' : freebase_search,
   })
 
 
@@ -311,12 +311,12 @@ def loadTranslations(axpress, n) :
     except freebase.api.MetawebError :
       vars['blurb'] = u'no blurb'
   axpress.register_translation({
-    n.meta.name : 'freebase blurb',
-    n.meta.input : """
+    'name' : 'freebase blurb',
+    'input' : """
       o[freebase.mid] = _mid
     """,
-    n.meta.output : """
+    'output' : """
       o[freebase.blurb] = _blurb
     """,
-    n.meta.function : freebase_blurb,
+    'function' : freebase_blurb,
   })

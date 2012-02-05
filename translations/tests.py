@@ -17,107 +17,107 @@ def loadTranslations(axpress, n) :
   def _sum(vars) :
     vars['sum'] = vars['x'] + vars['y']
   axpress.register_translation({
-    n.meta.name : 'sum',
-    n.meta.input : """
+    'name' : 'sum',
+    'input' : """
       foo[test.x] = _x
       foo[test.y] = _y
     """,
-    n.meta.output : [
+    'output' : [
       'foo[test.sum] = _sum',
     ],
-    n.meta.function : _sum,
+    'function' : _sum,
   })
   
   def _add_one(vars) :
     vars['sum'] = vars['x'] + 1
   axpress.register_translation({
-    n.meta.name : 'add_one',
-    n.meta.input : """
+    'name' : 'add_one',
+    'input' : """
       foo[test.x] = _x
     """,
-    n.meta.output : [
+    'output' : [
       'foo[test.add_one] = _sum',
     ],
-    n.meta.function : _add_one,
+    'function' : _add_one,
   })
   
   def _add_two(vars) :
     vars['sum'] = vars['x'] + 2
   axpress.register_translation({
-    n.meta.name : 'add_two',
-    n.meta.input : """
+    'name' : 'add_two',
+    'input' : """
       foo[test.x] = _x
     """,
-    n.meta.output : [
+    'output' : [
       'foo[test.add_two] = _sum',
     ],
-    n.meta.function : _add_two,
+    'function' : _add_two,
   })
   
   def prod(vars) :
     vars['prod'] = float(vars['sum']) * vars['z']
   axpress.register_translation({
-    n.meta.name : 'product',
-    n.meta.input : [
+    'name' : 'product',
+    'input' : [
       'uri[test.sum] = _sum',
       'uri[test.z] = _z',
     ],
-    n.meta.output : [
+    'output' : [
       'uri[test.prod] = _prod',
     ],
-    n.meta.function : prod,
+    'function' : prod,
   })
   
   def div(vars) :
     vars['div'] = float(vars['sum']) / vars['z']
   axpress.register_translation({
-    n.meta.name : 'division',
-    n.meta.input : [
+    'name' : 'division',
+    'input' : [
       'uri[test.sum] = _sum',
       'uri[test.z] = _z',
     ],
-    n.meta.output : [
+    'output' : [
       'uri[test.div] = _div',
     ],
-    n.meta.function : div,
+    'function' : div,
   })
     
   def html_img(vars):
     web_filename = vars['filename'].replace('/home/dwiel', '/home')
     vars['html'] = '<img src="%s" width="%s" height="%s"/>' % (web_filename, vars['width'], vars['height'])
   axpress.register_translation({
-    n.meta.name : 'html img link',
-    n.meta.input : """
+    'name' : 'html img link',
+    'input' : """
       image[file.filename] = _filename
       image[html.width] = _width
       image[html.height] = _height
     """,
-    n.meta.output : """
+    'output' : """
       image[html.html] = _html
     """,
-    n.meta.function : html_img,
+    'function' : html_img,
   })
 
   # used for testing a translation which returns no bindings
   def no_bindings(vars):
     return []
   axpress.register_translation({
-    n.meta.name : 'no bindings',
-    n.meta.input : """
+    'name' : 'no bindings',
+    'input' : """
       foo[test.no_bindings_input] = _input
     """,
-    n.meta.output : """
+    'output' : """
       foo[test.no_bindings_output] = _output
     """,
-    n.meta.function : no_bindings,
+    'function' : no_bindings,
   })
   
   axpress.register_translation({
-    n.meta.name : 'test',
-    n.meta.input : """
+    'name' : 'test',
+    'input' : """
       xxx[test.p][test.p] = yyy
     """,
-    n.meta.output : """
+    'output' : """
       xxx[test.q][test.q] = yyy
       xxx[test.q][test.r] = 10000
     """,
@@ -127,11 +127,11 @@ def loadTranslations(axpress, n) :
   })
   
   axpress.register_translation({
-    n.meta.name : 'test2',
-    n.meta.input : """
+    'name' : 'test2',
+    'input' : """
       x[test.p] = y
     """,
-    n.meta.output : """
+    'output' : """
       x[test.q] = y
       x[test.r] = z
     """,
@@ -144,11 +144,11 @@ def loadTranslations(axpress, n) :
   # I guess it is possible here that z and x wind up being unified ... thats
   # not the intention though
   axpress.register_translation({
-    n.meta.name : 'test3',
-    n.meta.input : """
+    'name' : 'test3',
+    'input' : """
       x[test.a] = y
     """,
-    n.meta.output : """
+    'output' : """
       x[test.b] = y
       x[test.c] = z
       z[test.d] = z
@@ -156,11 +156,11 @@ def loadTranslations(axpress, n) :
   })
   
   axpress.register_translation({
-    n.meta.name : 'test4',
-    n.meta.input : """
+    'name' : 'test4',
+    'input' : """
       x[test.b] = _w
     """,
-    n.meta.output : """
+    'output' : """
       x[test.c] = _w
     """,
   })
@@ -168,22 +168,22 @@ def loadTranslations(axpress, n) :
   def f(vars) :
     vars['u'] = 1
   axpress.register_translation({
-    n.meta.name : 'test5',
-    n.meta.input : """
+    'name' : 'test5',
+    'input' : """
       t[test.aa] = _s
     """,
-    n.meta.output : """
+    'output' : """
       t[test.ad] = _u
     """,
-    n.meta.function : f
+    'function' : f
   })
   
   axpress.register_translation({
-    n.meta.name : 'test6',
-    n.meta.input : """
+    'name' : 'test6',
+    'input' : """
       t[test.ad] = _s
     """,
-    n.meta.output : """
+    'output' : """
       t[test.ae] = _s
     """,
   })

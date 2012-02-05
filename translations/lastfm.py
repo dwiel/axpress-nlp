@@ -54,20 +54,20 @@ def loadTranslations(axpress, n) :
     return ret
 
   axpress.register_translation({
-    n.meta.name : 'last.fm similar artists',
-    n.meta.input : """
+    'name' : 'last.fm similar artists',
+    'input' : """
       artist[music.artist_name] = _artist_name
       artist[lastfm.similar_to] = similar_artist
     """,
-    n.meta.output : """
+    'output' : """
       artist[lastfm.similar_to] = similar_artist
       similar_artist[lastfm.similarity_measure] = _similarity_measure
       similar_artist[lastfm.mbid] = _mbid
       similar_artist[lastfm.artist_name] = _name
     """,
-    n.meta.function : lastfm_similar,
-    n.meta.scale : 100,
-    n.meta.expected_time : 1,
+    'function' : lastfm_similar,
+    'scale' : 100,
+    'expected_time' : 1,
     n.cache.expiration_length : 2678400, # 1 month in seconds
   })
   
@@ -109,14 +109,14 @@ def loadTranslations(axpress, n) :
     #return results
     
   #axpress.register_translation({
-    #n.meta.name : "last.fm user's recent tracks",
-    #n.meta.input : """
+    #'name' : "last.fm user's recent tracks",
+    #'input' : """
       #user[lastfm.user_name] = _user_name
       #user[lastfm.recent_track] = track
       #track[lastfm.album] = album
       #track[lastfm.artist] = artist
     #""",
-    #n.meta.output : """
+    #'output' : """
       #artist[lastfm.mbid] = _artist_mbid
       #artist[lastfm.artist_name] = _artist_name
       #track[lastfm.track_name] = _track_name
@@ -124,77 +124,77 @@ def loadTranslations(axpress, n) :
       #album[lastfm.album_name] = _album_name
       #track[lastfm.date_uts] = _date_uts
     #""",
-    #n.meta.function : lastfm_user_recent_tracks,
+    #'function' : lastfm_user_recent_tracks,
   #})
   axpress.register_translation({
-    n.meta.name : "last.fm user's recent tracks",
-    n.meta.input : """
+    'name' : "last.fm user's recent tracks",
+    'input' : """
       user[lastfm.user_name] = _user_name
       user[lastfm.recent_track] = track
       track[lastfm.artist] = artist
     """,
-    n.meta.output : """
+    'output' : """
       artist[lastfm.mbid] = _artist_mbid
       artist[lastfm.artist_name] = _artist_name
       track[lastfm.track_name] = _track_name
       track[lastfm.date_uts] = _date_uts
     """,
-    n.meta.function : lastfm_user_recent_tracks,
+    'function' : lastfm_user_recent_tracks,
   })
   
   axpress.register_translation({
-    n.meta.name : "last.fm shorthand artist name",
-    n.meta.input : """
+    'name' : "last.fm shorthand artist name",
+    'input' : """
       track[lastfm.artist] = artist
       artist[lastfm.artist_name] = _artist_name
     """,
-    n.meta.output : """
+    'output' : """
       track[lastfm.artist_name] = _artist_name
     """,
   })
   
   axpress.register_translation({
-    n.meta.name : "lastfm.artist_name -> music.artist_name",
-    n.meta.input : """
+    'name' : "lastfm.artist_name -> music.artist_name",
+    'input' : """
       x[lastfm.artist_name] = _name
     """,
-    n.meta.output : """
+    'output' : """
       x[music.artist_name] = _name
     """,
   })
   
   axpress.register_translation({
-    n.meta.name : 'rdfs.label => music.artist_name',
-    n.meta.input : [
+    'name' : 'rdfs.label => music.artist_name',
+    'input' : [
       'artist[rdfs.label] = artist_name',
     ],
-    n.meta.output : [
+    'output' : [
       'artist[music.artist_name] = artist_name',
     ],
-    n.meta.function : lambda x : None,
-    n.meta.reversable : True,
-    n.meta.scale : 1,
-    n.meta.expected_time : 0,
+    'function' : lambda x : None,
+    'reversable' : True,
+    'scale' : 1,
+    'expected_time' : 0,
   })
   
   #axpress.register_translation({
-    #n.meta.name : "last.fm shorthand artist mbid",
-    #n.meta.input : """
+    #'name' : "last.fm shorthand artist mbid",
+    #'input' : """
       #track[lastfm.artist] = artist
       #artist[lastfm.mbid] = _artist_mbid
     #""",
-    #n.meta.output : """
+    #'output' : """
       #track[lastfm.artist_mbid] = _artist_mbid
     #""",
   #})
   
   #axpress.register_translation({
-    #n.meta.name : "last.fm shorthand album mbid",
-    #n.meta.input : """
+    #'name' : "last.fm shorthand album mbid",
+    #'input' : """
       #track[lastfm.album] = album
       #album[lastfm.mbid] = _album_mbid
     #""",
-    #n.meta.output : """
+    #'output' : """
       #track[lastfm.album_mbid] = _album_mbid
     #""",
   #})

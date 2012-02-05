@@ -46,7 +46,7 @@ class Evaluator :
       input_bindings = step['input_bindings']
       output_bindings = step['output_bindings']
       
-      #p('step name', step['translation'][self.n.meta.name])
+      #p('step name', step['translation']['name'])
       #p('input_bindings',input_bindings)
       #p('output_bindings',output_bindings)
       #p('incoming_bindings',incoming_bindings)
@@ -63,16 +63,16 @@ class Evaluator :
       #p('new_input_bindings',input_bindings)
       input_bindings_set.append(input_bindings)
     
-    if self.n.meta.function in step['translation'] :
+    if 'function' in step['translation'] :
       result_bindings_set = []
       for input_bindings in input_bindings_set :
-        ret = step['translation'][self.n.meta.function](input_bindings)
+        ret = step['translation']['function'](input_bindings)
         if ret is not None:
           result_bindings_set.append(ret)
         else :
           result_bindings_set.append(input_bindings)
-    elif self.n.meta.multi_function in step['translation'] :
-      ret = step['translation'][self.n.meta.multi_function](input_bindings_set)
+    elif 'multi_function' in step['translation'] :
+      ret = step['translation']['multi_function'](input_bindings_set)
       if ret is not None:
         result_bindings_set = ret
       else :
@@ -118,7 +118,7 @@ class Evaluator :
               "%s %s didn't get bound by translation '%s'" % (
                 variables, ', '.join(
                   "'"+v+"'" for v in missing_variables
-                ), step['translation'][self.n.meta.name]
+                ), step['translation']['name']
               )
             )
         
@@ -153,7 +153,7 @@ class Evaluator :
     could mean all 4 combinations are possible, or that x1 and x2 can both 
     happen but not simultaneously
     """
-    #p('evaluating',step['translation'][n.meta.name])
+    #p('evaluating',step['translation']['name'])
     #p('incoming_bindings_set',incoming_bindings_set)
     #new_bindings_set = []
     #for incoming_bindings in incoming_bindings_set :
@@ -233,10 +233,10 @@ class Evaluator :
       combination_bindings_set = [{}]
       for translation in combination :
         bindings_set = copy.copy(incoming_bindings_set)
-        #p('translation',translation['step']['translation'][n.meta.name])
+        #p('translation',translation['step']['translation']['name'])
         # make sure that all of the dependency translations have been evaluated
         for dependency in translation['depends'] :
-          #p('dependency',dependency['translation'][n.meta.name])
+          #p('dependency',dependency['translation']['name'])
           if 'output_bindings_set' in dependency :
             #p('depenency already met')
             bindings_set = dependency['output_bindings_set']

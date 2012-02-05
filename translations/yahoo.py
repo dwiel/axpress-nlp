@@ -11,11 +11,11 @@ def loadTranslations(axpress, n) :
     return table.rows
 
   axpress.register_translation({
-    n.meta.name : '',
-    n.meta.input : """
+    'name' : '',
+    'input' : """
       search[yahoo.query] = _query
     """,
-    n.meta.output : """
+    'output' : """
       search[yahoo.dispurl] = _dispurl
       search[yahoo.title] = _title
       search[yahoo.url] = _url
@@ -24,6 +24,6 @@ def loadTranslations(axpress, n) :
       search[yahoo.date] = _date
       search[yahoo.size] = _size
     """,
-    n.meta.function : yahoo_search,
+    'function' : yahoo_search,
   })
   

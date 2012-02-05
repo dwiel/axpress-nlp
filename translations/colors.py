@@ -5,14 +5,14 @@ def loadTranslations(axpress, n) :
   def red(vars) :
     vars['c'] = "FF0000"
   axpress.register_translation({
-    n.meta.name : 'is red',
-    n.meta.input : """
+    'name' : 'is red',
+    'input' : """
       color[axpress.is] = "red"
     """,
-    n.meta.output : """
+    'output' : """
       color[html.color] = _c
     """,
-    n.meta.function : red,
+    'function' : red,
   })
   
   """
@@ -27,14 +27,14 @@ def loadTranslations(axpress, n) :
   def green(vars) :
     vars['c'] = "00FF00"
   axpress.register_translation({
-    n.meta.name : 'is green',
-    n.meta.input : """
+    'name' : 'is green',
+    'input' : """
       color[axpress.is] = "green"
     """,
-    n.meta.output : """
+    'output' : """
       color[html.color] = _c
     """,
-    n.meta.function : green,
+    'function' : green,
   })
   
   def invert_color(vars) :
@@ -42,19 +42,19 @@ def loadTranslations(axpress, n) :
     vars['gout'] = 255 - vars['gin']
     vars['bout'] = 255 - vars['bin']
   axpress.register_translation({
-    n.meta.name : 'invert',
-    n.meta.input : """
+    'name' : 'invert',
+    'input' : """
       color[html.color_red]   = _rin
       color[html.color_green] = _gin
       color[html.color_blue]  = _bin
       color[color.invert] = inverted_color
     """,
-    n.meta.output : """
+    'output' : """
       inverted_color[html.color_red]   = _rout
       inverted_color[html.color_green] = _gout
       inverted_color[html.color_blue]  = _bout
     """,
-    n.meta.function : invert_color,
+    'function' : invert_color,
   })
   
   def html_color_rgb(vars) :
@@ -63,17 +63,17 @@ def loadTranslations(axpress, n) :
     vars['green'] = int(vars['c'][2:4], 16)
     vars['blue'] = int(vars['c'][4:6], 16)
   axpress.register_translation({
-    n.meta.name : 'html color to rgb',
-    n.meta.input : """
+    'name' : 'html color to rgb',
+    'input' : """
       color[html.color] = _c
     """,
-    n.meta.output : """
+    'output' : """
       color[html.color_red] = _red
       color[html.color_green] = _green
       color[html.color_blue] = _blue
     """,
-    n.meta.function : html_color_rgb,
-    n.meta.inverse_function : 'html rgb to color',
+    'function' : html_color_rgb,
+    'inverse_function' : 'html rgb to color',
   })
   
   def html_rgb_color(vars) :
@@ -82,28 +82,28 @@ def loadTranslations(axpress, n) :
       vars['red'], vars['green'], vars['blue']
     )
   axpress.register_translation({
-    n.meta.name : 'html rgb to color',
-    n.meta.input : """
+    'name' : 'html rgb to color',
+    'input' : """
       color[html.color_red] = _red
       color[html.color_green] = _green
       color[html.color_blue] = _blue
     """,
-    n.meta.output : """
+    'output' : """
       color[html.color] = _c
     """,
-    n.meta.function : html_rgb_color,
-    n.meta.inverse_function : 'html color to rgb',
+    'function' : html_rgb_color,
+    'inverse_function' : 'html color to rgb',
   })
   
   axpress.register_translation({
-    n.meta.name : 'is inverse of color',
-    n.meta.input : """
+    'name' : 'is inverse of color',
+    'input' : """
       icolor[axpress.is] = "inverse of %color%"
     """,
-    n.meta.output : """
+    'output' : """
       color[html.color] = _c
       color[color.invert] = icolor
       icolor[html.color] = _ic
     """,
-    n.meta.function : red,
+    'function' : red,
   })

@@ -20,14 +20,14 @@ def loadTranslations(axpress, n) :
     f.close()
   
   axpress.register_translation({
-    n.meta.name : 's list add',
-    n.meta.input : """
+    'name' : 's list add',
+    'input' : """
       x[axpress.is] = "add %item% (to |)(my |the |)%list_name%( list|)"
     """,
-    n.meta.output : """
+    'output' : """
       x[axpress.is] = "show %list_name% list"
     """,
-    n.meta.function : list_add
+    'function' : list_add
   })
 
   def list_show(vars) :
@@ -46,14 +46,14 @@ def loadTranslations(axpress, n) :
       </ul>
     """).render_unicode(items = lines)
   axpress.register_translation({
-    n.meta.name : 'show list list',
-    n.meta.input : """
+    'name' : 'show list list',
+    'input' : """
       x[axpress.is] = "show (my |)%list_name%( list|)"
     """,
-    n.meta.output : """
+    'output' : """
       x[simple_display.text] = _html
     """,
-    n.meta.function : list_show,
+    'function' : list_show,
   })
 
   def remove_list(vars) :
@@ -71,12 +71,12 @@ def loadTranslations(axpress, n) :
       print >>f, line
     f.close()
   axpress.register_translation({
-    n.meta.name : 'remove list',
-    n.meta.input : """
+    'name' : 'remove list',
+    'input' : """
       x[axpress.is] = "(remove|get rid of) %item% (from |)(my |)%list_name%( list|)"
     """,
-    n.meta.output : """
+    'output' : """
       x[axpress.is] = "show %list_name% list"
     """,
-    n.meta.function : remove_list,
+    'function' : remove_list,
   })

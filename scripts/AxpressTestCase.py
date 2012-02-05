@@ -614,10 +614,10 @@ class AxpressTestCase(unittest.TestCase):
     
     def make_rule(name, i, o, fn = None):
       axpress.register_translation({
-        n.meta.name : name,
-        n.meta.input : i,
-        n.meta.output : o,
-        n.meta.function : fn,
+        'name' : name,
+        'input' : i,
+        'output' : o,
+        'function' : fn,
       })
     
     def simple_rule(x, y) :

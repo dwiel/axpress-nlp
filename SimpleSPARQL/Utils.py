@@ -44,13 +44,13 @@ class OutVar(Variable) : pass
 class OutLitVar(Variable) : pass
 
 #str_n_var = str(n.var)
-#str_n_meta_var = str(n.meta_var)
+#str_'var' = str('var')
 #str_n_lit_var = str(n.lit_var)
 #str_n_out_var = str(n.out_var)
 #str_n_out_lit_var = str(n.out_lit_var)
 
 #len_n_var = len(n.var)
-#len_n_meta_var = len(n.meta_var)
+#len_'var' = len('var')
 #len_n_lit_var = len(n.lit_var)
 #len_n_out_var = len(n.out_var)
 #len_n_out_lit_var = len(n.out_lit_var)
@@ -60,7 +60,7 @@ def is_any_var(data) :
   #if type(data) == URIRef :
     #if data.find(str_n_var) == 0 :
       #return True
-    #elif data.find(str_n_meta_var) == 0 :
+    #elif data.find(str_'var') == 0 :
       #return True
     #elif data.find(str_n_lit_var) == 0 :
       #return True
@@ -80,7 +80,7 @@ def is_var(data) :
 def is_meta_var(data) :
   return isinstance(data, MetaVar)
   #if type(data) == URIRef :
-    #if data.find(str_n_meta_var) == 0 :
+    #if data.find(str_'var') == 0 :
       #return True
   #return False
 
@@ -109,8 +109,8 @@ def var_name(v) :
   return v.name
   #if uri.find(str_n_var) == 0 :
     #return uri[len_n_var:]
-  #elif uri.find(str_n_meta_var) == 0 :
-    #return uri[len_n_meta_var:]
+  #elif uri.find(str_'var') == 0 :
+    #return uri[len_'var':]
   #elif uri.find(str_n_lit_var) == 0 :
     #return uri[len_n_lit_var:]
   #elif uri.find(str_n_out_var) == 0 :
@@ -127,8 +127,8 @@ def var_type(v) :
   
   #if uri.find(n.var) == 0 :
     #return n.var
-  #elif uri.find(n.meta_var) == 0 :
-    #return n.meta_var
+  #elif uri.find('var') == 0 :
+    #return 'var'
   #elif uri.find(n.lit_var) == 0 :
     #return n.lit_var
   #elif uri.find(n.out_var) == 0 :

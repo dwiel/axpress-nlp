@@ -46,7 +46,6 @@ class SimpleSPARQL (SPARQLWrapper) :
 		self.n.bind('var', '<http://dwiel.net/axpress/var/0.1/>')
 		self.n.bind('tvar', '<http://dwiel.net/axpress/translation/var/0.1/>')
 		self.n.bind('bnode', '<http://dwiel.net/simplesparql/bnode/0.1/>')
-		self.n.bind('meta', '<http://dwiel.net/axpress/meta/0.1/>')
 		self.n.bind('lit_var', '<http://dwiel.net/express/lit_var/0.1/>')
 		#self.n.bind('meta_var', '<http://dwiel.net/axpress/meta_var/0.1/>')
 		self.lang = 'en'

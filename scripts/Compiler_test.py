@@ -383,17 +383,17 @@ class CompilerTestCase(unittest.TestCase):
       #'partial_solution_triples' : [],
       #'possible' : [],
       #'translation' : {
-        #n.meta.constant_vars : [ 'image', 'pixel', ],
-        #n.meta.function : compiler.translations_by_name['image pixel'][n.meta.function],
-        #n.meta.input : [
+        #'constant_vars' : [ 'image', 'pixel', ],
+        #'function' : compiler.translations_by_name['image pixel']['function'],
+        #'input' : [
           #[ n.var.image, n.pil.image, n.lit_var.pil_image, ],
           #[ n.var.bnode1, n.call.arg1, n.var.image, ],
           #[ n.var.bnode1, n.call.arg2, n.lit_var.x, ],
           #[ n.var.bnode1, n.call.arg3, n.lit_var.y, ],
           #[ n.var.bnode1, n.image.pixel, n.var.pixel, ],
         #],
-        #n.meta.name : 'image pixel',
-        #n.meta.output : [
+        #'name' : 'image pixel',
+        #'output' : [
           #[ n.var.pixel, n.pil.color, n.lit_var.color, ],
         #],
       #},

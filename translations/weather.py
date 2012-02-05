@@ -105,11 +105,11 @@ def loadTranslations(axpress, n) :
   n.bind('wunderground', '<http://dwiel.net/axpress/wunderground/0.1/>')
 
   axpress.register_translation({
-    n.meta.name : 's current weather',
-    n.meta.input : """
+    'name' : 's current weather',
+    'input' : """
       weather[a.is] = "(the |)(current |)(weather|temperature|temp) (in |at |near |by |near by |)%location_s%( right now| now| today|)"
     """,
-    n.meta.output : """
+    'output' : """
       location[a.is] = "%location_s%"
       location[freebase.type] = '/location/location'
       location[wunderground.weather] = weather
@@ -117,11 +117,11 @@ def loadTranslations(axpress, n) :
   })
   
   axpress.register_translation({
-    n.meta.name : 's current dew point',
-    n.meta.input : """
+    'name' : 's current dew point',
+    'input' : """
       dew_point[a.is] = "(the |)(current |)dew point (in |at |near |by |near by |)%location_s%( right now| now| today|)"
     """,
-    #n.meta.output : """
+    #'output' : """
       #location[a.is] = "%location_s%"
       #location[freebase.type] = '/location/location'
       #location[wunderground.weather] = weather
@@ -130,7 +130,7 @@ def loadTranslations(axpress, n) :
       #dp[simple_display.direct] = dew_point
       #dp[simple_display.related] = weather
     #""",
-    n.meta.output : """
+    'output' : """
       location[a.is] = "%location_s%"
       location[freebase.type] = '/location/location'
       location[wunderground.weather] = weather
@@ -139,11 +139,11 @@ def loadTranslations(axpress, n) :
   })
   
   axpress.register_translation({
-    n.meta.name : 'display dew point',
-    n.meta.input : """
+    'name' : 'display dew point',
+    'input' : """
       weather[wunderground.dew_point] = _dp
     """,
-    n.meta.output : """
+    'output' : """
       weather[wunderground.dew_point] = _dp
       dp[simple_display.direct_label] = "Dew Point: "
       dp[simple_display.direct] = dew_point
@@ -188,15 +188,15 @@ def loadTranslations(axpress, n) :
     return ret
   
   axpress.register_translation({
-    n.meta.name : 'lookup current weather',
-    n.meta.input : """
+    'name' : 'lookup current weather',
+    'input' : """
       location[wunderground.weather] = weather
       location[freebase.type] = '/location/location'
       location[freebase./location/location/geolocation] = geo
       geo[freebase./location/geocode/latitude] = _lat
       geo[freebase./location/geocode/longitude] = _lon
     """,
-    n.meta.output : """
+    'output' : """
       weather[wunderground.current_temperature] = _temp_f
       weather[wunderground.icon_url] = _icon_url
       weather[wunderground.dew_point] = _dewpoint_f
@@ -210,7 +210,7 @@ def loadTranslations(axpress, n) :
       weather[wunderground.precipitation_last_hour] = _precip_1hr_in
       weather[wunderground.visibility_mi] = _visibility_mi
     """,
-    n.meta.function : lookup_current_weather,
+    'function' : lookup_current_weather,
   })
   
   # Simple Display
@@ -238,16 +238,16 @@ def loadTranslations(axpress, n) :
       </div>
       """).render_unicode(**vars)
   axpress.register_translation({
-    n.meta.name : 'simple render temp',
-    n.meta.input : """
+    'name' : 'simple render temp',
+    'input' : """
       x[wunderground.current_temperature] = _temp
       x[wunderground.icon_url] = _icon_url
       x[wunderground.forecast] = _forecast
     """,
-    n.meta.output : """
+    'output' : """
       x[simple_display.text] = _out
     """,
-    n.meta.function : render_weather
+    'function' : render_weather
   })
 
 """

@@ -27,13 +27,13 @@ body {
 var miserables = {
   nodes:[
     % for t in c.axpress.compiler.translations :
-      {nodeName:"${t[c.n.meta.name]}", group:${c.lookup_filename_id(t[c.n.meta.filename])} },
+      {nodeName:"${t['name']}", group:${c.lookup_filename_id(t['filename'])} },
     % endfor
   ],
   links:[
     % for id, ts in c.axpress.compiler.translation_matrix.iteritems() :
       % for t in ts :
-        {source:${id-1}, target:${t[c.n.meta.id]-1}, value:0.32},
+        {source:${id-1}, target:${t['id']-1}, value:0.32},
       % endfor
     %endfor
   ]

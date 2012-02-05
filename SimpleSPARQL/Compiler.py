@@ -120,49 +120,49 @@ class Compiler :
   
   def register_translation(self, translation) :
     # make sure all of the required keys are present
-    required = [n.meta.input, n.meta.output, n.meta.name]
+    required = ['input', 'output', 'name']
     missing = [key for key in required if key not in translation]
     if missing :
       raise Exception('translation is missing keys: %s' % prettyquery(missing))
     
-    if n.meta.function not in translation or translation[n.meta.function] == None :
-      if n.meta.multi_function not in translation :
-        translation[n.meta.function] = lambda x:x
+    if 'function' not in translation or translation['function'] == None :
+      if 'multi_function' not in translation :
+        translation['function'] = lambda x:x
     
-    if n.meta.input_function in translation and translation[n.meta.input_function] == None :
-      del translation[n.meta.input_function]
+    if 'input_function' in translation and translation['input_function'] == None :
+      del translation['input_function']
     
     # parse any string expressions
-    translation[n.meta.input] = self.parser.parse_query(translation[n.meta.input], reset_bnodes=False)
-    translation[n.meta.output] = self.parser.parse_query(translation[n.meta.output], reset_bnodes=False)
-    #p(translation[n.meta.name], translation[n.meta.input], translation[n.meta.output])
+    translation['input'] = self.parser.parse_query(translation['input'], reset_bnodes=False)
+    translation['output'] = self.parser.parse_query(translation['output'], reset_bnodes=False)
+    #p(translation['name'], translation['input'], translation['output'])
     
     ## hash the triples
-    #translation[n.meta.input]  = self.hash_triples(translation[n.meta.input])
-    #translation[n.meta.output] = self.hash_triples(translation[n.meta.output])
+    #translation['input']  = self.hash_triples(translation['input'])
+    #translation['output'] = self.hash_triples(translation['output'])
     
     # figure out which variables are in both the input and output of the 
     # translation
-    invars = find_vars(translation[n.meta.input], find_string_vars = True)
-    outvars = find_vars(translation[n.meta.output], find_string_vars = True)
-    #p(translation[n.meta.name])
+    invars = find_vars(translation['input'], find_string_vars = True)
+    outvars = find_vars(translation['output'], find_string_vars = True)
+    #p(translation['name'])
     #p('invars', invars)
     #p('outvars', outvars)
     constant_vars = list(invars.intersection(outvars))
-    translation[n.meta.constant_vars] = constant_vars
+    translation['constant_vars'] = constant_vars
     
-    translation[n.meta.in_lit_vars] = find_vars(
-      translation[n.meta.input], is_lit_var, find_string_vars = True
+    translation['in_lit_vars'] = find_vars(
+      translation['input'], is_lit_var, find_string_vars = True
     )
     
     import inspect
     filename = inspect.currentframe().f_back.f_back.f_code.co_filename
     
-    translation[n.meta.filename] = filename
-    translation[n.meta.id] = self.next_translation_id()
+    translation['filename'] = filename
+    translation['id'] = self.next_translation_id()
     self.translations.append(translation)
-    self.translations_by_name[translation[n.meta.name]] = translation
-    self.translations_by_id[  translation[n.meta.id  ]] = translation
+    self.translations_by_name[translation['name']] = translation
+    self.translations_by_id[  translation['id'  ]] = translation
   
   #def hash_triple(self, triple) :
     #return Triple(triple)
@@ -177,9 +177,9 @@ class Compiler :
   def translation_can_follow(self, this, next) :
     """ a translation can follow if any of the output triples of this match
     with any of the input triples from next """
-    for triple in this[n.meta.output] :
-      for ntriple in next[n.meta.input] :
-        #if this[n.meta.name] == "say hi" and next[n.meta.name] == "parse email" :
+    for triple in this['output'] :
+      for ntriple in next['input'] :
+        #if this['name'] == "say hi" and next['name'] == "parse email" :
           #p('m', ntriple, triple, self.triples_match(ntriple, triple))
         if self.triples_match(ntriple, triple) :
           return True
@@ -193,10 +193,10 @@ class Compiler :
       self.translation_matrix[id] = [
         t for t in self.translations if self.translation_can_follow(translation, t)
       ]
-      #p('t', translation[n.meta.name], [t[n.meta.name] for t in self.translation_matrix[id]])
+      #p('t', translation['name'], [t['name'] for t in self.translation_matrix[id]])
     #print 'avg', sum(len(ts) for ts in self.translation_matrix.values())/float(len(self.translation_matrix))
     #print [len(ts) for ts in self.translation_matrix.values()]
-    #print [t[n.meta.name] for t in self.translations if len(t[n.meta.input]) != 1]
+    #print [t['name'] for t in self.translations if len(t['input']) != 1]
     self.match_strings_both_ways = False
   
   
@@ -512,10 +512,10 @@ class Compiler :
     # right now, this is also a required step because this is the only way that
     # testtranslation will return False
     
-    if reqd_triples and not self.partial_match_exists(translation[self.n.meta.input], reqd_triples) :
+    if reqd_triples and not self.partial_match_exists(translation['input'], reqd_triples) :
       return False, None
     ret = self.bind_vars(
-      translation[self.n.meta.input], query, reqd_triples
+      translation['input'], query, reqd_triples
     )
     # if a partial match did exist, but no bindings could be found, then this 
     # was a partial match
@@ -524,7 +524,7 @@ class Compiler :
       # match has been found.  Partial matches are recorded because we might
       # want to merge this partial match with another to get a full match
       matched_triples = set()
-      for i, triple in enumerate(translation[self.n.meta.input]) :
+      for i, triple in enumerate(translation['input']) :
         if self.find_triple_match(triple, query) :
           matched_triples.add(i)
 
@@ -552,7 +552,7 @@ class Compiler :
     # TODO if there is a lineage, should translation_queue should be a 
     # combination of the tq from the end of both merged paths
     if lineage and 'new_lineage' not in lineage[-1] :
-      translation_queue = self.translation_matrix[lineage[-1]['translation'].get(n.meta.id)]
+      translation_queue = self.translation_matrix[lineage[-1]['translation'].get('id')]
     else :
       translation_queue = list(self.translations)
     # NOTE setting translation_queue to all translations all the time causes
@@ -566,16 +566,16 @@ class Compiler :
     # OPTIMIZATION: skip this translation if it is the inverse of the last translation
     # WARNING: not 100% sure this is always going to work, but it does for now ...
     def test_for_inverse(translation) :
-      inverse_function = lineage[-1]['translation'].get(n.meta.inverse_function) 
+      inverse_function = lineage[-1]['translation'].get('inverse_function') 
       if inverse_function :
-        if inverse_function == translation[n.meta.name] :
+        if inverse_function == translation['name'] :
           return False
       return True
     if lineage :
       translation_queue = filter(test_for_inverse, translation_queue)
     
     # show the list of translations that show up in the queue
-    #self.debugp('tq', [t[n.meta.name] for t in translation_queue])
+    #self.debugp('tq', [t['name'] for t in translation_queue])
     
     def merge_partial(translation, matched_triples) :
       # this function gets called if this translation was partially matched
@@ -583,7 +583,7 @@ class Compiler :
       found_merge = False
       
       # all of the search paths that have partially matched this translation
-      past_partials = self.partials[translation[n.meta.id]]
+      past_partials = self.partials[translation['id']]
       # NOTE: use heuristics to pick which past_partial to try first:
       #     *** keep stats about p of tip of branch1 combining with tip of 
       #         branch2 to fulfil this translation
@@ -594,7 +594,7 @@ class Compiler :
       for past_lineage, past_query, past_matched_triples in past_partials :
         # make sure that the triples that these two partials atleast cover
         # all input triples
-        if len(past_matched_triples.union(matched_triples)) == len(translation[n.meta.input]) :
+        if len(past_matched_triples.union(matched_triples)) == len(translation['input']) :
           # OPTIMIZATION make sure that past_query isn't a subset of orig_query
           # NOTE: might be faster to compare lineages instead of queries
           if all(triple in orig_query for triple in past_query) :
@@ -622,19 +622,19 @@ class Compiler :
             ret, more = self.testtranslation(translation, new_query, new_triples)
             if ret == True :
               found_merge = True
-              self.debug_open_block('merge for ' + translation[n.meta.name])
+              self.debug_open_block('merge for ' + translation['name'])
               yield new_query, translation, more, past_lineage
               self.debug_close_block()
       
       # add this instance to past partials
-      #p('storing partial', translation[n.meta.name], matched_triples)
-      self.partials[translation[n.meta.id]].append((lineage, orig_query, matched_triples))
+      #p('storing partial', translation['name'], matched_triples)
+      self.partials[translation['id']].append((lineage, orig_query, matched_triples))
     
     def test_and_merge() :
       """ test each translation against the current query.  If there is a 
       partial match, also yield all possible merges """
       for translation in translation_queue :
-        #self.debug('testing ' + translation[n.meta.name])
+        #self.debug('testing ' + translation['name'])
         ret, more = self.testtranslation(translation, orig_query, reqd_triples)
         if ret == "partial" :
           # in this case more is a list of the triples that matched
@@ -653,8 +653,8 @@ class Compiler :
       # we've found a match, now we just need to find the bindings.  This is
       # the step where we unify the new information (generated by output 
       # triples) with existing information.
-      #self.debugp('found match ' + translation[n.meta.name])
-      #p('translation[n.meta.name]', translation[n.meta.name])
+      #self.debugp('found match ' + translation['name'])
+      #p('translation['name']', translation['name'])
       for bindings in bindings_set :
         # copies the bindings so we can manipulate it while keeping the 
         # possible property intact
@@ -664,7 +664,7 @@ class Compiler :
         # replace the other bindings which are variables, with variables with
         # the name from the query and the type from the translation ...
         for var, value in bindings.iteritems() :
-          if var in translation[n.meta.constant_vars] :
+          if var in translation['constant_vars'] :
             new_bindings[var] = value
           elif is_any_var(value) :
             new_var = LitVar(value.name+'_'+str(self.next_num()))
@@ -678,7 +678,7 @@ class Compiler :
         output_bindings = {}
         
         input_bindings_vars = [var for (var, binding) in input_bindings.iteritems() if not is_var(binding)]
-        missing_vars = translation[n.meta.in_lit_vars] - set(input_bindings_vars)
+        missing_vars = translation['in_lit_vars'] - set(input_bindings_vars)
         if len(missing_vars) :
           continue
         
@@ -686,24 +686,24 @@ class Compiler :
         # input unification that must also hold true for output unification
         # some of the initial_binding vars don't appear in the output triples
         # so we can get rid of them
-        output_triple_vars = find_vars(translation[n.meta.output], find_string_vars = True)
-        output_triples = translation[n.meta.output]
-        #self.debugp('constant_vars', translation[n.meta.constant_vars])
+        output_triple_vars = find_vars(translation['output'], find_string_vars = True)
+        output_triples = translation['output']
+        #self.debugp('constant_vars', translation['constant_vars'])
         initial_bindings = dict(
-          (unicode(name), bindings[name]) for name in translation[n.meta.constant_vars]
+          (unicode(name), bindings[name]) for name in translation['constant_vars']
             if name in bindings and 
               name in output_triple_vars
         )
         
         # used in a couple places later on
-        output_lit_vars = find_vars(translation[n.meta.output], is_lit_var)
+        output_lit_vars = find_vars(translation['output'], is_lit_var)
         #self.debugp('input_bindings', input_bindings)
         #self.debugp('initial_bindings', initial_bindings)
         
         # if the translation has an input_function, run it here to see if these
         # input_bindings pass the test
-        if n.meta.input_function in translation :
-          if not translation[n.meta.input_function](input_bindings) :
+        if 'input_function' in translation :
+          if not translation['input_function'](input_bindings) :
             continue
         
         # unify output_triples with query
@@ -737,7 +737,7 @@ class Compiler :
           #self.debugp('output_bindings', output_bindings)
           
           # make sure all vanila vars have unique names
-          for var in find_vars(translation[n.meta.output], is_var) :
+          for var in find_vars(translation['output'], is_var) :
             if var not in output_bindings :
               output_bindings[var] = Var(var+'_'+str(self.next_num()))
           
@@ -745,7 +745,7 @@ class Compiler :
           
           # generate the new query by adding the output triples with 
           # output bindings substituted in
-          new_triples = sub_var_bindings(translation[n.meta.output], output_bindings)
+          new_triples = sub_var_bindings(translation['output'], output_bindings)
 
           new_query, new_query_new_triples = sub_var_bindings_track_changes(query, unified_bindings)
 
@@ -763,7 +763,7 @@ class Compiler :
           output_bindings = {
             var: binding for var, binding in output_bindings.iteritems()
             if var in output_lit_vars or
-              var in translation[n.meta.constant_vars]
+              var in translation['constant_vars']
           }
           
           new_query = remove_duplicate_triples(new_query)
@@ -929,7 +929,7 @@ class Compiler :
     """ remove any steps that we've already taken """
     def eq(s1, s2) :
       """ True iff step1 and step2 are equal """
-      return ((s1['translation'][n.meta.id] == s2['translation'][n.meta.id])
+      return ((s1['translation']['id'] == s2['translation']['id'])
                 and
               (s1['input_bindings'] == s2['input_bindings']))
     
@@ -982,7 +982,7 @@ class Compiler :
     # look through all steps recursively to see if they result in a 
     # solution and should be added to the compile_node, the finished 'program'
     for step in steps :
-      self.debug_open_block((step['translation'][n.meta.name] or '<unnamed>') + ' ' + color(hash(step['input_bindings'], step['output_bindings'])) + ' ' + prettyquery(step['input_bindings']) + str(time.time() - self.start_time))
+      self.debug_open_block((step['translation']['name'] or '<unnamed>') + ' ' + color(hash(step['input_bindings'], step['output_bindings'])) + ' ' + prettyquery(step['input_bindings']) + str(time.time() - self.start_time))
       
       # add this step to the lineage, but before that, add any new steps that
       # were injected by the step itself (in the case of a merged path)
@@ -1092,7 +1092,7 @@ class Compiler :
     finding all paths is much more difficult because there are many ways which
     translations can be combined into infite loops that are hard to detect
     """
-    #p('steps', [(id(s), s['translation'][n.meta.name]) for s in steps])
+    #p('steps', [(id(s), s['translation']['name']) for s in steps])
     
     solution_bindings_set = {}
     for step in steps :

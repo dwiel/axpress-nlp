@@ -15,7 +15,6 @@ class Translator :
 		#self.n.bind('var', '<http://dwiel.net/axpress/var/0.1/>')
 		#self.n.bind('tvar', '<http://dwiel.net/axpress/translation/var/0.1/>')
 		#self.n.bind('bnode', '<http://dwiel.net/axpress/bnode/0.1/>')
-		#self.n.bind('meta', '<http://dwiel.net/axpress/meta/0.1/>')
 		
 		self.cache = cache
 		self.parser = Parser()
@@ -27,19 +26,19 @@ class Translator :
 		n = self.n
 		
 		# make sure all of the required keys are present
-		required = [n.meta.input, n.meta.output, n.meta.name]
+		required = ['input', 'output', 'name']
 		missing = [key for key in required if key not in translation]
 		if missing :
 			raise Exception('translation is missing keys: %s' % prettyquery(missing))
 		
 		# parse any string expressions
-		translation[n.meta.input] = self.parser.parse_query(translation[n.meta.input])
-		translation[n.meta.output] = self.parser.parse_query(translation[n.meta.output])
+		translation['input'] = self.parser.parse_query(translation['input'])
+		translation['output'] = self.parser.parse_query(translation['output'])
 		
 		#print 'registering'
-		#print translation[n.meta.name]
-		#print prettyquery(translation[n.meta.input])
-		#print prettyquery(translation[n.meta.output])
+		#print translation['name']
+		#print prettyquery(translation['input'])
+		#print prettyquery(translation['output'])
 		#print
 		
 		self.translations.append(translation)
@@ -48,7 +47,7 @@ class Translator :
 		if type(data) == URIRef :
 			if data.find(self.n.var) == 0 :
 				return True
-			elif data.find(self.n.meta_var) == 0 :
+			elif data.find('var') == 0 :
 				return True
 			elif data.find(self.n.lit_var) == 0 :
 				return True
@@ -57,8 +56,8 @@ class Translator :
 	def var_name(self, uri) :
 		if uri.find(self.n.var) == 0 :
 			return uri[len(self.n.var):]
-		elif uri.find(self.n.meta_var) == 0 :
-			return uri[len(self.n.meta_var):]
+		elif uri.find('var') == 0 :
+			return uri[len('var'):]
 		elif uri.find(self.n.lit_var) == 0 :
 			return uri[len(self.n.lit_var):]
 		else :
@@ -67,8 +66,8 @@ class Translator :
 	def var_type(self, uri) :
 		if uri.find(self.n.var) == 0 :
 			return self.n.var
-		elif uri.find(self.n.meta_var) == 0 :
-			return self.n.meta_var
+		elif uri.find('var') == 0 :
+			return 'var'
 		elif uri.find(self.n.lit_var) == 0 :
 			return self.n.lit_var
 		else :
@@ -86,7 +85,7 @@ class Translator :
 		if type(value) == URIRef :
 			if value.find(self.n.var) == 0 :
 				return True
-			if value.find(self.n.meta_var) == 0 :
+			if value.find('var') == 0 :
 				if type(qvalue) == URIRef :
 					return qvalue.find(self.n.var) == 0
 				else :
@@ -226,14 +225,14 @@ class Translator :
 		return True, bindings
 	
 	def testtranslation(self, translation, query) :
-#		print 'testing', translation[self.n.meta.name]
+#		print 'testing', translation['name']
 		# check that all of the translation inputs match part of the query
-		for triple in translation[self.n.meta.input] :
+		for triple in translation['input'] :
 			if not self.find_triple_match(triple, query) :
 				return False, None
 		
 		# find all possible bindings for the vars if any exist
-		matches, bindings = self.bind_vars(translation[self.n.meta.input], query)
+		matches, bindings = self.bind_vars(translation['input'], query)
 		
 		return matches, bindings
 	
@@ -307,10 +306,10 @@ class Translator :
 		n = self.n
 		translation_bindings = []
 		for binding in bindings :
-			# print 'history',prettyquery([[t[0][n.meta.name], t[1]] for t in history]),
-			# print 'now',prettyquery([translation[n.meta.name], binding]),
+			# print 'history',prettyquery([[t[0]['name'], t[1]] for t in history]),
+			# print 'now',prettyquery([translation['name'], binding]),
 			if [translation, binding] not in history :
-				#print 'applying',translation[n.meta.name]
+				#print 'applying',translation['name']
 				#print 'binding',prettyquery(binding)
 				history.append([translation, copy.copy(binding)])
 				
@@ -319,7 +318,7 @@ class Translator :
 					output_bindings_list = self.cache.call(translation, binding)					
 				else :
 					# call the function
-					output_bindings = translation[n.meta.function](binding)
+					output_bindings = translation['function'](binding)
 					
 					# make sure the output_bindings is a list of possible bindings.
 					# this allows a plugin to simply modify the binding passed in
@@ -333,7 +332,7 @@ class Translator :
 					
 				#print 'output_bindings_list',prettyquery(output_bindings_list),
 				
-				outtriple_sets = self.sub_var_bindings(translation[n.meta.output], output_bindings_list)
+				outtriple_sets = self.sub_var_bindings(translation['output'], output_bindings_list)
 				#outtriple_sets = [x for x in outtriple_sets]
 				#print 'outtriple_sets',prettyquery(outtriple_sets)
 				translation_bindings.extend(outtriple_sets)
@@ -359,11 +358,11 @@ class Translator :
 				for (translation, (matches, bindings)) in all_bindings :
 					if matches :
 						this_translation_bindings = self.apply_translation_binding(translation, bindings, history)
-#						print 'translation', translation[n.meta.name]
+#						print 'translation', translation['name']
 #						print 'this_translation_bindings', prettyquery(this_translation_bindings),
 						# 'multiply' each new binding with each previously existing binding
 						if len(this_translation_bindings) != 0 :
-							#print translation[n.meta.name], len(this_translation_bindings), prettyquery(this_translation_bindings),
+							#print translation['name'], len(this_translation_bindings), prettyquery(this_translation_bindings),
 							found_match = True
 							
 							tmp_new_final_bindings = []

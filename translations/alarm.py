@@ -58,11 +58,11 @@ def loadTranslations(axpress, n) :
     assert isinstance(input, basestring)
     assert isinstance(output, basestring)
     options = {
-      n.meta.name   : name,
-      n.meta.input  : input,
-      n.meta.output : output,
-      n.meta.function : fn,
-      n.meta.input_function : input_function
+      'name'   : name,
+      'input'  : input,
+      'output' : output,
+      'function' : fn,
+      'input_function' : input_function
     }
     options.update(kwargs)
     axpress.register_translation(options)

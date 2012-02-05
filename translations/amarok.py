@@ -10,27 +10,27 @@ def loadTranslations(axpress, n) :
     if vars['artist_name'] == '' :
       return []
   axpress.register_translation({
-    n.meta.name : 'get amarok artist',
-    n.meta.input : """
+    'name' : 'get amarok artist',
+    'input' : """
       amarok.amarok[amarok.artist] = artist
     """,
-    n.meta.output : """
+    'output' : """
       artist[music.artist_name] = _artist_name
     """,
-    n.meta.function : get_amarok_artist,
+    'function' : get_amarok_artist,
   })
 
   def playlist_enuque(vars):
     pass
   axpress.register_translation({
-    n.meta.name : 'playlist enqueue',
-    n.meta.input : """
+    'name' : 'playlist enqueue',
+    'input' : """
       playlist.enqueue(playlist.playlist, track) = True
       track[file.url] = url
     """,
-    n.meta.output : [
+    'output' : [
     ],
-    n.meta.function : playlist_enuque,
-    n.meta.side_effect : True,
+    'function' : playlist_enuque,
+    'side_effect' : True,
   })
   

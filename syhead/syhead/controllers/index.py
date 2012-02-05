@@ -79,25 +79,25 @@ class IndexController(BaseController):
     p = Popen("dot -Tpng -Goverlap=false", shell=True, stdin=PIPE, stdout=PIPE)
     
     def test(t) :
-      fn = t[c.n.meta.filename]
+      fn = t['filename']
       return 'date' in fn or 'time' in fn
     
     p.stdin.write("digraph sdsu {")
     for t in c.axpress.compiler.translations :
       if test(t) :
-        p.stdin.write('"%s";' % t[c.n.meta.name])
-      #, group:${c.lookup_filename_id(t[c.n.meta.filename])} },
+        p.stdin.write('"%s";' % t['name'])
+      #, group:${c.lookup_filename_id(t['filename'])} },
       
     def t_by_id(id) :
       return c.axpress.compiler.translations_by_id[id]
     def name_by_id(id) :
-      return c.axpress.compiler.translations_by_id[id][c.n.meta.name]
+      return c.axpress.compiler.translations_by_id[id]['name']
     
     for id, ts in c.axpress.compiler.translation_matrix.iteritems() :
       for t in ts :
         if test(t) and test(t_by_id(id)) :
           p.stdin.write('"%s" -> "%s";' % (
-            name_by_id(id), name_by_id(t[c.n.meta.id])
+            name_by_id(id), name_by_id(t['id'])
           ))
     p.stdin.write("}")
     

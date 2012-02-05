@@ -81,7 +81,7 @@ print prettyquery(ret)
 				#n.sparql.create : n.sparql.unless_exists,
 				#n.cache.value : ret,
 				#n.cache.date : time.time(),
-				#n.cache.plugin : plugin[n.meta.name],
+				#n.cache.plugin : plugin['name'],
 				#n.cache.vars : vars,
 			#})
 
@@ -99,7 +99,7 @@ print sparql.new_read([
 print
 
 #sparql.new_read([{
-	#n.cache.plugin : plugin[n.meta.name],
+	#n.cache.plugin : plugin['name'],
 	#n.cache.vars : vars,
 	#n.cache.value : None,
 	#n.cache.date : None,
@@ -154,13 +154,13 @@ def foo(vars) :
 	vars[n.var.album] = n.music_album[vars['album_name']]
 
 sparql.register_translation({
-	n.meta.input : [
-		[n.meta_var.album, n.music.album_name, n.var.album_name],
+	'input' : [
+		['var'.album, n.music.album_name, n.var.album_name],
 	],
-	n.meta.output : [
+	'output' : [
 		[n.var.album, n.music.album_name, n.var.album_name],
 	],
-	n.meta.function : foo
+	'function' : foo
 })
 
 ret = sparql.eval_translations([
