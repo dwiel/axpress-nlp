@@ -226,8 +226,8 @@ class Compiler :
     except sre_constants.error, e :
       raise Exception(str(e) + " - '%s', '%s'" % ('^%s$' % regex, qvalue))
     if g :
-      #self.debugp('r', regex, qvalue, {var : g.group(var) for var in vars})
-      return {var : g.group(var) for var in vars}
+      #return {var : g.group(var) for var in vars}
+      return g.groupdict()
   
   def string_matches(self, value, qvalue) :
     return self.find_matches(value, qvalue) != None
