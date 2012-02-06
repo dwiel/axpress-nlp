@@ -28,10 +28,10 @@ def loadTranslations(axpress) :
       vars['html'] = Template(u"""## -*- coding: utf-8 -*-
       <div class="item">
         <div class="image">
-          <img src='http://api.freebase.com/api/trans/image_thumb/${mid}?maxwidth=150' style='width:150px;height:150px'>
+          <img src='http://api.freebase.com/api/trans/image_thumb/${mid}?maxwidth=150' style='width:150px;height:150px;margin-right:1em'>
         </div>
         <div class="side">
-          <div class="title"><a href="freebase.com/view${mid}">${name}</a></div>
+          <div class="title"><a href="http://freebase.com/view${mid}">${name}</a></div>
           <div class="blurb">${blurb}</div>
         </div>
         <div class="clear" />
