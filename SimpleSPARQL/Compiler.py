@@ -981,7 +981,7 @@ class Compiler :
     @return the compiled guaranteed path
     """
     
-    #self.debugp('query', query)
+    self.debugp('query', query)
     
     # find the possible next steps
     steps = self.next_steps(query, lineage, new_triples)
