@@ -7,6 +7,7 @@ from pylons.controllers.util import abort, redirect
 from syhead.lib.base import BaseController, render
 
 from SimpleSPARQL import p, CompilerException
+from SimpleSPARQL.Exceptions import TranslationResponse
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +37,13 @@ class IndexController(BaseController):
       
     if c.query :
       try :
-        c.raw_ret = g.axpress.read_translate(c.query)
+        try :
+          c.raw_ret = g.axpress.read_translate(c.query)
+        except TranslationResponse, e:
+          # if there was a known error response, show that.  Example: "can not
+          # divide by 0".  Or "Couldn't find a band by the name xyzyxz"
+          c.raw_ret = str(e)
+        
         c.debug_html = g.axpress.compiler.debug_str
         if c.raw_ret and 'out' in c.raw_ret[0] :
           c.ret = u'<ul>%s</ul>' % u''.join(u'<li>'+unicode(o['out']) for o in c.raw_ret)

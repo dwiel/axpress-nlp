@@ -3,6 +3,8 @@ import urllib2
 import freebase
 import json
 
+from SimpleSPARQL.Exceptions import TranslationResponse
+
 def loadTranslations(axpress) :  
   axpress.n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
   rule = axpress.rule
@@ -264,6 +266,24 @@ def loadTranslations(axpress) :
     p = subprocess.Popen('curl --silent "%s"' % url, shell=True, stdout=subprocess.PIPE)
     return p.stdout.read()
   
+  def freebase_search_failure(vars) :
+    """ called when the freebase search fails """
+    if 'type' in vars :
+      t = vars['type']
+      if '/' in t :
+        typename = t[t.rfind('/')+1:]
+      else :
+        typename = t
+      typename = "a "+typename
+    else :
+      typename = "anything"
+    
+    raise TranslationResponse(
+      "couldn't find %s by the name %s" % (
+        typename, vars['title']
+      )
+    )
+    
   def freebase_search(vars) :
     q = {
       'query' : vars['title'],
@@ -285,12 +305,12 @@ def loadTranslations(axpress) :
     if 'code' in ret and ret['code'] == '/api/status/error' :
       raise Exception("error in freebase search - %s" % ret['message'])
     if not ret['result'] :
-      raise Exception("couldn't find something by that name")
-    result = ret['result'][0]
+      freebase_search_failure(vars)
     
+    result = ret['result'][0]
     if result['score'] < 25 :
-      #print('ret', ret['result'])
-      raise Exception("couldn't find something by that name")
+      print result
+      freebase_search_failure(vars)
     
     # everything worked
     vars['mid'] = result['mid']
