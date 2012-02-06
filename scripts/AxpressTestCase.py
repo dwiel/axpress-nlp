@@ -36,6 +36,7 @@ class X():pass
 type_instance = type(X())
 
 axpress = Axpress(sparql = sparql)
+axpress.compiler.debug_off()
 loadTranslations(axpress, n)
 
 
