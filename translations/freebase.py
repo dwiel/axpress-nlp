@@ -5,6 +5,7 @@ import json
 
 def loadTranslations(axpress) :  
   axpress.n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
+  rule = axpress.rule
 
   # STRING MUSINGS
   """
@@ -264,34 +265,36 @@ def loadTranslations(axpress) :
     return p.stdout.read()
   
   def freebase_search(vars) :
-    # this is stupid, but it works ...
-    ret = curl('https://www.googleapis.com/freebase/v1/search?' + urllib.urlencode({
+    q = {
       'query' : vars['title'],
-      'type' : vars['type'],
       'html_escape' : 'false',
       'html_encode' : 'false',
       'escape' : 'false',
-      'limit' : 1}))
-    #req = urllib2.urlopen("https://www.googleapis.com/freebase/v1/search", str(urllib.urlencode({
-      #'query' : vars['title'],
-      #'type' : vars['type'],
-      #'html_escape' : 'false',
-      #'html_encode' : 'false',
-      #'escape' : 'false',
-      #'limit' : 1})))
-    #ret = req.read().decode('<utf-8>')
-    ret = json.loads(ret)
+      'limit' : 1
+    }
+    # not all translations which use freebase_search pass in a type var
+    if 'type' in vars :
+      q['type'] = vars['type']
+    ret = json.loads(curl(
+      'https://www.googleapis.com/freebase/v1/search?' + urllib.urlencode(q)
+    ))
     
+    # look for possible error cases
     if ret['status'] != '200 OK' :
       raise Exception("freebase didn't work ...")
+    if 'code' in ret and ret['code'] == '/api/status/error' :
+      raise Exception("error in freebase search - %s" % ret['message'])
+    if not ret['result'] :
+      raise Exception("couldn't find something by that name")
     result = ret['result'][0]
-    if result['score'] > 25 :
-      vars['mid'] = result['mid']
-    else :
+    
+    if result['score'] < 25 :
       #print('ret', ret['result'])
       raise Exception("couldn't find something by that name")
     
-    #.encode("<utf-8>")
+    # everything worked
+    vars['mid'] = result['mid']
+    vars['name'] = result['name']
   axpress.register_translation({
     'name' : 'freebase search',
     'input' : """
@@ -320,3 +323,10 @@ def loadTranslations(axpress) :
     """,
     'function' : freebase_blurb,
   })
+  
+  rule("what is x", """
+    o[axpress.is] = "what is (a |)%title%"
+  """, """
+    o[freebase.mid] = _mid
+    o[freebase.name] = _name
+  """, freebase_search)
