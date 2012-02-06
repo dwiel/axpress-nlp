@@ -96,7 +96,6 @@
   * !!! check email, calendar - just for matching siri, good example
     * get/set address, phone number, birthday
     * when is my meeting with Joe?
-  * !!! search on wikipedia
   * set an alarm - some UI stuff to figure out how this works
     * android: http://developer.android.com/reference/android/provider/AlarmClock.html
     * on desktop, this app doesn't make a whole lot of sense
