@@ -14,7 +14,10 @@ from pprint import pprint
 from itertools import izip
 import pdb
 
-import rdflib.sparql.parser
+try :
+  import rdflib_sparql.parser
+except :
+  import rdflib.sparql.parser
 
 import Namespaces
 from RDFObject import RDFObject
