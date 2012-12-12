@@ -121,15 +121,6 @@ def loadTranslations(axpress) :
     'input' : """
       dew_point[a.is] = "(the |)(current |)dew point (in |at |near |by |near by |)%location_s%( right now| now| today|)"
     """,
-    #'output' : """
-      #location[a.is] = "%location_s%"
-      #location[freebase.type] = '/location/location'
-      #location[wunderground.weather] = weather
-      #weather[wunderground.dew_point] = dew_point
-      #dp[simple_display.direct_label] = "Dew Point: "
-      #dp[simple_display.direct] = dew_point
-      #dp[simple_display.related] = weather
-    #""",
     'output' : """
       location[a.is] = "%location_s%"
       location[freebase.type] = '/location/location'
@@ -168,6 +159,8 @@ def loadTranslations(axpress) :
       ).read()
     )
     
+    if forecast_ret.get('response') and forecast_ret.get('response').get('error') :
+      raise Exception(forecast_ret.get('response').get('error')['description'])
     #p('forecast_ret', forecast_ret)
     forecast = []
     for day in forecast_ret['forecast']['simpleforecast']['forecastday'] :
@@ -248,6 +241,19 @@ def loadTranslations(axpress) :
       x[simple_display.text] = _out
     """,
     'function' : render_weather
+  })
+  
+  def speach_out_temp(vars) :
+    vars['out'] = "the temperature is %d degrees" % int(vars['temp'])
+  axpress.register_translation({
+    'name' : 'speach out temperature',
+    'input' : """
+      x[wunderground.current_temperature] = _temp
+    """,
+    'output' : """
+      x[speech.out] = _out
+    """,
+    'function' : speach_out_temp
   })
 
 """
