@@ -234,9 +234,10 @@ def loadTranslations(axpress) :
     'output' : """
       x[axpress.is] = "%anything%"
     """
-  })
+  }, step_size = 0)
   
   def lookup_location_lat_lon(vars) :
+    print 'mid', vars['mid']
     result = freebase.mqlread({
       "mid" : vars['mid'],
       "type" : "/location/location",
@@ -245,7 +246,28 @@ def loadTranslations(axpress) :
         "longitude" : None,
       },
     })
-    return result['/location/location/geolocation']
+    if result :
+      return result['/location/location/geolocation']
+    else :
+      # the first thing didn't match, maybe see if it is containedby something that has a geolocation
+      # this isn't necessarily the best thing to do, but it seems to work for now
+      result = freebase.mqlread({
+        "mid" : vars['mid'],
+        "type" : "/location/location",
+        "/location/location/containedby" : [{
+          "/location/location/geolocation" : {
+            "latitude" : None,
+            "longitude" : None,
+          },
+          "/location/location/area" : None,
+          "sort" : "/location/location/area",
+          "limit" : 1,
+        }],
+      })
+      if result :
+        return result['/location/location/containedby'][0]['/location/location/geolocation']
+      else :
+        raise Exception('location not found')
   
   axpress.register_translation({
     'name' : 'lookup location lat lon',
@@ -290,7 +312,7 @@ def loadTranslations(axpress) :
       'html_escape' : 'false',
       'html_encode' : 'false',
       'escape' : 'false',
-      'limit' : 1
+      'limit' : 5
     }
     # not all translations which use freebase_search pass in a type var
     if 'type' in vars :
@@ -350,3 +372,9 @@ def loadTranslations(axpress) :
     o[freebase.mid] = _mid
     o[freebase.name] = _name
   """, freebase_search)
+
+  rule("what is x", """
+    o[axpress.is] = "what is %q%(\?|)"
+  """, """
+    o[axpress.is] = "%q%"
+  """, step_size=0)
