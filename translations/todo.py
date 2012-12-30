@@ -25,35 +25,62 @@ def loadTranslations(axpress) :
       x[axpress.is] = "add %item% (to |)(my |the |)%list_name%( list|)"
     """,
     'output' : """
-      x[axpress.is] = "show %list_name% list"
+      x[axpress.list_name] = "%list_name%"
     """,
     'function' : list_add
   })
 
-  def list_show(vars) :
+  def get_list(vars) :
     try :
       f = open(filename_from_list_name(vars['list_name']), 'r')
-      lines = [line.strip() for line in f.read().split('\n') if line.strip()]
+      vars['list'] = set(line.strip() for line in f.read().split('\n') if line.strip())
       f.close()
     except IOError :
-      lines = []
+      vars['list'] = set()
 
+  axpress.register_translation({
+    'name' : 'get list',
+    'input' : """
+      x[axpress.list_name] = "%list_name%"
+    """,
+    'output' : """
+      x[axpress.list] = _list
+    """,
+    'function' : get_list,
+  })
+  
+  """
+  This rule 
+  """
+  axpress.register_translation({
+    'name' : 'get list',
+    'input' : """
+      x[axpress.is] = "(what is on |what's on |whats on |show )(my |)%list_name%( list|)"
+    """,
+    'output' : """
+      x[axpress.list_name] = "%list_name%"
+    """,
+  })
+  
+  def show_list(vars) :
+    print vars
+    print 'list', repr(vars['list'])
     vars['html'] = Template(u"""## -*- coding: utf-8 -*-
       <ul>
         % for item in items:
           <li>${item}
         % endfor
       </ul>
-    """).render_unicode(items = lines)
+    """).render_unicode(items = vars['list'])
   axpress.register_translation({
-    'name' : 'show list list',
+    'name' : 'show list',
     'input' : """
-      x[axpress.is] = "show (my |)%list_name%( list|)"
+      x[axpress.list] = _list
     """,
     'output' : """
       x[simple_display.text] = _html
     """,
-    'function' : list_show,
+    'function' : show_list,
   })
 
   def remove_list(vars) :
