@@ -9,6 +9,7 @@ def loadTranslations(axpress, n) :
   n.bind('axpress', '<http://dwiel.net/axpress/0.1/>')
   n.bind('rdfs', '<http://www.w3.org/2000/01/rdf-schema#>')
   n.bind('type', '<http://dwiel.net/express/type/0.1/>')
+  n.bind('speech', '<http://dwiel.net/axpress/speech/0.1/>')
 
   for name in glob.glob('/home/dwiel/axpress/translations/*.py') :
     if os.path.isdir(name) :
