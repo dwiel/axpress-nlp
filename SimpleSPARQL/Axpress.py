@@ -32,7 +32,8 @@ class Axpress() :
   def rule(self, *args, **kwargs) :
     self.compiler.rule(*args, **kwargs)
 
-  def register_translation(self, translation) :
+  def register_translation(self, translation, **kwargs) :
+    translation.update(kwargs)
     self.compiler.register_translation(translation)
     
   def do(self, query, bindings_set = [{}], options = None) :
