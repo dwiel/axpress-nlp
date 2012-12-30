@@ -97,7 +97,7 @@ what it looks like.
 
 Also note that some syntax change could result in about half the lines and chars
 
-Not directly related to relase, but some documentation about it might be 
+Not directly related to release, but some documentation about it might be 
 good ... might inform of changes in style/code
 """
 
