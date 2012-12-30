@@ -537,6 +537,8 @@ class AxpressTestCase(unittest.TestCase):
     #p('ret', ret)
   
   def testSimpleFreebaseStringQuery7(self):
+    # looks like somehow the lat and lon are coming in as a lit vars
+    # into the weather lookup instead of floats
     ret = axpress.read_translate("""
       weather[axpress.is] = "current weather in bloomington, indiana"
       weather[wunderground.current_temperature] = _current_temperature
