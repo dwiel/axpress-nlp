@@ -1,10 +1,27 @@
+New thoughts 2012-12-11
+
+What I want from axpress:
+  see it get off the ground and have other people interested in it
+    could be interesting to see it used on the Ubi or PlotWatt or
+    on the open web as a library ... monitization?
+  to use it to help answer simple questions and do basic research
+  it does seem a little too general and so hard to sell or make an entrance
+    with.  A niche would be great:
+      PlotWatt
+      Ubi
+        'solving' a domain that others have not yet, might be good for making
+        the pitch - but then what is the pitch?  What about PlotWatt and 
+        Dandelion?
+      call centers
+
 * what is the MVP?
   * a few representative 'apps'/domains
     * see set of apps below
+  * confident that if there is an answer, it will be found
   * a clean web page
+* version 2
   * simple andoid app (polished ?)
   * solid logging ?  I think to keep track of what people are asking so effort can be placed efficiently
-* version 2
   * demo? (video)
   * freebase?
   * anything that could be cafe/bar tested?
@@ -18,6 +35,14 @@
           weather in btown; what about (in |)indi
           weather in btown; what about the traffic there?
         in one case the subject is changing, in the other the property is chaning
+  * default values
+    * "what is the temp?" instead of "what is the temp in btown?"
+  * automatic expansion of english translations
+  * automatic simplification/altering of input search so that it fits a translation
+    whats|what's -> what is
+  * auto spell check
+  * import only when necessary to reduce the number of libraries that need
+    installed in order to run a demo
   * translation coding
     * let me first write a few apps the slow way and see how they go
     * how to do function calls better ... like string concatenation
