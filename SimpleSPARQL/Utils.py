@@ -178,7 +178,14 @@ def merge_string(const, vars) :
     for c, v in izip_longest(const, vars, fillvalue='') :
       yield c
       yield v
-  return ''.join(interleave(const, vars))
+  
+  try :
+    return ''.join(interleave(const, vars))
+  except TypeError, e :
+    if 'expected string, LitVar found' in str(e) :
+      raise Exception("cant currently use litvars from input in string formating of output, use a custom function for now")
+    else :
+      raise
 
 def sub_bindings_value(value, bindings) :
   """
