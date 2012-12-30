@@ -29,9 +29,13 @@ class IndexController(BaseController):
       g.axpress.compiler.debug_off()
     
     if c.string_query :
+      #c.query = u"""
+        #x[axpress.is] = "%s"
+        #x[simple_display.text] = _out
+      #""" % c.string_query
       c.query = u"""
         x[axpress.is] = "%s"
-        x[simple_display.text] = _out
+        x[speech.out] = _out
       """ % c.string_query
       c.query = '\n'.join(line.strip() for line in c.query.split('\n'))
       
