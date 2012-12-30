@@ -50,6 +50,27 @@ def loadTranslations(axpress) :
     'multi_function' : simple_render,
   })
   
+  def freebase_speech_out(bindings_set) :
+    if len(bindings_set) == 1 :
+      out = bindings_set[0]['name']
+    else :
+      out = ','.join(
+        vars['name'] for vars in bindings_set[:-1]
+      ) + ' and ' + bindings_set[-1]['name']
+    return [{
+      'out' : out
+    }]
+  axpress.register_translation({
+    'name' : 'freebase simple render',
+    'input' : """
+      x[freebase.name] = name
+    """,
+    'output' : """
+      x[speech.out] = _out
+    """,
+    'multi_function' : freebase_speech_out,
+  })
+  
   def direct_related(vars) :
       vars['out'] = Template(u"""## -*- coding: utf-8 -*-
       <div id="two_pane" style="width:400px">
@@ -84,5 +105,15 @@ def loadTranslations(axpress) :
     """,
     'output' : """
       x[simple_display.text] = text
+    """,
+  })
+
+  axpress.register_translation({
+    'name' : 'simple_display.text',
+    'input' : """
+      x[simple_display.text] = text
+    """,
+    'output' : """
+      x[speech.out] = text
     """,
   })
