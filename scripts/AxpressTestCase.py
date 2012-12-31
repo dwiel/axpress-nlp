@@ -685,6 +685,13 @@ class AxpressTestCase(unittest.TestCase):
     """)
     assert len(ret) == 1
 
+  def testLimitedTranslationMatrix(self):
+    ret = axpress.read_translate("""
+      t[test.xx] = 1
+      t[test.yy] = _out
+    """)
+    assert len(ret) == 1
+
 if __name__ == "__main__" :
   import atexit
   def at() :

@@ -40,9 +40,12 @@ What I want from axpress:
   * automatic expansion of english translations
   * automatic simplification/altering of input search so that it fits a translation
     whats|what's -> what is
+  * frequent prefixes: basic types, list, string, int, is, etc.  should they maybe just be a. ?
   * auto spell check
   * import only when necessary to reduce the number of libraries that need
     installed in order to run a demo
+  * debug:
+    * from a point in the debug output, quickly see why one translation wasn't matched
   * translation coding
     * let me first write a few apps the slow way and see how they go
     * how to do function calls better ... like string concatenation

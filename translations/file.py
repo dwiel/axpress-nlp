@@ -56,7 +56,10 @@ def loadTranslations(axpress) :
   #})
   
   def download_tmp_file(vars):
-    #TODO don't depend on wget ...
+    # TODO don't depend on wget ...
+    import random
+    import os
+    
     vars['filename'] = 'axpress.tmp%s' % str(random.random()).replace('.','')
     os.system('wget %s -O %s' % (vars['url'], vars['filename']))
   axpress.register_translation({
@@ -70,6 +73,26 @@ def loadTranslations(axpress) :
     'function' : download_tmp_file,
   })
   
+  def file_to_lines(vars):
+    # NOTE: using a set out here instead of a list since axpress will currently
+    # interpret a list value as a set of possibile values rather than a python
+    # list object
+    try :
+      f = open(vars['filename'], 'r')
+      vars['lines'] = set(line.strip() for line in f.read().split('\n') if line.strip())
+      f.close()
+    except IOError :
+      vars['lines'] = set()
+  axpress.register_translation({
+    'name' : 'file as set of lines',
+    'input' : """
+      file[file.filename] = _filename
+    """,
+    'output' : """
+      file[file.lines] = _lines
+    """,
+    'function' : file_to_lines,
+  })
 
   #def filename_to_url(vars):
     #vars['url'] = vars['filename'].replace('/home/dwiel', '/home')

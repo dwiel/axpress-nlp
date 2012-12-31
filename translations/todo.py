@@ -38,17 +38,32 @@ def loadTranslations(axpress) :
     except IOError :
       vars['list'] = set()
 
+  #axpress.register_translation({
+    #'name' : 'get list',
+    #'input' : """
+      #x[axpress.list_name] = "%list_name%"
+    #""",
+    #'output' : """
+      #x[axpress.list] = _list
+    #""",
+    #'function' : get_list,
+  #})
+
+  def get_list2(vars) :
+    vars['filename'] = filename_from_list_name(vars['list_name'])
   axpress.register_translation({
-    'name' : 'get list',
+    'name' : 'get list 2',
     'input' : """
       x[axpress.list_name] = "%list_name%"
     """,
     'output' : """
-      x[axpress.list] = _list
+      f[file.filename] = _filename
+      f[file.lines] = lines
+      x[axpress.list] = lines
     """,
-    'function' : get_list,
+    'function' : get_list2,
   })
-  
+
   """
   This rule 
   """

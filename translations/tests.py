@@ -188,4 +188,16 @@ def loadTranslations(axpress) :
     """,
   })
   
+  # given xx, ad is equal to x and use the above test to imply that yy is also x
+  axpress.register_translation({
+    'name' : 'test7',
+    'input' : """
+      t[test.xx] = x
+    """,
+    'output' : """
+      t[test.ad] = x
+      t[test.yy] = t[test.ae]
+    """,
+  })
+  
   

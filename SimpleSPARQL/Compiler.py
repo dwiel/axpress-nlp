@@ -128,7 +128,7 @@ class Compiler :
       'input'  : input,
       'output' : output,
       'function' : fn,
-      'input_function' : input_function
+      'input_function' : input_function,
     }
     options.update(kwargs)
     self.register_translation(options)
@@ -146,6 +146,8 @@ class Compiler :
     
     if 'input_function' in translation and translation['input_function'] == None :
       del translation['input_function']
+      
+    translation['step_size'] = translation.get('step_size', 1)
     
     # parse any string expressions
     translation['input'] = self.parser.parse_query(translation['input'], reset_bnodes=False)
@@ -208,7 +210,7 @@ class Compiler :
       self.translation_matrix[id] = [
         t for t in self.translations if self.translation_can_follow(translation, t)
       ]
-      #p('t', translation['name'], [t['name'] for t in self.translation_matrix[id]])
+      #p('t', translation['name'], [t['name'] for t in self.translation_matrix[id] ])
     #print 'avg', sum(len(ts) for ts in self.translation_matrix.values())/float(len(self.translation_matrix))
     #print [len(ts) for ts in self.translation_matrix.values()]
     #print [t['name'] for t in self.translations if len(t['input']) != 1]
@@ -564,7 +566,7 @@ class Compiler :
     guaranteed_steps = []
     
     # the translation_queue is a list of translations that will be searched.  
-    # TODO if there is a lineage, should translation_queue should be a 
+    # TODO if there is a lineage, translation_queue should be a 
     # combination of the tq from the end of both merged paths
     if lineage and 'new_lineage' not in lineage[-1] :
       translation_queue = self.translation_matrix[lineage[-1]['translation'].get('id')]
@@ -572,10 +574,26 @@ class Compiler :
       translation_queue = list(self.translations)
     # NOTE setting translation_queue to all translations all the time causes
     # errors.  This is because we can go in all kinds of weird directions ...
+    
+    # NOTE: this is a definite hack.  The problem is that the 
+    # translation_matrix can't account for situations where a variable gets
+    # turned into a litvar.  That variable can be in many triples and all of
+    # those triples must be used as initial pruning instead of just the output
+    # triples.
+    # WARNING: Here, I am only using the middle value of the triple as a test.
+    # It will fail when the above situation happens and variables are used in
+    # the 2nd position (property) of a triple.
+    for triple in reqd_triples :
+      for trans in self.translations :
+        if triple[1] in [t[1] for t in trans['input']] :
+          if trans not in translation_queue :
+            translation_queue.append(trans)
       
     # HEURISTIC: stop DFS search at self.depth
     if lineage :
-      if len(lineage) >= self.depth :
+      lineage_depth = sum(s['translation']['step_size'] for s in lineage)
+      self.debugp('lineage_depth', lineage_depth)
+      if lineage_depth >= self.depth :
         translation_queue = []
     
     # OPTIMIZATION: skip this translation if it is the inverse of the last translation
@@ -626,6 +644,10 @@ class Compiler :
           
           # all the ways orig_query and past_query can be merged
           for merged_bindings in merged_bindings_set :
+            # see if any variables are mapped to twice ... this may be a big hack
+            if len(merged_bindings.values()) != len(set(merged_bindings.values())) :
+              continue
+            
             new_query, new_triples = sub_var_bindings_track_changes(
               orig_query + past_query, merged_bindings
             )
@@ -638,6 +660,9 @@ class Compiler :
             if ret == True :
               found_merge = True
               self.debug_open_block('merge for ' + translation['name'])
+              self.debugp('orig_query', orig_query)
+              self.debugp('past_query', past_query)
+              self.debugp('merged_bindings_set', merged_bindings_set)
               yield new_query, translation, more, past_lineage
               self.debug_close_block()
       
