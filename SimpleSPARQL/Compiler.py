@@ -58,6 +58,12 @@ class Compiler :
       self.n = n
     else :
       self.n = Namespaces()
+      
+    self.n.bind('query',  '<http://dwiel.net/axpress/query/0.1/>')
+    self.n.bind('var',     '<http://dwiel.net/axpress/var/0.1/>')
+    self.n.bind('tvar',    '<http://dwiel.net/axpress/translation/var/0.1/>')
+    self.n.bind('bnode',   '<http://dwiel.net/simplesparql/bnode/0.1/>')
+    self.n.bind('lit_var', '<http://dwiel.net/express/lit_var/0.1/>')
     
     self.parser = Parser(self.n)
     
@@ -180,7 +186,7 @@ class Compiler :
     self.translations.append(translation)
     self.translations_by_name[translation['name']] = translation
     self.translations_by_id[  translation['id'  ]] = translation
-  
+    
   #def hash_triple(self, triple) :
     #return Triple(triple)
   
@@ -781,12 +787,11 @@ class Compiler :
             if var not in output_bindings :
               output_bindings[var] = Var(var+'_'+str(self.next_num()))
           
-          #self.debugp('output_bindings', output_bindings)
-          
           # generate the new query by adding the output triples with 
           # output bindings substituted in
           new_triples = sub_var_bindings(translation['output'], output_bindings)
 
+          #p('ub', unified_bindings)
           new_query, new_query_new_triples = sub_var_bindings_track_changes(query, unified_bindings)
 
           new_query.extend(new_triples)
@@ -1110,7 +1115,7 @@ class Compiler :
     # an iterative deepening search
     self.depth = 1
     steps = None
-    while not steps and self.depth < 12:
+    while not steps and self.depth < 5:
       self.debugp("depth: %d" % self.depth)
       self.partials = defaultdict(list)
       steps = self.search(query, query, lineage = [], root = True)

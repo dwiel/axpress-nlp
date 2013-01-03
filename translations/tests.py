@@ -200,4 +200,13 @@ def loadTranslations(axpress) :
     """,
   })
   
+  axpress.register_translation({
+    'name' : 'eq',
+    'input' : """
+      t[test.p1] = p1
+    """,
+    'output' : """
+      t[test.p2] = p1
+    """,
+  })
   

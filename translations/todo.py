@@ -14,11 +14,13 @@ def loadTranslations(axpress) :
   def filename_from_list_name(list_name) :
     return '/home/dwiel/axpress/%s_list' % hash(list_name)
   
+  def get_list(vars) :
+    vars['filename'] = filename_from_list_name(vars['list_name'])
+
   def list_add(vars) :
     f = open(filename_from_list_name(vars['list_name']), 'a')
     print >>f, vars['item']
     f.close()
-  
   axpress.register_translation({
     'name' : 's list add',
     'input' : """
@@ -27,30 +29,36 @@ def loadTranslations(axpress) :
     'output' : """
       x[axpress.list_name] = "%list_name%"
     """,
-    'function' : list_add
+    'function' : list_add,
   })
 
-  def get_list(vars) :
-    try :
-      f = open(filename_from_list_name(vars['list_name']), 'r')
-      vars['list'] = set(line.strip() for line in f.read().split('\n') if line.strip())
-      f.close()
-    except IOError :
-      vars['list'] = set()
-
-  #axpress.register_translation({
-    #'name' : 'get list',
-    #'input' : """
-      #x[axpress.list_name] = "%list_name%"
-    #""",
-    #'output' : """
-      #x[axpress.list] = _list
-    #""",
-    #'function' : get_list,
-  #})
-
-  def get_list2(vars) :
-    vars['filename'] = filename_from_list_name(vars['list_name'])
+  axpress.register_translation({
+    'name' : 's list add2',
+    'input' : """
+      x[axpress.is] = "add %item% (to |)(my |the |)%list_name%( list|)"
+    """,
+    'output' : """
+      f[file.filename] = _filename
+      ret = file.append(f, item)
+      x[axpress.list_name] = axpress.after(ret, "%list_name%")
+    """,
+    'function' : get_list,
+  })
+  
+  def after(vars) :
+    print 'after', vars
+    vars['sum'] = 3
+  axpress.register_translation({
+    'name' : 'after',
+    'input' : """
+      out = axpress.after(_ret, _val)
+    """,
+    'output' : """
+      out[axpress.val] = _sum
+    """,
+    'function' : after,
+  })
+  
   axpress.register_translation({
     'name' : 'get list 2',
     'input' : """
@@ -61,7 +69,7 @@ def loadTranslations(axpress) :
       f[file.lines] = lines
       x[axpress.list] = lines
     """,
-    'function' : get_list2,
+    'function' : get_list,
   })
 
   """

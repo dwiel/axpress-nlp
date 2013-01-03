@@ -5,6 +5,7 @@ def loadTranslations(axpress) :
   axpress.n.bind('display', '<http://dwiel.net/axpress/display/0.1/>')
   axpress.n.bind('simple_display', '<http://dwiel.net/axpress/simple_display/0.1/>')
   axpress.n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
+  axpress.n.bind('string', '<http://dwiel.net/express/string/0.1/>')
 
   def display_html_filenames(vars) :
     str = "<ul>"

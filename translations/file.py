@@ -2,6 +2,7 @@ import glob
 
 def loadTranslations(axpress) :
   axpress.n.bind('glob', '<http://dwiel.net/express/python/glob/0.1/>')
+  axpress.n.bind('file', '<http://dwiel.net/express/file/0.1/>')
 
   axpress.register_translation({
     'name' : 'string: files matching %pattern%',
@@ -90,6 +91,20 @@ def loadTranslations(axpress) :
     """,
     'output' : """
       file[file.lines] = _lines
+    """,
+    'function' : file_to_lines,
+  })
+  
+  def file_append(vars):
+    pass
+  axpress.register_translation({
+    'name' : 'append a line to a file',
+    'input' : """
+      file[file.filename] = _filename
+      ret = file.append(file, _str)
+    """,
+    'output' : """
+      _ret = file.append(file, _str)
     """,
     'function' : file_to_lines,
   })

@@ -1,6 +1,8 @@
 #import flickrapi
 
 def loadTranslations(axpress) :
+  axpress.n.bind('flickr', '<http://dwiel.net/axpress/flickr/0.1/>')
+  
   def flickr_make_url(photo) :
     # 'http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}.jpg'
     # 'http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}_[mstb].jpg'

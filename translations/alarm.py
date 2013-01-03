@@ -45,7 +45,9 @@
 
 from datetime import datetime
 
-alarm_queue = []
+import pymongo
+alarm_queue = pymongo.Connection().axpress.alarm_queue
+
 # new thread, test if any alarms have been set, etc.
 # or if on android, set alarm through native interface
 
@@ -57,12 +59,15 @@ def loadTranslations(axpress) :
   def alarm_new(vars) :
     dt = vars['dt']
     message = vars['message']
+    alarm = {'datetime' : dt, 'message' : message}
     
-    if dt > datetime.now() :
-      alarm_queue.append((dt, message))
-      vars['response'] = "alright, I've alarm set for %s" % str(dt)
+    if alarm_queue.find(alarm).count() :
+      vars['response'] = "You already have an alarm set for %s" % str(dt)
+    elif dt > datetime.now() :
+      alarm_queue.insert(alarm)
+      vars['response'] = "alright, I've set an alarm for %s" % str(dt)
     else :
-      vars['response'] = "no alarm set since %s is in the past." % str(dt)
+      vars['response'] = "sorry, no alarm was set since %s is in the past." % str(dt)
   
   # raw set alarm function
   rule("new alarm", """
@@ -82,10 +87,19 @@ def loadTranslations(axpress) :
     when[axpress.is] = "%datetime%"
     what[string.text] = "bzzt ... alarm!"
   """)
-  
+
+  # setting alarms
+  rule("set alarm with message", """
+    r[axpress.is] = "remind me to %message% (at |)%datetime%"
+  """, """
+    r = alarm.new(when, what)
+    when[axpress.is] = "%datetime%"
+    what[string.text] = "%message%"
+  """)
+
   def alarm_kill_all(vars) :
-    num_alarms = len(alarm_queue)
-    alarm_queue = []
+    num_alarms = alarm_queue.count()
+    alarm_queue.remove()
     vars['response'] = "removed all (%d) of your alarms" % num_alarms
   rule("kill all alarms", """
     a[axpress.is] = "(kill|del|delete|rm|remove)( all|) alarm(s|)"
@@ -94,7 +108,7 @@ def loadTranslations(axpress) :
   """, alarm_kill_all)
   
   def alarm_count(vars) :
-    num_alarms = len(alarm_queue)
+    num_alarms = alarm_queue.count()
     if num_alarms == 0 :
       num_alarms = 'no alarms'
     elif num_alarms == 1 :

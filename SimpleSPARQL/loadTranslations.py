@@ -1,9 +1,12 @@
 
-def loadTranslations(axpress, n) :
+def loadTranslations(axpress, n = None) :
   import glob
   import os
   import imp
   import md5
+  
+  if not n :
+    n = axpress.n
 
   n.bind('a', '<http://dwiel.net/axpress/0.1/>')
   n.bind('axpress', '<http://dwiel.net/axpress/0.1/>')

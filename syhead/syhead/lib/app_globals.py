@@ -23,9 +23,7 @@ class Globals(object):
         self.sparql.setGraph("http://dwiel.net/axpress/testing")
 
         n = self.sparql.n
-        n.bind('string', '<http://dwiel.net/express/string/0.1/>')
         n.bind('math', '<http://dwiel.net/express/math/0.1/>')
-        n.bind('file', '<http://dwiel.net/express/file/0.1/>')
         n.bind('glob', '<http://dwiel.net/express/glob/0.1/>')
         n.bind('color', '<http://dwiel.net/express/color/0.1/>')
         n.bind('sparql', '<http://dwiel.net/express/sparql/0.1/>')
@@ -37,7 +35,6 @@ class Globals(object):
         n.bind('lastfm', '<http://dwiel.net/axpress/lastfm/0.1/>')
         n.bind('rdfs', '<http://www.w3.org/2000/01/rdf-schema#>')
         n.bind('bound_var', '<http://dwiel.net/axpress/bound_var/0.1/>')
-        n.bind('flickr', '<http://dwiel.net/axpress/flickr/0.1/>')
         n.bind('amos', '<http://dwiel.net/axpress/amos/0.1/>')
         a = n.rdfs.type
 

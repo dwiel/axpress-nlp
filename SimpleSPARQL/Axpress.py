@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import Parser, Evaluator, Compiler, MultilineParser
+import Parser, Evaluator, Compiler, MultilineParser, Namespaces
 from Utils import sub_var_bindings, sub_var_bindings_set, find_vars, UniqueURIGenerator, debug, is_any_var, var_name, explode_bindings_set, p, is_lit_var
 from PrettyQuery import prettyquery
 
@@ -9,9 +9,12 @@ class CompilerException(Exception) :
   pass
 
 class Axpress() :
-  def __init__(self, sparql, compiler = None, evaluator = None, multiline_parser = None, options = ['time']) :
+  def __init__(self, sparql = None, compiler = None, evaluator = None, multiline_parser = None, options = ['time']) :
     self.sparql = sparql
-    self.n = sparql.n
+    if self.sparql :
+      self.n = sparql.n
+    else :
+      self.n = Namespaces.Namespaces()
     # self.translator = translator
     if compiler :
       self.compiler = compiler
@@ -106,6 +109,9 @@ class Axpress() :
     bindings_set in the new bindings_set
     @return a new set of bindings
     """
+    if not self.sparql :
+      raise Exception("sparql not initialized")
+    
     results = []
     query_triples = self.parser.parse(query)
     #p('query_triples',query_triples)
@@ -130,6 +136,9 @@ class Axpress() :
     write triples into sparql database.
     NOTE: any URI which is_var will be converted to a fresh bnode URI
     """
+    if not self.sparql :
+      raise Exception("sparql not initialized")
+
     query_triples = self.parser.parse(query)
     bindings_set = explode_bindings_set(bindings_set)
     for bindings in bindings_set :
@@ -147,6 +156,9 @@ class Axpress() :
     delete triples from sparql database.
     NOTE: any URI which is_var will be converted to a fresh bnode URI
     """
+    if not self.sparql :
+      raise Exception("sparql not initialized")
+
     query_triples = self.parser.parse(query)
     bindings_set = explode_bindings_set(bindings_set)
     for triples in sub_var_bindings_set(query_triples, bindings_set) :

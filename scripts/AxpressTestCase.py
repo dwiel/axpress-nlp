@@ -691,6 +691,18 @@ class AxpressTestCase(unittest.TestCase):
       t[test.yy] = _out
     """)
     assert len(ret) == 1
+  
+  def testAfter(self):
+    # this one doesn't work yet.  See explore_unification.py
+    return
+    ret = axpress.read_translate("""
+      t[test.p1] = 2
+      t[test.p2] = p2
+      o = axpress.after(p2, p2)
+      o[axpress.val] = _out
+    """)
+    print ret
+    assert len(ret) == 1
 
 if __name__ == "__main__" :
   import atexit

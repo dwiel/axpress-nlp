@@ -1,19 +1,3 @@
-facts  = query       = new_query   = query             = """
-  x[foo.a] = s
-  x[foo.b] = 1
-"""
-
-output = out_triples = var_triples = transition[input] = """
-  y[foo.a] = t
-  y[foo.b] = 2
-"""
-
-"""
-this shouldn't match.  If we want to add 2 to y, we should match y in the
-input.  variables bound by the input will remain bound through the output
-even if the unification with the new triples doesn't work.
-"""
-
 'input' : """
   x[axpress.is] = "remove %item% (from |)(my |)todo( list|)"
 """,
@@ -40,7 +24,7 @@ in  : [x 1 foo.y]
 out : [x 2 foo.y]
 
 # which makes it pretty clear that we are dealing in dictionaries or objects, 
-# not sets of triples.  If these were plain sets of tripples then there 
+# not sets of triples.  If these were plain sets of triples then there 
 # would be no difference between A and B
 
 # ok, one way to get around this is to say that new_triples must 'connectedly'
@@ -74,20 +58,24 @@ Solutions :
 create a dict type which matches in the specific ways described ...
   some properties shouldn't have two values, some are OK to have
   multiple values (see freebase)
-can we avoid the problem in any reasonable way?
+===> can we avoid the problem in any reasonable way? <===
 
-input binding this shouldn't match
-output binding ... this probably shouldn't match
-  however, if foo.b is axpress.is, we may want to be able to
-  unify this partially ...
-On the other hand it doesn't make sense to paritally match a bnode
+I wonder if we can assume that nothing should have two values, and find some
+  other way to express the multivaluebility of a property.
+  axpress.is is a good case where we may want multiple values
+What if we allow multiple values if one is already set, but do a merge if
+  they are just two vars ... I feel like you're closing off possibilities that
+  way ...  Do we need to be able to allow both possibilities to be searched (
+  that they should be merged and that they should not)  The issue is if this
+  ever causes problems where both paths needs to be taken and then merged at
+  some point in the future.
+  That still runs into the above problem of knowing if one planet could be 
+  unified with another, which feels like it simply needs context.  You need to
+  know what a planet is to know how they can merge.  This feels like a whole
+  can of worms though ...
+  - how complex can the rules about what is mergable get?
 
 y != x
-"""
-
-"""
-holy katz!  now it looks like there is a problem with the way the dependencies 
-are being created!
 """
 
 """
@@ -106,44 +94,4 @@ If new_triples are being unified with existing triples, then literals must
 match.  If there are two new triples with x in them, then both triples must be 
 able to simultaneously unifiy into existing triples in order for a unification on
 x to be made.
-"""
-
-
-
-
-"""
-'facts' [
-  [ n.var.image, n.glob.glob, 'pictures/*.jpg', ],
-  [ n.var.image, n.file.filename, n.out_lit_var.filename, ],
-  [ n.var.bnode1, n.call.arg1, n.var.image, ],
-  [ n.var.bnode1, n.call.arg2, 4, ],
-  [ n.var.bnode1, n.call.arg3, 4, ],
-  [ n.var.bnode1, n.call.arg4, n.image.antialias, ],
-  [ n.var.bnode1, n.image.thumbnail, n.var.thumb, ],
-  [ n.var.bnode2, n.call.arg1, n.var.thumb, ],
-  [ n.var.bnode2, n.call.arg2, 0, ],
-  [ n.var.bnode2, n.call.arg3, 0, ],
-  [ n.var.bnode2, n.image.pixel, n.var.pixel, ],
-  [ n.var.dist, n.type.number, n.var.bnode4, ],
-  [ n.var.bnode3, n.call.arg1, n.color.red, ],
-  [ n.var.bnode3, n.call.arg2, n.var.pixel, ],
-  [ n.var.bnode3, n.color.distance, n.var.bnode4, ],
-  [ n.var.dist, n.type.number, n.out_lit_var.distance, ],
-  [ n.var.image, n.file.filename, n.lit_var.out_filename_out_1, ],
-  [ n.var.image, n.pil.image, n.lit_var.pil_image_out_4, ],
-  [ n.var.image, n.display.html, n.lit_var.html_out_21, ],
-  [ n.var.thumb, n.pil.image, n.lit_var.thumb_image_out_28, ],
-]
-'pattern' [
-  [ n.var.image, n.image.average_color, n.var.color, ],
-  [ n.var.bnode6, n.call.arg1, n.var.image, ],
-  [ n.var.bnode6, n.call.arg2, 1, ],
-  [ n.var.bnode6, n.call.arg3, 1, ],
-  [ n.var.bnode6, n.image.thumbnail, n.var.thumb, ],
-  [ n.var.bnode7, n.call.arg1, n.var.thumb, ],
-  [ n.var.bnode7, n.call.arg2, 0, ],
-  [ n.var.bnode7, n.call.arg3, 0, ],
-  [ n.var.bnode7, n.image.pixel, n.var.pixel, ],
-  [ n.var.pixel, n.pil.color, n.var.color, ],
-]
 """

@@ -4,6 +4,14 @@ What I want from axpress:
   see it get off the ground and have other people interested in it
     could be interesting to see it used on the Ubi or PlotWatt or
     on the open web as a library ... monitization?
+  ubi with a screen
+  -> how to make it useful to myself?
+    if this is as amazing as I am making it out to be, why am I having trouble finding good niche use cases
+    plotwatt
+      mysql layer
+      better multiline support
+        comments
+        scripting syntax like in disag_obs.py
   to use it to help answer simple questions and do basic research
   it does seem a little too general and so hard to sell or make an entrance
     with.  A niche would be great:
@@ -13,6 +21,7 @@ What I want from axpress:
         the pitch - but then what is the pitch?  What about PlotWatt and 
         Dandelion?
       call centers
+        blegh - real work - who to talk to, business people - :P
 
 * what is the MVP?
   * a few representative 'apps'/domains
@@ -38,10 +47,13 @@ What I want from axpress:
   * default values
     * "what is the temp?" instead of "what is the temp in btown?"
   * automatic expansion of english translations
+  * db intigration - a triple store or object store with translation rules acting as triggers
   * automatic simplification/altering of input search so that it fits a translation
     whats|what's -> what is
   * frequent prefixes: basic types, list, string, int, is, etc.  should they maybe just be a. ?
   * auto spell check
+  * how to support putting a function call in an output ...
+    the after method seems to be doing alright
   * import only when necessary to reduce the number of libraries that need
     installed in order to run a demo
   * debug:
