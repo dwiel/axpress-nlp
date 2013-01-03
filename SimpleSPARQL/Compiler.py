@@ -1115,7 +1115,7 @@ class Compiler :
     # an iterative deepening search
     self.depth = 1
     steps = None
-    while not steps and self.depth < 5:
+    while not steps and self.depth < 12:
       self.debugp("depth: %d" % self.depth)
       self.partials = defaultdict(list)
       steps = self.search(query, query, lineage = [], root = True)
