@@ -314,68 +314,86 @@ class Compiler :
     
   ##############################################################################
   # BINDINGS
+  def mul_bindings_set(self, bs1, bs2) :
+    new_bs = []
+    for b1 in bs1 :
+      for b2 in bs2 :
+        #b2 = copy.copy(b2)
+        for name, value in b1.iteritems() :
+          b2[name] = value
+        new_bs.append(b2)
+    return new_bs
   
   def get_binding(self, triple, ftriple) :
-    binding = Bindings()
+    bindings = [Bindings()]
     for t, q in izip(triple, ftriple) :
       if is_any_var(t) and self.values_match(t, q):
         # if the same var is trying to be bound to two different values, 
         # not a valid binding
-        if t in binding and binding[t.name] != q :
-          return Bindings()
-        binding[t.name] = q
+        if t in bindings[0] and bindings[0][t.name] != q :
+          return []
+        bindings = self.mul_bindings_set(bindings, [Bindings({t.name : q})])
+        #binding[t.name] = q
       elif (is_lit_var(t) or is_var(t)) and is_var(q) :
         # prefer_litvars is set in bind_vars.  In some cases we never want to 
         # bind a litvar to a var because it means we would be loosing 
         # information
         if self.prefer_litvars and is_lit_var(t) :
-          assert q.name not in binding
-          binding[q.name] = t
+          assert q.name not in bindings[0]
+          bindings = self.mul_bindings_set(bindings, [Bindings({q.name : t})])
+          #binding[q.name] = t
         else :
-          assert t.name not in binding
-          binding[t.name] = q
+          assert t.name not in bindings[0]
+          bindings = self.mul_bindings_set(bindings, [Bindings({t.name : q})])
+          #binding[t.name] = q
       elif isstr(t) and isstr(q) :
         # BUG: if there is more than one way to match the string with the 
         # pattern this will only return the first
         ret = self.find_matches(str(t), str(q))
         if ret != None:
           for name, value in ret.iteritems() :
-            assert unicode(name) not in binding
-            binding[unicode(name)] = unicode(value)
+            assert unicode(name) not in bindings[0]
+            bindings = self.mul_bindings_set(bindings, [Bindings({unicode(name) : unicode(value)})])
+            #binding[unicode(name)] = unicode(value)
       elif isinstance(t, list) :
         # NOTE: copy and paste from above ...
         for ti in t :
           ret = self.find_matches(str(ti), str(q))
           if ret != None:
             for name, value in ret.iteritems() :
-            assert unicode(name) not in binding
-              binding[unicode(name)] = unicode(value)
+              assert unicode(name) not in bindings[0]
+              bindings = self.mul_bindings_set(bindings, [Bindings({unicode(name) : unicode(value)})])
+              #binding[unicode(name)] = unicode(value)
       elif t != q :
-        return Bindings()
+        return []
       elif is_lit_var(t) and is_out_lit_var(q) :
-        return Bindings()
-    return binding
+        return []
+    if len(bindings) == 1 and not bindings[0] :
+      return []
+    return bindings
   
   def find_bindings_for_triple(self, triple, facts, reqd_facts) :
-    bindings = []
+    ret_bindings = []
     for ftriple in facts :
-      binding = self.get_binding(triple, ftriple)
+      bindings = self.get_binding(triple, ftriple)
       #self.debugp('ftriple', triple, ftriple, reqd_facts)
       if not reqd_facts or ftriple in reqd_facts :
         #self.debugp(True)
-        binding.matches_reqd_fact = True
+        for binding in bindings :
+          binding.matches_reqd_fact = True
       #self.debugp('binding', binding, bindings)
-      if binding :
-        if binding in bindings :
-          for b in bindings :
-            if b == binding :
-              b.matches_reqd_fact = b.matches_reqd_fact or binding.matches_reqd_fact
-        else :
-          bindings.append(binding)
+      if bindings :
+        for binding in bindings :
+          if binding in ret_bindings :
+            for b in bindings :
+              if b == binding :
+                b.matches_reqd_fact = b.matches_reqd_fact or binding.matches_reqd_fact
+          else :
+            ret_bindings.append(binding)
     
     #for b in bindings :
       #self.debugp('b', b, b.matches_reqd_fact)
-    return bindings
+    return ret_bindings
   
   def merge_bindings(self, a, b) :
     """
