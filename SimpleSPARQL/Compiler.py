@@ -329,8 +329,10 @@ class Compiler :
         # bind a litvar to a var because it means we would be loosing 
         # information
         if self.prefer_litvars and is_lit_var(t) :
+          assert q.name not in binding
           binding[q.name] = t
         else :
+          assert t.name not in binding
           binding[t.name] = q
       elif isstr(t) and isstr(q) :
         # BUG: if there is more than one way to match the string with the 
@@ -338,6 +340,7 @@ class Compiler :
         ret = self.find_matches(str(t), str(q))
         if ret != None:
           for name, value in ret.iteritems() :
+            assert unicode(name) not in binding
             binding[unicode(name)] = unicode(value)
       elif isinstance(t, list) :
         # NOTE: copy and paste from above ...
@@ -345,6 +348,7 @@ class Compiler :
           ret = self.find_matches(str(ti), str(q))
           if ret != None:
             for name, value in ret.iteritems() :
+            assert unicode(name) not in binding
               binding[unicode(name)] = unicode(value)
       elif t != q :
         return Bindings()
