@@ -166,3 +166,11 @@ if __name__ == '__main__' :
     {'msg': 'go to keleinforfers tomorrow', 'dt': '5 pm'},
     {'msg': 'go to keleinforfers tomorrow at 5', 'dt': 'pm'}
   ]
+
+  ret = match('xyz %x%', 'abcdefg')
+  assert ret == False
+  
+  ret = match(u'%x% %y%', u'a b')
+  assert type(ret[0]['x']) == unicode
+  assert type(ret[0].keys()[0]) == unicode
+  assert ret == [{'x' : 'a', 'y' : 'b'}]
