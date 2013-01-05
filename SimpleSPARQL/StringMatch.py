@@ -35,9 +35,12 @@ def _match(str, const, allow_first_empty) :
     
   """
   if not const :
+    
     # see below.  no empty string matches allowed, even at the end of a string
-    if str :
-      yield (str,)
+    if not str :
+      raise "str should never be empty, see 'if back == '' :' below"
+    
+    yield (str,)
   else :
     c = const[0] 
     # find all cases of c in str
@@ -53,13 +56,21 @@ def _match(str, const, allow_first_empty) :
       if not front and not allow_first_empty :
         continue
       
-      # we split based on the first known constant substring, now look 
-      # for the rest of the splits
-      for m in _match(back, const[1:], False) :
-        if front :
-          yield (front,) + m
+      # if the string is finished
+      if back == '' :
+        # its only ok for back to be empty if this pattern ends in a const
+        if len(const) == 1 and const[0] and const[0][-1] == '$' :
+          yield (front,)
         else :
-          yield m
+          pass
+      else :
+        # we split based on the first known constant substring, now look 
+        # for the rest of the splits
+        for m in _match(back, const[1:], False) :
+          if front :
+            yield (front,) + m
+          else :
+            yield m
 
 def match(pat, str) :
   """
@@ -68,17 +79,18 @@ def match(pat, str) :
     If there are no matches, the return value is False
     If the pattern matches, but there are no variables, [] is returned
   """
+  pat = '^'+pat+'$'
   const, vars = split_string(pat)
 
   # if a var is right at the begenning or end of the string, then there
   # isn't an empty const string before or after it.  To achieve this,
   # remove empty string const values at the end of begenning of the list
-  if const[0] == '' :
+  if const[0] == '' or const[0] == '^' :
     const = const[1:]
     allow_first_empty = False
   else :
     allow_first_empty = True
-  if const[-1] == '' :
+  if const[-1] == '' or const[-1] == '$':
     const = const[:-1]
 
   # if there are no variables in the pattern, just do a normal string
@@ -99,78 +111,3 @@ def match(pat, str) :
     return ms
   else :
     return False
-
-if __name__ == '__main__' :
-  ret = match("%x%o%y%", "dogod")
-  #print ret
-  assert ret == [
-    {'x' : 'd', 'y' : 'god'},
-    {'x' : 'dog', 'y' : 'd'},
-  ]
-      
-  assert match("%a%XY%b%YZ%c%", "abcXYdefXYghYZijYZkl") == [
-    {'a' : 'abc', 'b' : 'defXYgh', 'c' : 'ijYZkl'},
-    {'a' : 'abc', 'b' : 'defXYghYZij', 'c' : 'kl'},
-    {'a' : 'abcXYdef', 'b' : 'gh', 'c' : 'ijYZkl'},
-    {'a' : 'abcXYdef', 'b' : 'ghYZij', 'c' : 'kl'},
-  ]
-  ret = match("%a%XY%b%YZ%c%", "XYdefXYghYZijYZkl")
-  #print 'ret', json.dumps(ret, indent=4)
-  assert ret == [
-    {'a' : 'XYdef', 'b' : 'gh', 'c' : 'ijYZkl'},
-    {'a' : 'XYdef', 'b' : 'ghYZij', 'c' : 'kl'},
-  ]
-  assert match("%a%%b%", "abc") == [
-    {'a' : 'a', 'b' : 'bc'},
-    {'a' : 'ab', 'b' : 'c'},
-  ]
-  assert match('abc', 'abc') == []
-  assert match('abcdef', 'abc') == False
-  assert match("%x%o%y%", "digid") == False
-  assert match('%x%', 'abc') == [{'x' : 'abc'}]
-
-  # the constant part of a pattern can be arbitrary regexp:
-  assert match("%time_s% (on |in |)%date_s%", "5 on friday") == [
-    {'time_s' : '5', 'date_s' : 'friday'},
-  ]
-  assert match("%time_s% (on |in |)%date_s%", "5 friday") == [
-    {'time_s' : '5', 'date_s' : 'friday'},
-  ]
-
-  ret = match("x %a%", "x y z")
-  #print ret
-  assert ret == [
-    {'a' : 'y z'},
-  ]
-
-  assert match("x %a% %b%", "x y z w") == [
-    {'a' : 'y', 'b' : 'z w'},
-    {'a' : 'y z', 'b' : 'w'},
-  ]
-
-  assert match("remind me to %msg% %dt%", "remind me to go to keleinforfers tomorrow at 5 pm") == [
-    {'msg': 'go', 'dt': 'to keleinforfers tomorrow at 5 pm'},
-    {'msg': 'go to', 'dt': 'keleinforfers tomorrow at 5 pm'},
-    {'msg': 'go to keleinforfers', 'dt': 'tomorrow at 5 pm'},
-    {'msg': 'go to keleinforfers tomorrow', 'dt': 'at 5 pm'},
-    {'msg': 'go to keleinforfers tomorrow at', 'dt': '5 pm'},
-    {'msg': 'go to keleinforfers tomorrow at 5', 'dt': 'pm'}
-  ]
-  
-  ret = match("remind me to %msg% (at |)%dt%", "remind me to go to keleinforfers tomorrow at 5 pm")
-  #print 'ret', json.dumps(ret, indent=4)
-  assert ret == [
-    {'msg': 'go', 'dt': 'to keleinforfers tomorrow at 5 pm'},
-    {'msg': 'go to', 'dt': 'keleinforfers tomorrow at 5 pm'},
-    {'msg': 'go to keleinforfers', 'dt': 'tomorrow at 5 pm'},
-    {'msg': 'go to keleinforfers tomorrow', 'dt': '5 pm'},
-    {'msg': 'go to keleinforfers tomorrow at 5', 'dt': 'pm'}
-  ]
-
-  ret = match('xyz %x%', 'abcdefg')
-  assert ret == False
-  
-  ret = match(u'%x% %y%', u'a b')
-  assert type(ret[0]['x']) == unicode
-  assert type(ret[0].keys()[0]) == unicode
-  assert ret == [{'x' : 'a', 'y' : 'b'}]
