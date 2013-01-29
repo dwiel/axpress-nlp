@@ -827,11 +827,11 @@ class Compiler :
           # we want to know if that variable binds to anything for creating 
           # new_triples above, but as far as the evaluator is concerned, it has
           # no value and thus no output binding
-          output_bindings = {
-            var: binding for var, binding in output_bindings.iteritems()
+          output_bindings = dict(
+            (var, binding) for var, binding in output_bindings.iteritems()
             if var in output_lit_vars or
               var in translation['constant_vars']
-          }
+          )
           
           new_query = remove_duplicate_triples(new_query)
           
@@ -966,7 +966,7 @@ class Compiler :
     # var_triples are the triples which contain the variables which we are 
     # looking to bind
     var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
-    initial_bindings = {var: Var(var) for var in find_vars(var_triples, lambda x:is_var(x) or is_lit_var(x))}
+    initial_bindings = dict((var, Var(var)) for var in find_vars(var_triples, lambda x:is_var(x) or is_lit_var(x)))
     
     # see if the triples which contain the variables can bind to any of the 
     # other triples in the query
@@ -985,7 +985,7 @@ class Compiler :
           # WARNING: it is possible that multiple bindings will be valid in 
           # which case we should return a set of solutions rather than a 
           # solution
-          return {Var(name) : v for name, v in bindings.iteritems()}
+          return dict((Var(name), v) for name, v in bindings.iteritems())
     
     return False
 
