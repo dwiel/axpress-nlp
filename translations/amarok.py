@@ -4,6 +4,7 @@ def loadTranslations(axpress) :
   axpress.n.bind('amarok', '<http://dwiel.net/axpress/amarok/0.1/>')
   axpress.n.bind('playlist', '<http://dwiel.net/express/playlist/0.1/>')
   axpress.n.bind('music', '<http://dwiel.net/axpress/music/0.1/>')
+  axpress.n.bind('file', '<http://dwiel.net/express/file/0.1/>')
 
   def get_amarok_artist(vars):
     vars['artist_name'] = os.popen('dcop amarok player artist').next()[:-1]

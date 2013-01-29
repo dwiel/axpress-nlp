@@ -1,9 +1,6 @@
 import urllib
 import urllib2
-import freebase
 import json
-
-from SimpleSPARQL.Exceptions import TranslationResponse
 
 def loadTranslations(axpress) :  
   axpress.n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
@@ -88,6 +85,7 @@ def loadTranslations(axpress) :
   })
   
   def lookup_albums_by_musician(vars) :
+    import freebase
     result = freebase.mqlread({
       "mid" : vars['artist_mid'],
       "type" : "/music/artist",
@@ -127,6 +125,7 @@ def loadTranslations(axpress) :
   
   def lookup_members_in_group(vars) :
     # TODO: /music/musical_group/member doesn't have a name
+    import freebase
     result = freebase.mqlread({
       "mid" : vars['mid'],
       "type" : '/music/musical_group',
@@ -200,6 +199,7 @@ def loadTranslations(axpress) :
   })
   
   def lookup_birthplace(vars) :
+    import freebase
     result = freebase.mqlread({
       "mid" : vars['person_mid'],
       "type" : "/people/person",
@@ -238,6 +238,7 @@ def loadTranslations(axpress) :
   
   def lookup_location_lat_lon(vars) :
     print 'mid', vars['mid']
+    import freebase
     result = freebase.mqlread({
       "mid" : vars['mid'],
       "type" : "/location/location",
@@ -300,7 +301,7 @@ def loadTranslations(axpress) :
     else :
       typename = "anything"
     
-    raise TranslationResponse(
+    raise Exception(
       "couldn't find %s by the name %s" % (
         typename, vars['title']
       )
@@ -351,6 +352,7 @@ def loadTranslations(axpress) :
 
 
   def freebase_blurb(vars) :
+    import freebase
     try :
       vars['blurb'] = freebase.blurb(vars['mid']).decode('<utf-8>')
     except freebase.api.MetawebError :

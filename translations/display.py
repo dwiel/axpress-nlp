@@ -1,5 +1,4 @@
 from mako.template import Template
-import freebase
 
 def loadTranslations(axpress) :
   axpress.n.bind('display', '<http://dwiel.net/axpress/display/0.1/>')

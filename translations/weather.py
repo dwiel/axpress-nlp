@@ -103,6 +103,8 @@ good ... might inform of changes in style/code
 
 def loadTranslations(axpress) :
   axpress.n.bind('wunderground', '<http://dwiel.net/axpress/wunderground/0.1/>')
+  axpress.n.bind('freebase', '<http://dwiel.net/axpress/freebase/0.1/>')
+  axpress.n.bind('simple_display', '<http://dwiel.net/axpress/simple_display/0.1/>')
 
   axpress.register_translation({
     'name' : 's current weather',

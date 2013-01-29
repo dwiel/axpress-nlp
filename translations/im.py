@@ -1,12 +1,15 @@
-import sys, xmpp
-
 # Google Talk constants
 FROM_GMAIL_ID = "zdwiel@gmail.com"
-GMAIL_PASS = open('/home/dwiel/.gmpw').read().strip()
+try :
+  GMAIL_PASS = open('/home/dwiel/.gmpw').read().strip()
+except IOError :
+  GMAIL_PASS = None
 GTALK_SERVER = "talk.google.com"
 TO_GMAIL_ID = "zdwiel@gmail.com"
 
 def send_im(vars) :
+  import xmpp
+
   message = vars['msg']
   addr = vars['addr']
   

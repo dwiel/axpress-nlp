@@ -1,12 +1,13 @@
 from itertools import izip
-from PIL import Image
 
 def loadTranslations(axpress) :  
   axpress.n.bind('pil', '<http://dwiel.net/express/python/pil/0.1/>')
   axpress.n.bind('image', '<http://dwiel.net/express/image/0.1/>')
   axpress.n.bind('html', '<http://dwiel.net/express/html/0.1/>')
+  axpress.n.bind('color', '<http://dwiel.net/express/color/0.1/>')
 
   def load_image(vars) :
+    from PIL import Image
     im = Image.open(vars['filename'])
     im.load() # force the data to be loaded (Image.open is lazy)
     vars['pil_image'] = im
@@ -22,6 +23,7 @@ def loadTranslations(axpress) :
   })
     
   def image_thumbnail(vars) :
+    from PIL import Image
     im = vars['pil_image']
     im.thumbnail((int(vars['x']), int(vars['y'])), Image.ANTIALIAS)
     vars['thumb_image'] = im
