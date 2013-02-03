@@ -45,9 +45,6 @@
 
 from datetime import datetime
 
-import pymongo
-alarm_queue = pymongo.Connection().axpress.alarm_queue
-
 # new thread, test if any alarms have been set, etc.
 # or if on android, set alarm through native interface
 
@@ -57,6 +54,9 @@ def loadTranslations(axpress) :
   rule = axpress.rule
 
   def alarm_new(vars) :
+    import pymongo
+    alarm_queue = pymongo.Connection().axpress.alarm_queue
+    
     dt = vars['dt']
     message = vars['message']
     alarm = {'datetime' : dt, 'message' : message}
@@ -98,6 +98,9 @@ def loadTranslations(axpress) :
   """)
 
   def alarm_kill_all(vars) :
+    import pymongo
+    alarm_queue = pymongo.Connection().axpress.alarm_queue
+    
     num_alarms = alarm_queue.count()
     alarm_queue.remove()
     vars['response'] = "removed all (%d) of your alarms" % num_alarms
@@ -108,6 +111,9 @@ def loadTranslations(axpress) :
   """, alarm_kill_all)
   
   def alarm_count(vars) :
+    import pymongo
+    alarm_queue = pymongo.Connection().axpress.alarm_queue
+    
     num_alarms = alarm_queue.count()
     if num_alarms == 0 :
       num_alarms = 'no alarms'
