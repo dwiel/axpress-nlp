@@ -44,10 +44,11 @@ the %any%
 area [of] [a] circle [with a] radius [=] [of] %radius%
 /area_of_a_circle?radius=%radius%
 
-I think the way that this system is going to evolve (english and translation) is
-by defining seemingly simple and strict definitions and phrasings and then later
-coming through and finding commonalities and unifying multiple paradigms.  
-Trying to write the whole thing from scratch is too difficult 
+I think the way that this system is going to evolve (english and
+translation) is by defining seemingly simple and strict definitions
+and phrasings and then later coming through and finding commonalities
+and unifying multiple paradigms.  Trying to write the whole thing from
+scratch is too difficult
 
 That sounds like something that would need to be centralized ... or maybe
 federated ... not wikid though ... how would you ever decide when to unify?
