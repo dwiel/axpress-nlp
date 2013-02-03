@@ -1,0 +1,98 @@
+def loadTranslations(axpress, n) :
+  bind w wunderground http://dwiel.net/axpress/wunderground/0.1/>
+
+  s current weather
+    weather[a.is] = "(the |)(current |)(weather|temperature|temp) (in |at |near |by |near by |)%location_s%( right now| now|)"
+    =>
+    location
+      f.type = '/location/location'
+      w.weather = weather
+
+  s current dew point
+    weather[a.is] = "(the |)(current |)dew point (in |at |near |by |near by |)%location_s%( right now| now|)"
+    =>
+    location
+      f.type = '/location/location'
+      w.weather = weather
+        w.dew_point = dew_point
+  
+  lookup current weather
+    location
+      w.weather = weather
+      f.type = '/location/location'
+      f./location/location/geolocation = geo
+        f./location/geocode/latitude = _lat
+        f./location/geocode/longitude = _lon
+    =>
+    weather 
+      w.current_temperature = _temp_f
+      w.icon_url = _icon_url
+      w.forecast = _forecast
+    => py
+      conditions = json.loads(
+        urllib2.urlopen(
+          "http://api.wunderground.com/api/648fbe96a3f5358d/conditions/q/%s,%s.json" % (
+            vars['lat'], vars['lon']
+          )
+        ).read()
+      )
+      
+      forecast_ret = json.loads(
+        urllib2.urlopen(
+          "http://api.wunderground.com/api/648fbe96a3f5358d/forecast7day/q/%s,%s.json" % (
+            vars['lat'], vars['lon']
+          )
+        ).read()
+      )
+      
+      forecast = []
+      for day in forecast_ret['forecast']['simpleforecast']['forecastday'] :
+        forecast.append({
+          'weekday'  : day['date']['weekday_short'],
+          'high'     : day['high']['fahrenheit'],
+          'low'      : day['low']['fahrenheit'],
+          'icon_url' : day['icon_url'],
+        })
+      
+      ret = conditions['current_observation']
+      ret['forecast'] = tuple(forecast)
+      
+      p('ret', ret)
+      return ret
+  
+  # Simple Display
+  name simple render temp
+    x[w.current_temperature] = _temp
+    x[w.icon_url] = _icon_url
+    x[w.forecast] = _forecast
+    =>
+    x[simple_display.text] = _out
+    # should really be => mako
+    => py
+    vars['out'] = Template(u"""## -*- coding: utf-8 -*-
+      <div id="weather" style="width:400px">
+        <div id="today" style="margin:auto;width:220px">
+          <div id="temp" style="font-size:350%;float:left;padding-left:0em;padding-right:0.5em">
+            ${temp}° F
+          </div>
+          <img src="${icon_url}" style="float:right;padding-top:7px">
+          <div style="clear:both"></div>
+        </div>
+        <div id="forecast" style="padding-top:1em;text-align:center;text-transform:uppercase">
+          % for day in forecast :
+            <div class="day" style="float:left">
+              <div class="weekday">${day['weekday']}</div>
+              <div class="icon"><img src="${day['icon_url']}"></div>
+              <div class="high" style="font-size:150%">${day['high']}</div>
+              <div class="low" style="font-size:150%">${day['low']}</div>
+            </div>
+          % endfor
+          <div style="clear:both" />
+        </div>
+      </div>
+      """).render_unicode(**vars)
+  
+  
+
+  
+  
