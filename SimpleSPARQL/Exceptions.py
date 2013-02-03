@@ -1,0 +1,3 @@
+class TranslationResponse(Exception) :
+    pass
+
