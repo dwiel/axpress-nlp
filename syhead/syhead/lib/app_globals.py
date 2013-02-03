@@ -19,9 +19,10 @@ class Globals(object):
         """
         self.cache = CacheManager(**parse_cache_config_options(config))
 
-        self.sparql = SimpleSPARQL("http://localhost:2020/sparql")
-        self.sparql.setGraph("http://dwiel.net/axpress/testing")
+        #self.sparql = SimpleSPARQL("http://localhost:2020/sparql")
+        #self.sparql.setGraph("http://dwiel.net/axpress/testing")
 
+        """
         n = self.sparql.n
         n.bind('math', '<http://dwiel.net/express/math/0.1/>')
         n.bind('glob', '<http://dwiel.net/express/glob/0.1/>')
@@ -47,3 +48,7 @@ class Globals(object):
           evaluator = self.evaluator
         )
         loadTranslations(self.axpress, n)
+        """
+        
+        self.axpress = Axpress()
+        loadTranslations(self.axpress)

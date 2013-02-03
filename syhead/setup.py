@@ -14,6 +14,8 @@ setup(
     url='',
     install_requires=[
         "Pylons>=1.0",
+        "rdflib==2.4.2",
+        "SPARQLWrapper",
     ],
     setup_requires=["PasteScript>=1.6.3"],
     packages=find_packages(exclude=['ez_setup']),
