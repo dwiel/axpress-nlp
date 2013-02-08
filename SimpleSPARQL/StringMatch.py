@@ -96,6 +96,9 @@ def match(pat, str) :
   # if there are no variables in the pattern, just do a normal string
   # comparison
   if not vars :
+    # remove the '^' and '$' from pat since we are doing a normal string
+    # comparison
+    pat = pat[1:-1]
     if pat == str :
       return []
     else :
