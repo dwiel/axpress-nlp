@@ -242,6 +242,8 @@ class Compiler :
       return [g.groupdict()]
   
   def string_matches(self, value, qvalue) :
+    # note that [] denotes a successful basic string match, just without any
+    # variables to match against
     return self.find_matches(value, qvalue) not in [None, False]
   
   def values_match(self, value, qvalue) :
@@ -353,14 +355,13 @@ class Compiler :
       elif isstr(t) and isstr(q) :
         # BUG: if there is more than one way to match the string with the 
         # pattern this will only return the first
-        #p('q',str(t), '-', str(q))
         ret = self.find_matches(str(t), str(q))
-        ret_old = self.find_matches_old(str(t), str(q))
-        if ret != ret_old :
-          #p('q',str(t), '-', str(q))
-          #p('ret', ret)
-          #p('ret_old', ret_old)
-          pass
+        #ret_old = self.find_matches_old(str(t), str(q))
+        #if ret != ret_old :
+        #  #p('q',str(t), '-', str(q))
+        #  #p('ret', ret)
+        #  #p('ret_old', ret_old)
+        #  pass
           
         if ret not in [None, False, []] :
           for name, value in ret[0].iteritems() :
