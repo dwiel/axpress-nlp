@@ -1,7 +1,11 @@
 figure out why image average color translation doesn't work when the 
   similar hardcoded case does.  What is the difference?
-
-
+figure out bug in pw code
+anything that can help with debugging?
+figure out how to make library system more programming language like
+  use paths?
+  - maybe also relative paths? can see every translation in local direcotry under *.ax
+figure out how to allow code with #!/usr/bin/axpress
 
 ---
 

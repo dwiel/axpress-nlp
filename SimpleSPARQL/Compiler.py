@@ -5,6 +5,7 @@ from PrettyQuery import prettyquery
 from Parser import Parser
 from Triple import Triple
 from Utils import *
+import StringMatch
 
 from Bindings import Bindings
 
@@ -227,6 +228,9 @@ class Compiler :
   # MATCHING
   
   def find_matches(self, value, qvalue) :
+    return StringMatch.match(value, qvalue)
+    
+  def find_matches_old(self, value, qvalue) :
     const, vars = split_string(value)
     regex = merge_string(const, ['(?P<%s>.+?)' % var for var in vars])
     try :
@@ -235,10 +239,10 @@ class Compiler :
       raise Exception(str(e) + " - '%s', '%s'" % ('^%s$' % regex, qvalue))
     if g :
       #return {var : g.group(var) for var in vars}
-      return g.groupdict()
+      return [g.groupdict()]
   
   def string_matches(self, value, qvalue) :
-    return self.find_matches(value, qvalue) != None
+    return self.find_matches(value, qvalue) not in [None, False]
   
   def values_match(self, value, qvalue) :
     #self.debugp('values_match', value, qvalue)
@@ -349,21 +353,38 @@ class Compiler :
       elif isstr(t) and isstr(q) :
         # BUG: if there is more than one way to match the string with the 
         # pattern this will only return the first
+        #p('q',str(t), '-', str(q))
         ret = self.find_matches(str(t), str(q))
-        if ret != None:
-          for name, value in ret.iteritems() :
+        ret_old = self.find_matches_old(str(t), str(q))
+        if ret != ret_old :
+          #p('q',str(t), '-', str(q))
+          #p('ret', ret)
+          #p('ret_old', ret_old)
+          pass
+          
+        if ret not in [None, False, []] :
+          for name, value in ret[0].iteritems() :
             assert unicode(name) not in bindings[0]
-            bindings = self.mul_bindings_set(bindings, [Bindings({unicode(name) : unicode(value)})])
-            #binding[unicode(name)] = unicode(value)
+          
+          #p('pre', bindings)
+          bindings = self.mul_bindings_set(bindings, map(Bindings, ret))
+          #p('post', bindings)
+        #p('')
+        #binding[unicode(name)] = unicode(value)
       elif isinstance(t, list) :
         # NOTE: copy and paste from above ...
         for ti in t :
+          #p('qi',str(ti), '-', str(q))
           ret = self.find_matches(str(ti), str(q))
-          if ret != None:
-            for name, value in ret.iteritems() :
+          if ret not in [None, False, []] :
+            for name, value in ret[0].iteritems() :
               assert unicode(name) not in bindings[0]
-              bindings = self.mul_bindings_set(bindings, [Bindings({unicode(name) : unicode(value)})])
-              #binding[unicode(name)] = unicode(value)
+            
+            #p('pre', bindings)
+            bindings = self.mul_bindings_set(bindings, map(Bindings, ret))
+            #p('post', bindings)
+            #binding[unicode(name)] = unicode(value)
+          #p('')
       elif t != q :
         return []
       elif is_lit_var(t) and is_out_lit_var(q) :
@@ -989,7 +1010,7 @@ class Compiler :
     
     return False
 
-  ##############################################################################
+  #############################################################################
   # SEARCH
   
   def remove_steps_already_taken(self, steps, lineage) :
