@@ -115,5 +115,9 @@ class StringMatchTestCase(unittest.TestCase):
       {'x' : '1', 'y' : '34', 'z' : '5'},
     ]
 
+  def test15(self):
+    ret = match("red", "red")
+    assert ret == []
+
 if __name__ == "__main__" :
     unittest.main()
