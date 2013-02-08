@@ -110,7 +110,7 @@ def match(pat, str) :
   if matches :
     ms = []
     for m in matches :
-      ms.append({k: v for k, v in zip(vars, m)})
+      ms.append(dict((k, v) for k, v in zip(vars, m)))
     return ms
   else :
     return False
