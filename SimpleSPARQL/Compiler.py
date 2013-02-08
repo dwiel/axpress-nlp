@@ -355,13 +355,8 @@ class Compiler :
       elif isstr(t) and isstr(q) :
         # BUG: if there is more than one way to match the string with the 
         # pattern this will only return the first
+        # I believe that this bug is fixed in 0647dad1 and nearby commits
         ret = self.find_matches(str(t), str(q))
-        #ret_old = self.find_matches_old(str(t), str(q))
-        #if ret != ret_old :
-        #  #p('q',str(t), '-', str(q))
-        #  #p('ret', ret)
-        #  #p('ret_old', ret_old)
-        #  pass
           
         if ret not in [None, False, []] :
           for name, value in ret[0].iteritems() :
