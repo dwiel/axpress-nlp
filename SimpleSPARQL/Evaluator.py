@@ -177,44 +177,47 @@ class Evaluator :
     new_bindings_set = self.evaluate_step_with_bindings(step, incoming_bindings_set)
 
     # TODO: don't require this to be wrapped in a list here
-    new_bindings_set = [self.flatten(new_bindings_set)]
+    new_bindings_set = self.flatten(new_bindings_set)
     
     #if new_bindings_set == [{}] :
       #new_bindings_set = []
     
     return new_bindings_set
   
-  #@logger
-  def permute_bindings(self, final_bindings_set, new_bindings_set) :
+  def non_empty(self, b_set) :
+    for b in b_set :
+      if b :
+        return True
+    return False
+
+  def permute_bindings(self, bindings_set1, bindings_set2) :
     """
-    final_bindings_set is a set (or not) of bindings
-      it can either be a set of a set of a set of ... bindings, or bindings
-    new_bindings_set is a set (or not) of bindings
-      it can either be a set of a set of a set of ... bindings, or bindings
     both final_bindings_set and new_bindings_set are altered in the process
     @returns all valid combinations of the two 'sets'
     """
-    #p('xxx final_bindings_set',final_bindings_set)
-    #p('xxx new_bindings_set',new_bindings_set)
-    if isinstance(final_bindings_set, dict) :
-      if isinstance(new_bindings_set, dict) :
-        #p('fd nd')
-        final_bindings_set.update(new_bindings_set)
-        return final_bindings_set
-      else : # new_bindings_set is a list
-        #p('fd nl')
-        for new_bindings in self.each_binding_set(new_bindings_set) :
-          new_bindings.update(final_bindings_set)
-        return new_bindings_set
-    else : # final_bindings_set is a list
-      if isinstance(new_bindings_set, dict) :
-        #p('fl nd')
-        for final_bindings in self.each_binding_set(final_bindings_set) :
-          final_bindings.update(new_bindings_set)
-        return final_bindings_set
-      else : # both final_bindings_set and new_bindings_set are lists:
-        #p('fl nl')
-        return [self.permute_bindings(final_bindings, new_bindings) for final_bindings, new_bindings in izip(final_bindings_set, new_bindings_set)]
+
+    bindings_set1 = self.flatten(bindings_set1)
+    bindings_set2 = self.flatten(bindings_set2)
+    
+    if len(bindings_set1) == 1 or len(bindings_set2) == 1:
+      cp = lambda x:x      
+    else :
+      cp = copy.copy
+    
+    # ensure that if one of these sets has more than 1 binding, that set is in
+    # bindings_set1.  Otherwise, ret will be filled with many exact copies of
+    # the same dict.
+    if len(bindings_set1) == 1 and len(bindings_set2) != 1:
+      bindings_set1, bindings_set2 = bindings_set2, bindings_set1
+    
+    ret = []
+    for b1 in bindings_set1 :
+      for b2 in bindings_set2 :
+        b1 = cp(b1)
+        b1.update(b2)
+        ret.append(b1)
+    
+    return ret
   
   def evaluate(self, compiled, incoming_bindings_set = [{}]) :
     n = self.n
