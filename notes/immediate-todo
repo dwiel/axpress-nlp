@@ -1,3 +1,4 @@
+refactor SimpleSparql out -> Axpress or just Ax ?
 figure out why image average color translation doesn't work when the 
   similar hardcoded case does.  What is the difference?
   - bummer, don't remember the context here ...
@@ -13,6 +14,8 @@ figure out how to allow code with #!/usr/bin/axpress
 figure out how to refactor into more simple/easier to debug/fewer bugs code
        might be helpful to write out all of the steps again; the new string
        matching code
+read_translate bindings_set recompiles for each bindings - should only need to compile once
+lots of confusion is inevitable to due overloading list as a list of possibilities as well as an actual list
 
 disallow input variables like bnode1
 make optional parts of a query and part of a translation work
