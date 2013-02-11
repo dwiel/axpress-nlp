@@ -16,18 +16,6 @@ class Evaluator :
       self.n = Namespaces()
     self.warnings = True
 
-  def each_binding_set(self, bindings_set) :
-    """
-    iterate bindings_set as if it were just a list, even if it is just a single
-    thing or a list of lists.
-    """
-    for item in bindings_set :
-      if isinstance(item, list) :
-        for sub_item in self.each_binding_set(item) :
-          yield sub_item
-      else :
-        yield item
-  
   def flatten(self, l) :
     if isinstance(l, list) :
       new_l = []
@@ -140,19 +128,13 @@ class Evaluator :
     !! there are bugs in the code as it is now due to its false simplicity
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     """
-    #p()
-    #p('q_in_bs', q_in_bs)
-    #p('name', step['translation']['name'])
-    #p('input_bindings', step['input_bindings'])
-    #p('output_bindings', step['output_bindings'])
-    
     # descriptions of variables
-    # incoming bindings set   : q_in_bs      : query space to value
-    # step['input_bindings']  : t_to_q_in_b  : translation to query space
-    # input bindings set      : t_in_bs      : translation space to value
-    # result bindings set     : t_out_bs     : translation space to value
-    # step['output_bindings'] : t_to_q_out_b : translation to query space
-    # output_bindings_set     : q_out_bs     : query space to value
+    # q_in_bs      : query space to value
+    # t_to_q_in_b  : translation to query space
+    # t_in_bs      : translation space to value
+    # t_out_bs     : translation space to value
+    # t_to_q_out_b : translation to query space
+    # q_out_bs     : query space to value
     
     # TODO: shouldn't need flatten
     q_in_bs = self.flatten(q_in_bs)
@@ -167,10 +149,6 @@ class Evaluator :
       for t_out_b in self.flatten(t_out_b) :
         self.check_for_missing_variables(t_out_b, t_to_q_out_b, step)      
 
-    # q_out_bs = map_t_to_q(t_out_bs, t_to_q_out_b)
-    #p('t_out_bs',t_out_bs)
-    #p('q_in_bs', q_in_bs)
-    #p()
     if 'function' in step['translation'] :
       q_out_bs = []
       for t_out_b, q_in_b, t_in_b in izip(t_out_bs, q_in_bs, t_in_bs) :
@@ -184,9 +162,10 @@ class Evaluator :
       q_out_bs = [self.map_t_to_q(t_out_b, t_to_q_out_b)
                   for t_out_b in t_out_bs]
 
+    # handle values which are lists, which were really short hand for many
+    # possibilities (see glob.glob)
     q_out_bs = explode_bindings_set(q_out_bs)
 
-    #p('q_out_bs', q_out_bs)
     return q_out_bs
 
   def non_empty(self, b_set) :
@@ -271,7 +250,7 @@ class Evaluator :
       #p('combination_bindings_set',combination_bindings_set)
       #p('len(combination)',len(combination))
       #p('solution_bindings',solution_bindings)
-      for bindings in self.each_binding_set(combination_bindings_set) :
+      for bindings in combination_bindings_set :
         solution = {}
         for var, binding in solution_bindings.iteritems() :
           if is_var(binding) :
