@@ -14,6 +14,7 @@ class Evaluator :
       self.n = n
     else :
       self.n = Namespaces()
+    self.warnings = True
 
   def each_binding_set(self, bindings_set) :
     """
@@ -65,12 +66,37 @@ class Evaluator :
     else :
       raise Exception("translation doesn't have a function ...")
   
+  def check_for_missing_variables(self, result_bindings, output_bindings):
+    # check to make sure everything was bound that was supposed to be
+    # could be removed for tiny speed increase, but helps with debuging
+    missing_variables = set(output_bindings) - set(result_bindings)
+    if missing_variables :
+      if len(missing_variables) > 1 :
+        variables = "variables"
+      else :
+        variables = "variable"
+      raise ValueError(
+        "%s %s didn't get bound by translation '%s'" % (
+          variables, ', '.join(
+            "'"+v+"'" for v in missing_variables
+          ), step['translation']['name']
+        )
+      )
+  
   def evaluate_step_with_bindings_set(self, step, incoming_bindings_set) :
     #p()
     #p('incoming_bindings_set', incoming_bindings_set)
     #p('name', step['translation']['name'])
     #p('input_bindings', step['input_bindings'])
     #p('output_bindings', step['output_bindings'])
+    
+    # descriptions of variables
+    # incoming bindings set : from query space to value
+    # step['input_bindings'] : from translation space to query space
+    # input bindings set : from translation space to value
+    # result bindings set : from translation space to value
+    # step['output_bindings'] : from translation space to query space
+    # output_bindings_set : from query space to value
     incoming_bindings_set = self.flatten(incoming_bindings_set)
 
     input_bindings  = step['input_bindings']
@@ -88,14 +114,12 @@ class Evaluator :
       input_bindings_set.append(new_input_bindings)
     
     result_bindings_set = self.evaluate_step_function(step, input_bindings_set)
-    #self.ensure_result_bindings_set_is_complete(result_bindings_set)
     
     #p('result_bindings_set',result_bindings_set)
     #p('incoming_bindings_set', incoming_bindings_set)
     #p()
     output_bindings_set = []
-    # WARNING: this only really makes sense on functions, not multi_functions
-    for result_bindings, incoming_bindings in izip(result_bindings_set, incoming_bindings_set) :
+    for result_bindings, incoming_bindings, input_bindings in izip(result_bindings_set, incoming_bindings_set, input_bindings_set) :
       # bind the values resulting from the function call
       # the translation might return a bindings_set so deal with that case
       if isinstance(result_bindings, list) :
@@ -107,7 +131,10 @@ class Evaluator :
 
       new_bindings_set = []
       for result_bindings in result_bindings_set :
+        #p('output_bindings',output_bindings)
         #p('result_bindings',result_bindings)
+        #p('incoming_bindings',incoming_bindings)
+        # WARNING: this only makes sense on functions, not multi_functions
         new_bindings = copy.copy(incoming_bindings)
         for var, value in result_bindings.iteritems() :
           if var in output_bindings :
@@ -116,25 +143,14 @@ class Evaluator :
             else :
               assert output_bindings[var] == value
               new_bindings[var] = value
-              #print 'hmm should I do something?',var, output_bindings[var],value
+
+          # should there be a way to turn this off?
+          if self.warnings :
+            if var not in input_bindings and var not in output_bindings :
+              print 'warning: unused result', var
         
-        # check to make sure everything was bound that was supposed to be
-        # could be removed for tiny speed increase, but helps with debuging
-        if len(new_bindings) != len(output_bindings) :
-          missing_variables = set(output_bindings) - set(result_bindings)
-          if missing_variables :
-            if len(missing_variables) > 1 :
-              variables = "variables"
-            else :
-              variables = "variable"
-            raise ValueError(
-              "%s %s didn't get bound by translation '%s'" % (
-                variables, ', '.join(
-                  "'"+v+"'" for v in missing_variables
-                ), step['translation']['name']
-              )
-            )
-        
+        self.check_for_missing_variables(result_bindings, output_bindings)
+
         #p('new_bindings', new_bindings)
         new_bindings_set.append(new_bindings)
       
@@ -147,6 +163,7 @@ class Evaluator :
 
       output_bindings_set.extend(new_exploded_bindings_set)
     
+    #p('output_bindings_set', self.flatten(output_bindings_set))
     return self.flatten(output_bindings_set)
 
   def non_empty(self, b_set) :
