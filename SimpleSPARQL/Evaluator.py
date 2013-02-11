@@ -28,13 +28,42 @@ class Evaluator :
         yield item
   
   def flatten(self, l) :
-    new_l = []
-    for i in l :
-      if isinstance(i, list) :
-        new_l += self.flatten(i)
+    if isinstance(l, list) :
+      new_l = []
+      for i in l :
+        if isinstance(i, list) :
+          new_l += self.flatten(i)
+        else :
+          new_l.append(i)
+      return new_l
+    else :
+      return [l]
+    
+  def evaluate_step_function(self, step, input_bindings_set) :
+    # NOTE that if ret == [] aka. the input binding set is no longer valid
+    # we want that to be added to the ret, not the input bindings
+    
+    #p('input_bindings_set', input_bindings_set)
+    if 'function' in step['translation'] :
+      result_bindings_set = []
+      for input_bindings in input_bindings_set :
+        ret = step['translation']['function'](input_bindings)
+        if ret != None:
+          result_bindings_set.append(ret)
+        else :
+          result_bindings_set.append(input_bindings)
+      return result_bindings_set
+    elif 'multi_function' in step['translation'] :
+      # a multi_function takes in the entire input_bindings_set and returns
+      # an entire new one, rather than the normal function which is fed one
+      # at a time (and can return any number of results)
+      ret = step['translation']['multi_function'](input_bindings_set)
+      if ret != None :
+        return ret
       else :
-        new_l.append(i)
-    return new_l
+        input_bindings_set
+    else :
+      raise Exception("translation doesn't have a function ...")
   
   def evaluate_step_with_bindings_set(self, step, incoming_bindings_set) :
     #p()
@@ -43,67 +72,39 @@ class Evaluator :
     #p('input_bindings', step['input_bindings'])
     #p('output_bindings', step['output_bindings'])
     incoming_bindings_set = self.flatten(incoming_bindings_set)
+
+    input_bindings  = step['input_bindings']
+    output_bindings = step['output_bindings']
     
+    # substitute any values in the incoming bindings into the input_bindings
     input_bindings_set = []
     for incoming_bindings in incoming_bindings_set :
-      #if not isinstance(incoming_bindings, dict) :
-      #  print type(incoming_bindings), incoming_bindings
-      input_bindings = step['input_bindings']
-      output_bindings = step['output_bindings']
-      
-      #p('step name', step['translation']['name'])
-      #p('input_bindings',input_bindings)
-      #p('output_bindings',output_bindings)
-      #p('incoming_bindings',incoming_bindings)
-      
-      # substitute any values in the incoming bindings into the input_bindings
       new_input_bindings = {}
       for var, value in input_bindings.iteritems() :
         if is_any_var(value) and value.name in incoming_bindings :
           new_input_bindings[var] = incoming_bindings[value.name]
         else :
           new_input_bindings[var] = input_bindings[var]
-      input_bindings = new_input_bindings
-      
-      #p('new_input_bindings',input_bindings)
-      input_bindings_set.append(input_bindings)
+      input_bindings_set.append(new_input_bindings)
     
-    #p('input_bindings_set', input_bindings_set)
-    if 'function' in step['translation'] :
-      result_bindings_set = []
-      for input_bindings in input_bindings_set :
-        ret = step['translation']['function'](input_bindings)
-        if ret is not None:
-          result_bindings_set.append(ret)
-        else :
-          result_bindings_set.append(input_bindings)
-    elif 'multi_function' in step['translation'] :
-      # a multi_function takes in the entire input_bindings_set and returns
-      # an entire new one, rather than the normal function which is fed one
-      # at a time (and can return any number of results)
-      ret = step['translation']['multi_function'](input_bindings_set)
-      if ret is not None:
-        result_bindings_set = ret
-      else :
-        result_bindings_set = input_bindings_set
-    else :
-      raise Exception("translation doesn't have a function ...")
+    result_bindings_set = self.evaluate_step_function(step, input_bindings_set)
+    #self.ensure_result_bindings_set_is_complete(result_bindings_set)
     
     #p('result_bindings_set',result_bindings_set)
+    #p('incoming_bindings_set', incoming_bindings_set)
+    #p()
     output_bindings_set = []
-    for result_bindings, incoming_bindings in zip(result_bindings_set, incoming_bindings_set) :
+    # WARNING: this only really makes sense on functions, not multi_functions
+    for result_bindings, incoming_bindings in izip(result_bindings_set, incoming_bindings_set) :
       # bind the values resulting from the function call
       # the translation might return a bindings_set so deal with that case
-      # list_later surrounds the return value with an extra list to represent that
-      # it has been exploded
-      list_later = False
       if isinstance(result_bindings, list) :
-        list_later = True
         result_bindings_set = result_bindings
         if not all(isinstance(b, dict) for b in result_bindings) :
           raise Exception("output of %s was a list of something other than dicts" % step['translation']['name'])
       else :
         result_bindings_set = [result_bindings]
+
       new_bindings_set = []
       for result_bindings in result_bindings_set :
         #p('result_bindings',result_bindings)
@@ -140,14 +141,10 @@ class Evaluator :
       #p('new_bindings_set',new_bindings_set)
       new_exploded_bindings_set = []
       for new_bindings in new_bindings_set :
-        new_exploded_bindings_set.extend(new_explode_bindings_set(new_bindings))
-      #if len(new_exploded_bindings_set) > 1 :
-        #new_exploded_bindings_set = [new_exploded_bindings_set]
-      if list_later :
-        new_exploded_bindings_set = [new_exploded_bindings_set]
-      
-      #p('new_exploded_bindings_set',new_exploded_bindings_set)
-      #return new_exploded_bindings_set
+        new_exploded_bindings_set.extend(
+          new_explode_bindings_set(new_bindings)
+        )
+
       output_bindings_set.extend(new_exploded_bindings_set)
     
     return self.flatten(output_bindings_set)
