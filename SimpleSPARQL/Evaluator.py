@@ -155,8 +155,8 @@ class Evaluator :
 
       self.t_out_b_valid(step, t_out_bs, t_to_q_out_b)
 
-      # allow multi_function to return a single dict, if that it its
-      # only possibility
+      # allow multi_function to return a single dict, if that is the
+      # only binding in the result set
       if isinstance(t_out_bs, dict) :
         t_out_bs = [t_out_bs]
       
@@ -170,12 +170,6 @@ class Evaluator :
     q_out_bs = explode_bindings_set(q_out_bs)
 
     return q_out_bs
-
-  def non_empty(self, b_set) :
-    for b in b_set :
-      if b :
-        return True
-    return False
 
   def permute_bindings(self, bindings_set1, bindings_set2) :
     """
@@ -203,6 +197,7 @@ class Evaluator :
   def evaluate(self, compiled, incoming_bindings_set = [{}]) :
     # TODO: update with new bindings_set names
     # TODO: general cleanup
+    # TODO: document combinations somewhere
     n = self.n
     
     modifiers = {}

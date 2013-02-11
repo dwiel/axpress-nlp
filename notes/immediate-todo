@@ -1,13 +1,15 @@
-use this for something useful
+!!!!!!!!!! use this for something useful
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 simplify
-  - finish cleaning/fixing Evaluator.evaluate_step_with_bindings_set
   - refactor SimpleSparql out -> Axpress or just ax ?
   - use ENV paths
   - use relative paths. can see every translation in local direcotry like
     python (*.ax)
-  - temp data paths - .axpress
+  - temp data path standard - .axpress
   - allow code with #!/usr/bin/axpress
+  - clean up Evaluator.evalute
+  - clean up all of Compiler ... again
 
   - heavy refactor : what are component steps, how to name things differently to that effect.  also less confused overloading of how to find bindings, matches, etc.  matching one intermediate form with another hsa slight differences ...
 
@@ -25,7 +27,13 @@ conceptual:
         S = SetMaker()
         print S[1,2,3]
   - make optional parts of a query and part of a translation work
-
+  - how to implement range function ?
+    - everything has to be a property of an object, but what about numbers
+      or strings?  a.is ? seems a bit clunky ... :
+      o[a.is] = _v
+      =>
+      o = _v
+      ???
 ---
 
 See also dwi Axpress.Todo

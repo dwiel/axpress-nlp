@@ -230,17 +230,6 @@ class Compiler :
   def find_matches(self, value, qvalue) :
     return StringMatch.match(value, qvalue)
     
-  def find_matches_old(self, value, qvalue) :
-    const, vars = split_string(value)
-    regex = merge_string(const, ['(?P<%s>.+?)' % var for var in vars])
-    try :
-      g = re.search('^%s$' % regex, qvalue)
-    except sre_constants.error, e :
-      raise Exception(str(e) + " - '%s', '%s'" % ('^%s$' % regex, qvalue))
-    if g :
-      #return {var : g.group(var) for var in vars}
-      return [g.groupdict()]
-  
   def string_matches(self, value, qvalue) :
     # note that [] denotes a successful basic string match, just without any
     # variables to match against
