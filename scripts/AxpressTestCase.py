@@ -652,6 +652,74 @@ class AxpressTestCase(unittest.TestCase):
     """)
     assert len(ret) == 27
 
+  def testNefariousTranslation(self):
+    axpress = Axpress()
+    
+    def ok_fn(vars) :
+      vars['nef_in'] = 10 * vars['in']
+    axpress.register_translation({
+      'name' : 'ok',
+      'input' : """
+        o[test.in] = _in
+      """,
+      'output' : """
+        o[test.nef_in] = _nef_in
+      """,
+      'function' : ok_fn,
+    })
+
+    def nef_fn(vars) :
+      for k in vars.keys() :
+        del vars[k]
+      vars['nef_out'] = 'nothing to see here'
+    axpress.register_translation({
+      'name' : 'nef',
+      'input' : """
+        o[test.nef_in] = _nef_in
+      """,
+      'output' : """
+        o[test.nef_out] = _nef_out
+      """,
+      'function' : nef_fn,
+    })
+
+    axpress.compiler.compile_translations()
+
+    ret = axpress.read_translate("""
+      x[test.in] = 1
+      x[test.nef_in] = _in
+      x[test.nef_out] = _out
+    """)
+    assert ret == [{
+      'in' : 10,
+      'out' : 'nothing to see here'
+    }]
+
+  def testMissingOut(self) :
+    axpress = Axpress()
+    
+    axpress.register_translation({
+      'name' : 'ok',
+      'input' : """
+        o[test.in] = _in
+      """,
+      'output' : """
+        o[test.out] = _out
+      """,
+      'function' : lambda x:x,
+    })
+
+    axpress.compiler.compile_translations()
+
+    try :
+      ret = axpress.read_translate("""
+        x[test.in] = 1
+        x[test.out] = _out
+      """)
+      raise Exception('should have erred by now')
+    except ValueError, e:
+      assert str(e) == "variable 'out' didn't get bound by translation 'ok'"
+
 if __name__ == "__main__" :
   import atexit
   def at() :
