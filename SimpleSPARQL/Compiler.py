@@ -1058,6 +1058,13 @@ class Compiler :
     # remove any steps we've already taken
     steps = self.remove_steps_already_taken(steps, lineage)
     
+    if self.show_dead_ends :
+      steps = list(steps)
+      if not steps :
+        p('dead_end', query)
+        p('lineage', [step['translation']['name'] for step in lineage])
+        p()
+    
     #steps = list(steps)
     #self.debug_open_block('steps')
     #self.debugp(steps)
@@ -1154,8 +1161,10 @@ class Compiler :
     # an iterative deepening search
     self.depth = 1
     steps = None
-    while not steps and self.depth < 12:
+    max_depth = 12
+    while not steps and self.depth < max_depth:
       self.debugp("depth: %d" % self.depth)
+      self.show_dead_ends = self.depth == max_depth - 1
       self.partials = defaultdict(list)
       steps = self.search(query, query, lineage = [], root = True)
       self.depth += 1
