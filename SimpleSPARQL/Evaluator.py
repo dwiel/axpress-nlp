@@ -115,6 +115,7 @@ class Evaluator :
     # result bindings set     : t_out_bs     : translation space to value
     # step['output_bindings'] : t_to_q_out_b : translation to query space
     # output_bindings_set     : q_out_bs     : query space to value
+    # TODO: shouldn't need flatten
     q_in_bs = self.flatten(q_in_bs)
 
     t_to_q_in_b  = step['input_bindings']
@@ -127,7 +128,7 @@ class Evaluator :
     #p('q_in_bs', q_in_bs)
     #p()
     # WARNING: this only makes sense on functions, not multi_functions
-    q_out_bs = []
+    new_bindings_set = []
     for t_out_b, q_in_b, t_in_b in izip(t_out_bs, q_in_bs, t_in_bs) :
       # bind the values resulting from the function call
       # the translation might return a bindings_set so deal with that case
@@ -137,7 +138,6 @@ class Evaluator :
         if not all(isinstance(b, dict) for b in t_out_b) :
           raise Exception("output of %s was a list of something other than dicts" % step['translation']['name'])
 
-      new_bindings_set = []
       for t_out_b in self.flatten(t_out_b) :
         self.check_for_missing_variables(t_out_b, t_to_q_out_b, step)
     
@@ -157,18 +157,11 @@ class Evaluator :
               print 'warning: unused result', var
         
         new_bindings_set.append(new_bindings)
-      
-      #p('new_bindings_set',new_bindings_set)
-      new_exploded_bindings_set = []
-      for new_bindings in new_bindings_set :
-        new_exploded_bindings_set.extend(
-          explode_bindings_set(new_bindings)
-        )
 
-      q_out_bs.extend(new_exploded_bindings_set)
-    
-    #p('q_out_bs', self.flatten(q_out_bs))
-    return self.flatten(q_out_bs)
+    q_out_bs = explode_bindings_set(new_bindings_set)
+
+    #p('q_out_bs', q_out_bs)
+    return q_out_bs
 
   def non_empty(self, b_set) :
     for b in b_set :
