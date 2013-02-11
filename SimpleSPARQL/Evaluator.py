@@ -34,55 +34,36 @@ class Evaluator :
       return new_l
     else :
       return [l]
-    
-  def evaluate_step_function(self, step, t_in_bs) :
-    # NOTE that if ret == [] aka. the input binding set is no longer valid
-    # we want that to be added to the ret, not the input bindings
-    
-    #p('t_in_bs', t_in_bs)
-    if 'function' in step['translation'] :
-      t_out_bs = []
-      for t_in_b in t_in_bs :
-        t_out_b = step['translation']['function'](t_in_b)
-        if t_out_b != None:
-          # test for invalid output
-          if isinstance(t_out_b, list) :
-            if not all(isinstance(b, dict) for b in t_out_b) :
-              raise Exception("output of %s was a list of something other"
-                              "than dicts" % step['translation']['name'])
-          t_out_bs.append(t_out_b)
-        else :
-          t_out_bs.append(t_in_b)
-      return t_out_bs
-    elif 'multi_function' in step['translation'] :
-      # a multi_function takes in the entire t_in_bs and returns
-      # an entire new one, rather than the normal function which is fed one
-      # at a time (and can return any number of results)
-      t_out_bs = step['translation']['multi_function'](t_in_bs)
-      if t_out_bs == None :
-        t_out_bs = t_in_bs
-      
-      return t_out_bs
+
+  def t_out_b_valid(self, step, t_out_b, t_to_q_out_b) :
+    # check t_out_b type - should be a list of dicts or a dict
+    if isinstance(t_out_b, list) :
+      for b in t_out_b :
+        if not isinstance(b, dict) :
+          raise Exception("output of %s was a list of %s instead of dicts" % (
+            type(b), step['translation']['name']))
+    elif isinstance(t_out_b, dict) :
+      pass
     else :
-      raise Exception("translation doesn't have a function ...")
-  
-  def check_for_missing_variables(self, result_bindings, output_bindings,
-                                  step):
+      raise Exception("output of %s was not a list of dicts or a "
+                      "dict" % step['translation']['name'])
+
     # check to make sure everything was bound that was supposed to be
     # could be removed for tiny speed increase, but helps with debuging
-    missing_variables = set(output_bindings) - set(result_bindings)
-    if missing_variables :
-      if len(missing_variables) > 1 :
-        variables = "variables"
-      else :
-        variables = "variable"
-      raise ValueError(
-        "%s %s didn't get bound by translation '%s'" % (
-          variables, ', '.join(
-            "'"+v+"'" for v in missing_variables
-          ), step['translation']['name']
+    for t_out_b in self.flatten(t_out_b) :
+      missing_variables = set(t_to_q_out_b) - set(t_out_b)
+      if missing_variables :
+        if len(missing_variables) > 1 :
+          variables = "variables"
+        else :
+          variables = "variable"
+        raise ValueError(
+          "%s %s didn't get bound by translation '%s'" % (
+            variables, ', '.join(
+              "'"+v+"'" for v in missing_variables
+            ), step['translation']['name']
+          )
         )
-      )
 
   def map_q_to_t(self, q_in_bs, t_to_q_in_b) :
     """
@@ -146,24 +127,44 @@ class Evaluator :
     t_to_q_out_b = step['output_bindings']
     
     t_in_bs = self.map_q_to_t(q_in_bs, t_to_q_in_b)
-    t_out_bs = self.evaluate_step_function(step, t_in_bs)
 
-    for t_out_b in self.flatten(t_out_bs) :
-      self.check_for_missing_variables(t_out_b, t_to_q_out_b, step)
-
+    # NOTE that if t_out_b == [] aka. the input binding set is no longer valid
+    # we want that to be added to the ret, not the input bindings
     if 'function' in step['translation'] :
       q_out_bs = []
-      for t_out_b, q_in_b, t_in_b in izip(t_out_bs, q_in_bs, t_in_bs) :
+      for t_in_b, q_in_b in izip(t_in_bs, q_in_bs) :
+        t_out_b = step['translation']['function'](t_in_b)
+        if t_out_b == None :
+          t_out_b = t_in_b
+
+        self.t_out_b_valid(step, t_out_b, t_to_q_out_b)
+
         for t_out_b in self.flatten(t_out_b) :
           # need to make a copy so that we don't mess up code
           # somewhere else that expects to be able to use q_in_b later
           q_out_b = copy.copy(q_in_b)
           q_out_b.update(self.map_t_to_q(t_out_b, t_to_q_out_b, t_in_b))
           q_out_bs.append(q_out_b)
-    if 'multi_function' in step['translation'] :
+    elif 'multi_function' in step['translation'] :
+      # a multi_function takes in the entire t_in_bs and returns
+      # an entire new one, rather than the normal function which is fed one
+      # at a time (and can return any number of results)
+      t_out_bs = step['translation']['multi_function'](t_in_bs)
+      if t_out_bs == None :
+        t_out_bs = t_in_bs
+
+      self.t_out_b_valid(step, t_out_bs, t_to_q_out_b)
+
+      # allow multi_function to return a single dict, if that it its
+      # only possibility
+      if isinstance(t_out_bs, dict) :
+        t_out_bs = [t_out_bs]
+      
       q_out_bs = [self.map_t_to_q(t_out_b, t_to_q_out_b)
                   for t_out_b in t_out_bs]
-
+    else :
+      raise Exception("translation doesn't have a function ...")
+  
     # handle values which are lists, which were really short hand for many
     # possibilities (see glob.glob)
     q_out_bs = explode_bindings_set(q_out_bs)
