@@ -209,4 +209,43 @@ def loadTranslations(axpress) :
       t[test.p2] = p1
     """,
   })
+
+  def t1_t2(vars) :
+    vars['t2'] = [vars['t1']] * 3
+  axpress.register_translation({
+    'name' : 't1 -> t2',
+    'input' : """
+      t[test.t1] = _t1
+    """,
+    'output' : """
+      t[test.t2] = _t2
+    """,
+    'function' : t1_t2,
+  })
+
+  def t2_t3(vars) :
+    vars['t3'] = [vars['t2']] * 3
+  axpress.register_translation({
+    'name' : 't2 -> t3',
+    'input' : """
+      t[test.t2] = _t2
+    """,
+    'output' : """
+      t[test.t3] = _t3
+    """,
+    'function' : t2_t3,
+  })
+
+  def t3_t4(vars) :
+    vars['t4'] = [vars['t3']] * 3
+  axpress.register_translation({
+    'name' : 't3 -> t4',
+    'input' : """
+      t[test.t3] = _t3
+    """,
+    'output' : """
+      t[test.t4] = _t4
+    """,
+    'function' : t3_t4,
+  })
   

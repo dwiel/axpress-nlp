@@ -37,12 +37,16 @@ class Evaluator :
     return new_l
   
   def evaluate_step_with_bindings(self, step, incoming_bindings_set) :
+    #p()
     #p('incoming_bindings_set', incoming_bindings_set)
+    #p('name', step['translation']['name'])
+    #p('input_bindings', step['input_bindings'])
+    #p('output_bindings', step['output_bindings'])
     
     input_bindings_set = []
     for incoming_bindings in incoming_bindings_set :
-      if not isinstance(incoming_bindings, dict) :
-        print type(incoming_bindings), incoming_bindings
+      #if not isinstance(incoming_bindings, dict) :
+      #  print type(incoming_bindings), incoming_bindings
       input_bindings = step['input_bindings']
       output_bindings = step['output_bindings']
       
@@ -63,9 +67,13 @@ class Evaluator :
       #p('new_input_bindings',input_bindings)
       input_bindings_set.append(input_bindings)
     
+    #p('input_bindings_set', input_bindings_set)
     if 'function' in step['translation'] :
       result_bindings_set = []
       for input_bindings in input_bindings_set :
+        for k,v in input_bindings.iteritems() :
+          if is_lit_var(v) :
+            raise Exception('%s of input_bindings is LitVar %s' % (k, v))
         ret = step['translation']['function'](input_bindings)
         if ret is not None:
           result_bindings_set.append(ret)
@@ -91,6 +99,8 @@ class Evaluator :
       if isinstance(result_bindings, list) :
         list_later = True
         result_bindings_set = result_bindings
+        if not all(isinstance(b, dict) for b in result_bindings) :
+          raise Exception("output of %s was a list of something other than dicts" % step['translation']['name'])
       else :
         result_bindings_set = [result_bindings]
       new_bindings_set = []
@@ -122,6 +132,7 @@ class Evaluator :
               )
             )
         
+        #p('new_bindings', new_bindings)
         new_bindings_set.append(new_bindings)
       
       #p('new_bindings_set',new_bindings_set)
@@ -162,21 +173,15 @@ class Evaluator :
       #else :
         #new_bindings_set.extend(self.evaluate_step_with_bindings(step, incoming_bindings))
     
-    islist = False
-    if isinstance(incoming_bindings_set, list) :
-      if incoming_bindings_set and isinstance(incoming_bindings_set[0], list) :
-        incoming_bindings_set = incoming_bindings_set[0]
-        islist = True
-    
+    incoming_bindings_set = self.flatten(incoming_bindings_set)
     new_bindings_set = self.evaluate_step_with_bindings(step, incoming_bindings_set)
-    
-    if islist :
-      new_bindings_set = [new_bindings_set]
+
+    # TODO: don't require this to be wrapped in a list here
+    new_bindings_set = [self.flatten(new_bindings_set)]
     
     #if new_bindings_set == [{}] :
       #new_bindings_set = []
     
-    #p('new_bindings_set',new_bindings_set)
     return new_bindings_set
   
   #@logger

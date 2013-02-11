@@ -642,6 +642,15 @@ class AxpressTestCase(unittest.TestCase):
     """)
     print ret
     assert len(ret) == 1
+  
+  def testExplode(self):
+    # at one point, 3 translation all of which increased the number of result
+    # sets was failing
+    ret = axpress.read_translate("""
+      t[test.t1] = 1
+      t[test.t4] = _t4
+    """)
+    print len(ret)
 
 if __name__ == "__main__" :
   import atexit
