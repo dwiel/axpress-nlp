@@ -1,6 +1,7 @@
 use this for something useful
 
 simplify
+  - finish cleaning/fixing Evaluator.evaluate_step_with_bindings_set
   - refactor SimpleSparql out -> Axpress or just ax ?
   - use ENV paths
   - use relative paths. can see every translation in local direcotry like
