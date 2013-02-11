@@ -650,7 +650,7 @@ class AxpressTestCase(unittest.TestCase):
       t[test.t1] = 1
       t[test.t4] = _t4
     """)
-    print len(ret)
+    assert len(ret) == 27
 
 if __name__ == "__main__" :
   import atexit
