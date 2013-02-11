@@ -40,33 +40,34 @@ class Evaluator :
     else :
       return [l]
     
-  def evaluate_step_function(self, step, input_bindings_set) :
+  def evaluate_step_function(self, step, t_in_bs) :
     # NOTE that if ret == [] aka. the input binding set is no longer valid
     # we want that to be added to the ret, not the input bindings
     
-    #p('input_bindings_set', input_bindings_set)
+    #p('t_in_bs', t_in_bs)
     if 'function' in step['translation'] :
-      result_bindings_set = []
-      for input_bindings in input_bindings_set :
-        ret = step['translation']['function'](input_bindings)
-        if ret != None:
-          result_bindings_set.append(ret)
+      t_out_bs = []
+      for t_in_b in t_in_bs :
+        t_out_b = step['translation']['function'](t_in_b)
+        if t_out_b != None:
+          t_out_bs.append(t_out_b)
         else :
-          result_bindings_set.append(input_bindings)
-      return result_bindings_set
+          t_out_bs.append(t_in_b)
+      return t_out_bs
     elif 'multi_function' in step['translation'] :
-      # a multi_function takes in the entire input_bindings_set and returns
+      # a multi_function takes in the entire t_in_bs and returns
       # an entire new one, rather than the normal function which is fed one
       # at a time (and can return any number of results)
-      ret = step['translation']['multi_function'](input_bindings_set)
-      if ret != None :
-        return ret
+      t_out_bs = step['translation']['multi_function'](t_in_bs)
+      if t_out_bs != None :
+        return t_out_bs
       else :
-        return input_bindings_set
+        return t_in_bs
     else :
       raise Exception("translation doesn't have a function ...")
   
-  def check_for_missing_variables(self, result_bindings, output_bindings):
+  def check_for_missing_variables(self, result_bindings, output_bindings,
+                                  step):
     # check to make sure everything was bound that was supposed to be
     # could be removed for tiny speed increase, but helps with debuging
     missing_variables = set(output_bindings) - set(result_bindings)
@@ -121,7 +122,7 @@ class Evaluator :
     
     t_in_bs = self.map_q_to_t(q_in_bs, t_to_q_in_b)    
     t_out_bs = self.evaluate_step_function(step, t_in_bs)
-    
+
     #p('t_out_bs',t_out_bs)
     #p('q_in_bs', q_in_bs)
     #p()
@@ -138,6 +139,8 @@ class Evaluator :
 
       new_bindings_set = []
       for t_out_b in self.flatten(t_out_b) :
+        self.check_for_missing_variables(t_out_b, t_to_q_out_b, step)
+    
         # WARNING: this only makes sense on functions, not multi_functions
         new_bindings = copy.copy(q_in_b)
         for var, value in t_out_b.iteritems() :
@@ -153,8 +156,6 @@ class Evaluator :
             if var not in t_in_b and var not in t_to_q_out_b :
               print 'warning: unused result', var
         
-        self.check_for_missing_variables(t_out_b, t_to_q_out_b)
-
         new_bindings_set.append(new_bindings)
       
       #p('new_bindings_set',new_bindings_set)
