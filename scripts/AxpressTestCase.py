@@ -376,7 +376,7 @@ class AxpressTestCase(unittest.TestCase):
   
   def testSimpleQuery(self):
     ret = axpress.read_translate("""
-      image[file.pattern] = "/home/dwiel/axpress/scripts/pictures/*.jpg"
+      image[file.pattern] = "pictures/*.jpg"
       image.pixel(image, 1, 1) = pixel
       pixel[html.color] = _color
     """)
