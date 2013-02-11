@@ -50,6 +50,12 @@ class Evaluator :
       for t_in_b in t_in_bs :
         t_out_b = step['translation']['function'](t_in_b)
         if t_out_b != None:
+          # test for invalid output
+          if isinstance(t_out_b, list) :
+            if not all(isinstance(b, dict) for b in t_out_b) :
+              raise Exception("output of %s was a list of something other"
+                              "than dicts" % step['translation']['name'])
+
           t_out_bs.append(t_out_b)
         else :
           t_out_bs.append(t_in_b)
@@ -59,10 +65,10 @@ class Evaluator :
       # an entire new one, rather than the normal function which is fed one
       # at a time (and can return any number of results)
       t_out_bs = step['translation']['multi_function'](t_in_bs)
-      if t_out_bs != None :
-        return t_out_bs
-      else :
-        return t_in_bs
+      if t_out_bs == None :
+        t_out_bs = t_in_bs
+      
+      return t_out_bs
     else :
       raise Exception("translation doesn't have a function ...")
   
@@ -100,8 +106,40 @@ class Evaluator :
           t_in_b[var] = t_to_q_in_b[var]
       t_in_bs.append(t_in_b)
     return t_in_bs
-  
+
+  def map_t_to_q(self, t_out_b, t_to_q_out_b, t_in_b={}) :
+    """
+    given a bindings in translation space, and a translation->query mapping,
+    return bindings in query space
+    
+    NOTE: t_in_b is only for generating warnings when a variable is in
+    t_out_b but there is no bindings
+    """
+    
+    q_out_b = {}
+    for var, value in t_out_b.iteritems() :
+      if var in t_to_q_out_b :
+        if is_any_var(t_to_q_out_b[var]) :
+          q_out_b[t_to_q_out_b[var].name] = value
+        else :
+          assert t_to_q_out_b[var] == value
+          q_out_b[var] = value
+      else :
+        # should there be a way to turn this off?
+        if self.warnings :
+          if var not in t_in_b :
+            print 'warning: unused result', var
+    return q_out_b
+
   def evaluate_step_with_bindings_set(self, step, q_in_bs) :
+    """
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !! the trick here I think is that I am trying to reuse code between
+    !! function and multifunction cases that aren't the same.  Its hard to
+    !! make the code more complex and repetitive at this point, but I think
+    !! there are bugs in the code as it is now due to its false simplicity
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    """
     #p()
     #p('q_in_bs', q_in_bs)
     #p('name', step['translation']['name'])
@@ -115,50 +153,38 @@ class Evaluator :
     # result bindings set     : t_out_bs     : translation space to value
     # step['output_bindings'] : t_to_q_out_b : translation to query space
     # output_bindings_set     : q_out_bs     : query space to value
+    
     # TODO: shouldn't need flatten
     q_in_bs = self.flatten(q_in_bs)
 
     t_to_q_in_b  = step['input_bindings']
     t_to_q_out_b = step['output_bindings']
     
-    t_in_bs = self.map_q_to_t(q_in_bs, t_to_q_in_b)    
+    t_in_bs = self.map_q_to_t(q_in_bs, t_to_q_in_b)
     t_out_bs = self.evaluate_step_function(step, t_in_bs)
 
+    for t_out_b in t_out_bs :
+      for t_out_b in self.flatten(t_out_b) :
+        self.check_for_missing_variables(t_out_b, t_to_q_out_b, step)      
+
+    # q_out_bs = map_t_to_q(t_out_bs, t_to_q_out_b)
     #p('t_out_bs',t_out_bs)
     #p('q_in_bs', q_in_bs)
     #p()
-    # WARNING: this only makes sense on functions, not multi_functions
-    new_bindings_set = []
-    for t_out_b, q_in_b, t_in_b in izip(t_out_bs, q_in_bs, t_in_bs) :
-      # bind the values resulting from the function call
-      # the translation might return a bindings_set so deal with that case
-      
-      # test for invalid output
-      if isinstance(t_out_b, list) :
-        if not all(isinstance(b, dict) for b in t_out_b) :
-          raise Exception("output of %s was a list of something other than dicts" % step['translation']['name'])
+    if 'function' in step['translation'] :
+      q_out_bs = []
+      for t_out_b, q_in_b, t_in_b in izip(t_out_bs, q_in_bs, t_in_bs) :
+        # bind the values resulting from the function call
+        # the translation might return a bindings_set so deal with that case
+        for t_out_b in self.flatten(t_out_b) :
+          q_out_b = copy.copy(q_in_b)
+          q_out_b.update(self.map_t_to_q(t_out_b, t_to_q_out_b, t_in_b))
+          q_out_bs.append(q_out_b)
+    if 'multi_function' in step['translation'] :
+      q_out_bs = [self.map_t_to_q(t_out_b, t_to_q_out_b)
+                  for t_out_b in t_out_bs]
 
-      for t_out_b in self.flatten(t_out_b) :
-        self.check_for_missing_variables(t_out_b, t_to_q_out_b, step)
-    
-        # WARNING: this only makes sense on functions, not multi_functions
-        new_bindings = copy.copy(q_in_b)
-        for var, value in t_out_b.iteritems() :
-          if var in t_to_q_out_b :
-            if is_any_var(t_to_q_out_b[var]) :
-              new_bindings[t_to_q_out_b[var].name] = value
-            else :
-              assert t_to_q_out_b[var] == value
-              new_bindings[var] = value
-
-          # should there be a way to turn this off?
-          if self.warnings :
-            if var not in t_in_b and var not in t_to_q_out_b :
-              print 'warning: unused result', var
-        
-        new_bindings_set.append(new_bindings)
-
-    q_out_bs = explode_bindings_set(new_bindings_set)
+    q_out_bs = explode_bindings_set(q_out_bs)
 
     #p('q_out_bs', q_out_bs)
     return q_out_bs

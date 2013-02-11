@@ -720,6 +720,47 @@ class AxpressTestCase(unittest.TestCase):
     except ValueError, e:
       assert str(e) == "variable 'out' didn't get bound by translation 'ok'"
 
+  def testMultiFunction(self) :
+    axpress = Axpress()
+
+    def range_fn(vars) :
+      vars['i'] = list(range(vars['from'], vars['to']))
+    axpress.register_translation({
+      'name' : 'range',
+      'input' : """
+        x[test.range_from] = _from
+        x[test.range_to] = _to
+      """,
+      'output' : """
+        x[test.in] = _i
+      """,
+      'function' : range_fn,
+    })
+
+    def fn(all_vars) :
+      for vars in all_vars :
+        vars['out'] = vars['in'] * 2
+      return [vars for vars in all_vars if vars['out'] % 6 == 0]
+    axpress.register_translation({
+      'name' : 'multi_fn_test',
+      'input' : """
+        o[test.in] = _in
+      """,
+      'output' : """
+        o[test.out] = _out
+      """,
+      'multi_function' : fn,
+    })
+
+    axpress.compiler.compile_translations()
+
+    ret = axpress.read_translate("""
+      x[test.range_from] = 1
+      x[test.range_to] = 10
+      x[test.out] = _out
+    """)
+    print ret
+
 if __name__ == "__main__" :
   import atexit
   def at() :
