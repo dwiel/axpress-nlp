@@ -50,7 +50,6 @@ class Evaluator :
             if not all(isinstance(b, dict) for b in t_out_b) :
               raise Exception("output of %s was a list of something other"
                               "than dicts" % step['translation']['name'])
-
           t_out_bs.append(t_out_b)
         else :
           t_out_bs.append(t_in_b)
@@ -152,15 +151,12 @@ class Evaluator :
     t_in_bs = self.map_q_to_t(q_in_bs, t_to_q_in_b)
     t_out_bs = self.evaluate_step_function(step, t_in_bs)
 
-    for t_out_b in t_out_bs :
-      for t_out_b in self.flatten(t_out_b) :
-        self.check_for_missing_variables(t_out_b, t_to_q_out_b, step)      
+    for t_out_b in self.flatten(t_out_bs) :
+      self.check_for_missing_variables(t_out_b, t_to_q_out_b, step)
 
     if 'function' in step['translation'] :
       q_out_bs = []
       for t_out_b, q_in_b, t_in_b in izip(t_out_bs, q_in_bs, t_in_bs) :
-        # bind the values resulting from the function call
-        # the translation might return a bindings_set so deal with that case
         for t_out_b in self.flatten(t_out_b) :
           # need to make a copy so that we don't mess up code
           # somewhere else that expects to be able to use q_in_b later
