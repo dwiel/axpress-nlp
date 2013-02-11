@@ -12,13 +12,13 @@ def loadTranslations(axpress) :
     return m.hexdigest()
   
   def filename_from_list_name(list_name) :
-    return '/home/dwiel/axpress/%s_list' % hash(list_name)
+    return '%s_list' % hash(list_name)
   
   def get_list(vars) :
     vars['filename'] = filename_from_list_name(vars['list_name'])
 
   def list_add(vars) :
-    f = open(filename_from_list_name(vars['list_name']), 'a')
+    f = open(filename_from_list_name(vars['list_name']), 'a+')
     print >>f, vars['item']
     f.close()
   axpress.register_translation({
