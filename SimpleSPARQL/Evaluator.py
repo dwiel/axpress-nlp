@@ -123,7 +123,7 @@ class Evaluator :
         # should there be a way to turn this off?
         if self.warnings :
           if var not in t_in_b :
-            print 'warning: unused result', var
+            print 'warning: unused result "%s"' % var
     return q_out_b
 
   def evaluate_step_with_bindings_set(self, step, q_in_bs) :
@@ -162,6 +162,8 @@ class Evaluator :
         # bind the values resulting from the function call
         # the translation might return a bindings_set so deal with that case
         for t_out_b in self.flatten(t_out_b) :
+          # need to make a copy so that we don't mess up code
+          # somewhere else that expects to be able to use q_in_b later
           q_out_b = copy.copy(q_in_b)
           q_out_b.update(self.map_t_to_q(t_out_b, t_to_q_out_b, t_in_b))
           q_out_bs.append(q_out_b)
