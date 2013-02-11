@@ -5,6 +5,13 @@ from PrettyQuery import prettyquery
 import copy
 from itertools import izip
 
+def unique_copy(o) :
+  """ generate an infinite stream of o's where the first item is o and
+  the rest are copies"""
+  yield o
+  while True :
+    yield copy.copy(o)
+
 class Evaluator :
   """
   evaluates 'programs' compiled by the compiler
@@ -183,10 +190,10 @@ class Evaluator :
     bindings_set1 = self.flatten(bindings_set1)
     bindings_set2 = self.flatten(bindings_set2)
     
-    if len(bindings_set1) == 1 or len(bindings_set2) == 1:
-      cp = lambda x:x      
-    else :
-      cp = copy.copy
+    #if len(bindings_set1) == 1 or len(bindings_set2) == 1:
+    #  cp = lambda x:x      
+    #else :
+    #  cp = copy.copy
     
     # ensure that if one of these sets has more than 1 binding, that set is in
     # bindings_set1.  Otherwise, ret will be filled with many exact copies of
@@ -196,14 +203,15 @@ class Evaluator :
     
     ret = []
     for b1 in bindings_set1 :
-      for b2 in bindings_set2 :
-        b1 = cp(b1)
+      for b1, b2 in izip(unique_copy(b1), bindings_set2) :
         b1.update(b2)
         ret.append(b1)
     
     return ret
   
   def evaluate(self, compiled, incoming_bindings_set = [{}]) :
+    # TODO: update with new bindings_set names
+    # TODO: general cleanup
     n = self.n
     
     modifiers = {}
