@@ -71,9 +71,6 @@ class Evaluator :
     if 'function' in step['translation'] :
       result_bindings_set = []
       for input_bindings in input_bindings_set :
-        for k,v in input_bindings.iteritems() :
-          if is_lit_var(v) :
-            raise Exception('%s of input_bindings is LitVar %s' % (k, v))
         ret = step['translation']['function'](input_bindings)
         if ret is not None:
           result_bindings_set.append(ret)
