@@ -62,7 +62,7 @@ class Evaluator :
       if ret != None :
         return ret
       else :
-        input_bindings_set
+        return input_bindings_set
     else :
       raise Exception("translation doesn't have a function ...")
   
@@ -83,73 +83,74 @@ class Evaluator :
         )
       )
   
-  def evaluate_step_with_bindings_set(self, step, incoming_bindings_set) :
+  def evaluate_step_with_bindings_set(self, step, q_in_bs) :
     #p()
-    #p('incoming_bindings_set', incoming_bindings_set)
+    #p('q_in_bs', q_in_bs)
     #p('name', step['translation']['name'])
     #p('input_bindings', step['input_bindings'])
     #p('output_bindings', step['output_bindings'])
     
     # descriptions of variables
-    # incoming bindings set : from query space to value
-    # step['input_bindings'] : from translation space to query space
-    # input bindings set : from translation space to value
-    # result bindings set : from translation space to value
-    # step['output_bindings'] : from translation space to query space
-    # output_bindings_set : from query space to value
-    incoming_bindings_set = self.flatten(incoming_bindings_set)
+    # incoming bindings set   : q_in_bs      : query space to value
+    # step['input_bindings']  : t_to_q_in_b  : translation to query space
+    # input bindings set      : t_in_bs      : translation space to value
+    # result bindings set     : t_out_bs     : translation space to value
+    # step['output_bindings'] : t_to_q_out_b : translation to query space
+    # output_bindings_set     : q_out_bs     : query space to value
+    q_in_bs = self.flatten(q_in_bs)
 
-    input_bindings  = step['input_bindings']
-    output_bindings = step['output_bindings']
+    t_to_q_in_b  = step['input_bindings']
+    t_to_q_out_b = step['output_bindings']
     
-    # substitute any values in the incoming bindings into the input_bindings
-    input_bindings_set = []
-    for incoming_bindings in incoming_bindings_set :
-      new_input_bindings = {}
-      for var, value in input_bindings.iteritems() :
-        if is_any_var(value) and value.name in incoming_bindings :
-          new_input_bindings[var] = incoming_bindings[value.name]
+    # covert query in bindings set (q_in_bs) into translation space (t_in_bs)
+    # using t_to_q_in_b
+    t_in_bs = []
+    for q_in_b in q_in_bs :
+      t_in_b = {}
+      for var, value in t_to_q_in_b.iteritems() :
+        if is_any_var(value) and value.name in q_in_b :
+          t_in_b[var] = q_in_b[value.name]
         else :
-          new_input_bindings[var] = input_bindings[var]
-      input_bindings_set.append(new_input_bindings)
+          t_in_b[var] = t_to_q_in_b[var]
+      t_in_bs.append(t_in_b)
     
-    result_bindings_set = self.evaluate_step_function(step, input_bindings_set)
+    t_out_bs = self.evaluate_step_function(step, t_in_bs)
     
-    #p('result_bindings_set',result_bindings_set)
-    #p('incoming_bindings_set', incoming_bindings_set)
+    #p('t_out_bs',t_out_bs)
+    #p('q_in_bs', q_in_bs)
     #p()
-    output_bindings_set = []
-    for result_bindings, incoming_bindings, input_bindings in izip(result_bindings_set, incoming_bindings_set, input_bindings_set) :
+    q_out_bs = []
+    for t_out_b, q_in_b, t_in_b in izip(t_out_bs, q_in_bs, t_in_bs) :
       # bind the values resulting from the function call
       # the translation might return a bindings_set so deal with that case
-      if isinstance(result_bindings, list) :
-        result_bindings_set = result_bindings
-        if not all(isinstance(b, dict) for b in result_bindings) :
+      if isinstance(t_out_b, list) :
+        t_out_bs = t_out_b
+        if not all(isinstance(b, dict) for b in t_out_b) :
           raise Exception("output of %s was a list of something other than dicts" % step['translation']['name'])
       else :
-        result_bindings_set = [result_bindings]
+        t_out_bs = [t_out_b]
 
       new_bindings_set = []
-      for result_bindings in result_bindings_set :
+      for t_out_b in t_out_bs :
         #p('output_bindings',output_bindings)
-        #p('result_bindings',result_bindings)
-        #p('incoming_bindings',incoming_bindings)
+        #p('t_out_b',t_out_b)
+        #p('q_in_b',q_in_b)
         # WARNING: this only makes sense on functions, not multi_functions
-        new_bindings = copy.copy(incoming_bindings)
-        for var, value in result_bindings.iteritems() :
-          if var in output_bindings :
-            if is_any_var(output_bindings[var]) :
-              new_bindings[output_bindings[var].name] = value
+        new_bindings = copy.copy(q_in_b)
+        for var, value in t_out_b.iteritems() :
+          if var in t_to_q_out_b :
+            if is_any_var(t_to_q_out_b[var]) :
+              new_bindings[t_to_q_out_b[var].name] = value
             else :
-              assert output_bindings[var] == value
+              assert t_to_q_out_b[var] == value
               new_bindings[var] = value
 
           # should there be a way to turn this off?
           if self.warnings :
-            if var not in input_bindings and var not in output_bindings :
+            if var not in t_in_b and var not in t_to_q_out_b :
               print 'warning: unused result', var
         
-        self.check_for_missing_variables(result_bindings, output_bindings)
+        self.check_for_missing_variables(t_out_b, t_to_q_out_b)
 
         #p('new_bindings', new_bindings)
         new_bindings_set.append(new_bindings)
@@ -161,10 +162,10 @@ class Evaluator :
           new_explode_bindings_set(new_bindings)
         )
 
-      output_bindings_set.extend(new_exploded_bindings_set)
+      q_out_bs.extend(new_exploded_bindings_set)
     
-    #p('output_bindings_set', self.flatten(output_bindings_set))
-    return self.flatten(output_bindings_set)
+    #p('q_out_bs', self.flatten(q_out_bs))
+    return self.flatten(q_out_bs)
 
   def non_empty(self, b_set) :
     for b in b_set :
