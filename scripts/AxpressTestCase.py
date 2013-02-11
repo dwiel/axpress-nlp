@@ -15,6 +15,17 @@ axpress.compiler.debug_off()
 loadTranslations(axpress)
 
 class AxpressTestCase(unittest.TestCase):
+  def testGlob(self):
+    rets = axpress.read_translate("""
+      image[glob.glob] = "pictures/*.jpg"
+      image[file.filename] = _filename
+    """)
+    assert len(rets) == 2
+    assert all('filename' in ret for ret in rets)
+    assert all(len(ret) == 1 for ret in rets)
+    assert 'pictures/111.jpg'    in [ret['filename'] for ret in rets]
+    assert 'pictures/foobar.jpg' in [ret['filename'] for ret in rets]
+  
   def testTranslationReturnsMultipleValues(self):
     """ note, at one time, thumb was included in the reqd_bound_vars, but
     I'm not really sure why.  It doesn't really have any meaning.
