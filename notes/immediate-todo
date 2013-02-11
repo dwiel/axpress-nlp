@@ -2,7 +2,7 @@ figure out why image average color translation doesn't work when the
   similar hardcoded case does.  What is the difference?
   - bummer, don't remember the context here ...
 figure out how to use axpress for something useful
-  make it more robust (always erroring right now ...)
+  make it more robust (still frequently finding bugs ...)
 figure out bug in pw code
 ! anything that can help with debugging?
 figure out how to make library system more programming language like
