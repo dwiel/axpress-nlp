@@ -142,9 +142,6 @@ class Evaluator :
     # t_to_q_out_b : translation to query space
     # q_out_bs     : query space to value
     
-    # TODO: shouldn't need flatten
-    q_in_bs = self.flatten(q_in_bs)
-
     t_to_q_in_b  = step['input_bindings']
     t_to_q_out_b = step['output_bindings']
     
@@ -187,11 +184,6 @@ class Evaluator :
 
     bindings_set1 = self.flatten(bindings_set1)
     bindings_set2 = self.flatten(bindings_set2)
-    
-    #if len(bindings_set1) == 1 or len(bindings_set2) == 1:
-    #  cp = lambda x:x      
-    #else :
-    #  cp = copy.copy
     
     # ensure that if one of these sets has more than 1 binding, that set is in
     # bindings_set1.  Otherwise, ret will be filled with many exact copies of
