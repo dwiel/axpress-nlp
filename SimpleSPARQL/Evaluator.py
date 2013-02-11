@@ -36,12 +36,13 @@ class Evaluator :
         new_l.append(i)
     return new_l
   
-  def evaluate_step_with_bindings(self, step, incoming_bindings_set) :
+  def evaluate_step_with_bindings_set(self, step, incoming_bindings_set) :
     #p()
     #p('incoming_bindings_set', incoming_bindings_set)
     #p('name', step['translation']['name'])
     #p('input_bindings', step['input_bindings'])
     #p('output_bindings', step['output_bindings'])
+    incoming_bindings_set = self.flatten(incoming_bindings_set)
     
     input_bindings_set = []
     for incoming_bindings in incoming_bindings_set :
@@ -77,6 +78,9 @@ class Evaluator :
         else :
           result_bindings_set.append(input_bindings)
     elif 'multi_function' in step['translation'] :
+      # a multi_function takes in the entire input_bindings_set and returns
+      # an entire new one, rather than the normal function which is fed one
+      # at a time (and can return any number of results)
       ret = step['translation']['multi_function'](input_bindings_set)
       if ret is not None:
         result_bindings_set = ret
@@ -113,7 +117,8 @@ class Evaluator :
               new_bindings[var] = value
               #print 'hmm should I do something?',var, output_bindings[var],value
         
-        #check to make sure everything was bound that was supposed to be
+        # check to make sure everything was bound that was supposed to be
+        # could be removed for tiny speed increase, but helps with debuging
         if len(new_bindings) != len(output_bindings) :
           missing_variables = set(output_bindings) - set(result_bindings)
           if missing_variables :
@@ -145,42 +150,8 @@ class Evaluator :
       #return new_exploded_bindings_set
       output_bindings_set.extend(new_exploded_bindings_set)
     
-    return output_bindings_set
+    return self.flatten(output_bindings_set)
 
-  #@logger
-  def evaluate_step_with_bindings_set(self, step, incoming_bindings_set) :
-    """
-    There was some confusion when I was porting this to allow trasnlation
-    functions to take all the bindings at once.
-    
-    The confusion arises from the distinction between a list of possibilities
-    which can happen together:
-    translation 1 returns: [{x:1}, {x:2}]
-    translation 2 returns; [{y:1}, {y:2}]
-    
-    could mean all 4 combinations are possible, or that x1 and x2 can both 
-    happen but not simultaneously
-    """
-    #p('evaluating',step['translation']['name'])
-    #p('incoming_bindings_set',incoming_bindings_set)
-    #new_bindings_set = []
-    #for incoming_bindings in incoming_bindings_set :
-      #if isinstance(incoming_bindings, list) :
-        #new_bindings_set.append(self.evaluate_step_with_bindings_set(step, incoming_bindings))
-      #else :
-        #new_bindings_set.extend(self.evaluate_step_with_bindings(step, incoming_bindings))
-    
-    incoming_bindings_set = self.flatten(incoming_bindings_set)
-    new_bindings_set = self.evaluate_step_with_bindings(step, incoming_bindings_set)
-
-    # TODO: don't require this to be wrapped in a list here
-    new_bindings_set = self.flatten(new_bindings_set)
-    
-    #if new_bindings_set == [{}] :
-      #new_bindings_set = []
-    
-    return new_bindings_set
-  
   def non_empty(self, b_set) :
     for b in b_set :
       if b :
