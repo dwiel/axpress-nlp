@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from Utils import var_name, is_any_var, is_var, is_lit_var, explode_bindings_set, debug, p, logger, new_explode_bindings_set
+from Utils import var_name, is_any_var, is_var, is_lit_var, explode_bindings_set, debug, p, logger, explode_bindings_set
 from PrettyQuery import prettyquery
 
 import copy
@@ -82,6 +82,23 @@ class Evaluator :
           ), step['translation']['name']
         )
       )
+
+  def map_q_to_t(self, q_in_bs, t_to_q_in_b) :
+    """
+    given bindings set in query space, and translation->query mapping,
+    return bindings in translation_space
+    """
+    
+    t_in_bs = []
+    for q_in_b in q_in_bs :
+      t_in_b = {}
+      for var, value in t_to_q_in_b.iteritems() :
+        if is_any_var(value) and value.name in q_in_b :
+          t_in_b[var] = q_in_b[value.name]
+        else :
+          t_in_b[var] = t_to_q_in_b[var]
+      t_in_bs.append(t_in_b)
+    return t_in_bs
   
   def evaluate_step_with_bindings_set(self, step, q_in_bs) :
     #p()
@@ -102,39 +119,25 @@ class Evaluator :
     t_to_q_in_b  = step['input_bindings']
     t_to_q_out_b = step['output_bindings']
     
-    # covert query in bindings set (q_in_bs) into translation space (t_in_bs)
-    # using t_to_q_in_b
-    t_in_bs = []
-    for q_in_b in q_in_bs :
-      t_in_b = {}
-      for var, value in t_to_q_in_b.iteritems() :
-        if is_any_var(value) and value.name in q_in_b :
-          t_in_b[var] = q_in_b[value.name]
-        else :
-          t_in_b[var] = t_to_q_in_b[var]
-      t_in_bs.append(t_in_b)
-    
+    t_in_bs = self.map_q_to_t(q_in_bs, t_to_q_in_b)    
     t_out_bs = self.evaluate_step_function(step, t_in_bs)
     
     #p('t_out_bs',t_out_bs)
     #p('q_in_bs', q_in_bs)
     #p()
+    # WARNING: this only makes sense on functions, not multi_functions
     q_out_bs = []
     for t_out_b, q_in_b, t_in_b in izip(t_out_bs, q_in_bs, t_in_bs) :
       # bind the values resulting from the function call
       # the translation might return a bindings_set so deal with that case
+      
+      # test for invalid output
       if isinstance(t_out_b, list) :
-        t_out_bs = t_out_b
         if not all(isinstance(b, dict) for b in t_out_b) :
           raise Exception("output of %s was a list of something other than dicts" % step['translation']['name'])
-      else :
-        t_out_bs = [t_out_b]
 
       new_bindings_set = []
-      for t_out_b in t_out_bs :
-        #p('output_bindings',output_bindings)
-        #p('t_out_b',t_out_b)
-        #p('q_in_b',q_in_b)
+      for t_out_b in self.flatten(t_out_b) :
         # WARNING: this only makes sense on functions, not multi_functions
         new_bindings = copy.copy(q_in_b)
         for var, value in t_out_b.iteritems() :
@@ -152,14 +155,13 @@ class Evaluator :
         
         self.check_for_missing_variables(t_out_b, t_to_q_out_b)
 
-        #p('new_bindings', new_bindings)
         new_bindings_set.append(new_bindings)
       
       #p('new_bindings_set',new_bindings_set)
       new_exploded_bindings_set = []
       for new_bindings in new_bindings_set :
         new_exploded_bindings_set.extend(
-          new_explode_bindings_set(new_bindings)
+          explode_bindings_set(new_bindings)
         )
 
       q_out_bs.extend(new_exploded_bindings_set)

@@ -250,6 +250,9 @@ def sub_var_bindings_set(triples, bindings_set) :
 def explode_binding(bindings) :
   list_of_new_bindings = [{}]
   for var, value in bindings.iteritems() :
+    # NOTE: this is where we should change it to look for some
+    # specific subclass of list rather than list so that we can also
+    # have list values if we want
     if type(value) == list :
       # each value in the list of values is a new set of bindings
       new_list_of_new_bindings = []
@@ -259,6 +262,8 @@ def explode_binding(bindings) :
           tmp_new_bindings[var] = v
           new_list_of_new_bindings.append(tmp_new_bindings)
       list_of_new_bindings = new_list_of_new_bindings
+    # NOTE: figure out/document what this means exactly ... perhaps
+    # make it a subclass of list instead
     elif type(value) == tuple :
       # each value in the tuple of values is simultaneous
       for new_bindings in list_of_new_bindings :
@@ -283,21 +288,6 @@ def explode_bindings_set(bindings_set) :
   
   return new_bindings_set
   
-def new_explode_bindings_set(bindings_set) :
-  if isinstance(bindings_set, dict) :
-    bindings_set = [bindings_set]
-  
-  # explode the bindings_set which have multiple values into multiple
-  # bindings
-  new_bindings_set = []
-  for bindings in bindings_set :
-    new_bindings = explode_binding(bindings)
-    if len(new_bindings) == 1 :
-      new_bindings_set.extend(new_bindings)
-    else :
-      new_bindings_set.append(new_bindings)
-  return new_bindings_set
-
 def find_vars(query, is_a_var = is_any_var, find_string_vars = False) :
   """
   given a query, find the set of names of all vars, meta_vars and lit_vars
