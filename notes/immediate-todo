@@ -1,24 +1,29 @@
-refactor SimpleSparql out -> Axpress or just Ax ?
-figure out why image average color translation doesn't work when the 
-  similar hardcoded case does.  What is the difference?
-  - bummer, don't remember the context here ...
-figure out how to use axpress for something useful
-  make it more robust (still frequently finding bugs ...)
-figure out bug in pw code
-! anything that can help with debugging?
-figure out how to make library system more programming language like
-  use paths?
-  - maybe also relative paths? can see every translation in local direcotry
-    under *.ax
-figure out how to allow code with #!/usr/bin/axpress
-figure out how to refactor into more simple/easier to debug/fewer bugs code
-       might be helpful to write out all of the steps again; the new string
-       matching code
-read_translate bindings_set recompiles for each bindings - should only need to compile once
-lots of confusion is inevitable to due overloading list as a list of possibilities as well as an actual list
+use this for something useful
 
-disallow input variables like bnode1
-make optional parts of a query and part of a translation work
+simplify
+  - refactor SimpleSparql out -> Axpress or just ax ?
+  - use ENV paths
+  - use relative paths. can see every translation in local direcotry like
+    python (*.ax)
+  - temp data paths - .axpress
+  - allow code with #!/usr/bin/axpress
+
+  - heavy refactor : what are component steps, how to name things differently to that effect.  also less confused overloading of how to find bindings, matches, etc.  matching one intermediate form with another hsa slight differences ...
+
+bugs/features:
+  - read_translate bindings_set recompiles for each bindings - should only need to compile once
+  - disallow input variable names like bnode1 to avoid confusion and errors
+
+conceptual:
+  - lots of confusion is inevitable to due overloading list as a list of possibilities as well as an actual list
+    perhaps something like this:
+        class Set(list) : pass
+        class SetMaker() :
+            def __getitem__(self, *args) :
+                return Set(*args)
+        S = SetMaker()
+        print S[1,2,3]
+  - make optional parts of a query and part of a translation work
 
 ---
 
