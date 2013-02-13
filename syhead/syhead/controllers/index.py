@@ -25,7 +25,9 @@ class IndexController(BaseController):
     else :
       c.debug_on_str = ''
     
-    if not c.debug_on :
+    if c.debug_on :
+      g.axpress.compiler.debug_on()
+    else :
       g.axpress.compiler.debug_off()
     
     if c.string_query :
