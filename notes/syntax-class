@@ -1,0 +1,155 @@
+# TODO: how can this syntax change to better support more unit conversions?
+# TODO: google style unit math
+
+a = n.axpress
+u = n.units
+
+  # method 1 - works now
+  def make_unit(names) :
+    rule('parse %s str' % names[0], 
+      '_[a.is] = "%i% ({s})"'.format(s='|'.join(names)),
+      '_[u.%s] = a.float(_i)' % names[0])
+  
+  # method 1.1
+  def make_unit(names) :
+    rule("""parse $name str
+      _[a.is] = "%i% (${'|'.join(names)})" =>
+      _[u.$name] = a.float(_i)
+    """, **locals)
+
+  # method 2
+  rule("""parse {name} str
+    _[a.is] = "%i% ({names})" =>
+    _[u.{name}] = a.float(_i)
+  """.format(name = names[0], names = '|'.join(names)))
+  
+  # method 3
+  rule('parse %s str' % names[0], [
+    [n.var._, n.a.is, "%i% " + '|'.join(names)],
+  ], [
+    [n.var._, n.u[names[0]], n.var.f],
+    [n.a.float, n.lit_var.i, n.var.f],
+  ])
+  
+  # method 3.1 (clojure/lisp)
+  (deffn make_unit (names)
+    (rule.add (<< "parse ~(first names) str")
+     `((:_ a.is ~@(str "%i% " (join '|' names))))
+     `((:_ ~@(n.u (first names)) (a.float f)))))
+  
+  # method 4 - works now! as kludgy as it is ...
+  rule(Template("""parse ${names[0]} str
+    _[a.is] = "%i% (${'|'.join(names)})"
+      =>
+    _[u.${names[0]}] = a.float(_i)""").render(names = names))
+  
+  # method 5
+  # can I define the pattern with axpress itself?
+  rule = u.make_unit(names)
+    =>
+  rule[rule.defn] = mako.template("""
+    parse ${names[0]} str
+    _[a.is] = "%i% (${'|'.join(names)})"
+      =>
+    _[u.${names[0]}] = a.float(_i)
+  """, {'names' : names})
+  
+  # method 6 - build in mako
+  rule = u.make_unit(names)
+    =>
+  rule[rule.name] = "parse ${names[0]} str"
+  rule[rule.input] = """_[a.is] = "%i% (${'|'.join(names)})" """
+  rule[rule.output] = "_[u.${names[0]}] = a.float(_i)"
+  
+  # method 7
+  # some way to include quote into the syntax: ?
+  # is there any benefit to this syntax other than for this specific purpose?
+  rule = u.make_unit(names)
+    =>
+  rule[rule.name]  = "parse ${names[0]} str"
+  rule[rule.in] = <_[a.is] = "%i% (${'|'.join(names)})">
+  rule[rule.out] = <_[u.${names[0]}] = a.float(_i)>
+  ---
+  rule.add(u.make_unit(['inch', 'inches', 'in']))
+
+  # method 8
+  # cleanup of version 7
+  rule = u.make_unit(names) =>
+  rule = rule.add("parse ${names[0]} str",
+    <_[a.is] = "%i% (${'|'.join(names)})">,
+    <_[u.${names[0]}] = a.float(_i)>)
+  
+# lengths
+unit(['inch', 'inches', 'in'])
+unit(['foot', 'feet', 'ft'])
+unit(['yard', 'yards', 'yd', 'yds'])
+unit(['mile', 'miles', 'mi'])
+unit(['cm', 'centimeter', 'centimeters'])
+unit(['mm', 'milimeter', 'milimeters'])
+unit(['m', 'meter', 'meters'])
+
+# version 1
+# this will require some python parsing trickery ...
+:: u.feet = u.inch / 12.0
+:: u.inch = u.feet * 12.0
+:: u.feet_str = '%.03f feet' % u.feet
+:: u.inch_str = '%.03f inches' % u.inch
+
+# version 2 - python
+def conv(from, to, fn) :
+    def wrapper_fn(vars) : vars['out'] = fn(vars['in'])
+    rule("%s -> %s" % (from, to),
+      "_[%s] = _in" % from,
+      "_[%s] = _out" % to,
+      wrapper_fn)
+conv(u.feet, u.inch, lambda x:x*12)
+def str_conv(u) :
+    conv(u, u+'_str', lambda x:x'%.03f %s' % (x, u))
+str_conv('feet')
+
+# version 3 - axpress
+# requires:
+#   quoting triples <>
+#   lambdas
+#   nested rules ... who does that last => py belong to?
+rule = u.conv(_from, _to, _fn) =>
+rule = rule.add("%from% -> %to%",
+  <_[from] = _in>
+  <_[to]   = _out>
+  => py
+  vars['out'] = fn(vars['in']))
+---
+u.conv(u.feet, u.inch, lambda x:x*12)
+
+# version 4
+rule = u.conv(_from, _to, _fn)) =>
+rule = rule.add("%from% -> %to%",
+  <_[from] = _in>
+  <_[to]   = _out>
+  => py
+  vars['out'] = fn(vars['in'])
+---
+u.conv(u.feet, u.inch, lambda x:x*12)
+
+# version 5
+(rule.add 
+  `((eq rule (u.conv _from _to _fn)))
+  `((eq rule (rule.add (<< "~(from) -> ~(to)")
+               `(eq (get _ from) _in)
+               `(eq (get _ to)   _out)
+               (lambda (vars)
+                 (set (get vars :out) (fn (get vars :in))))))))
+# version 6
+(rule.add 
+  `((eq rule (u.conv _from _to _fn)))
+  `((eq rule (rule.add (<< "~(from) -> ~(to)")
+               `(teq _ from _in)
+               `(teq _ to   _out)
+               {:out (_fn in)}))))
+(ax (u.conv u.feet u.inch (lambda (f) f*12)))
+
+length in feet
+  _[a.is] = "%length% in feet"
+=>
+  _[a.is] = "%length%"
+  _[speech.out] = _[u.feet_str]
