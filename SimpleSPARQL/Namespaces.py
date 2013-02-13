@@ -1,15 +1,26 @@
 # -*- coding: utf-8 -*-
-#from rdflib.Namespace import NamespaceDict
-from rdflib import Namespace
 import re
 
-#Namespace = NamespaceDict
+from URIRef import URIRef
 
 def uri_could_be_from_namespace(self, uri, namespace) :
 	if re.match(namespace+"([^ .\}]+)", uri) :
 		return True
 	return False
+
+class Namespace(URIRef):
+	def term(self, name):
+		return URIRef(self + name)
 	
+	def __getitem__(self, key, default=None):
+		return self.term(key)
+	
+	def __getattr__(self, name):
+		if name.startswith("__"): # ignore any special Python names!
+			raise AttributeError
+		else:
+			return self.term(name)
+
 class Namespaces() :
 	namespaces = {}
 

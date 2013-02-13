@@ -2,7 +2,7 @@
 from Namespaces import Namespaces
 from Triple import Triple
 
-from rdflib import URIRef
+from URIRef import URIRef
 
 import time, copy
 
@@ -303,8 +303,11 @@ def find_vars(query, is_a_var = is_any_var, find_string_vars = False) :
     if is_a_var(query) :
       return set([query.name])
     elif find_string_vars and isstr(query) :
-      const, vars = split_string(query)
-      return set(unicode(v) for v in vars)
+      if '%' in query :
+        const, vars = split_string(query)
+        return set(unicode(v) for v in vars)
+      else :
+        return set()
     else :
       return set()
 

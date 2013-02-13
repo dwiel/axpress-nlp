@@ -9,7 +9,7 @@ import StringMatch
 
 from Bindings import Bindings
 
-from rdflib import URIRef
+from URIRef import URIRef
 
 from itertools import izip, imap
 import copy, time, random
@@ -69,6 +69,12 @@ class Compiler :
     
     self.match_strings_both_ways = False
     
+    self._debug = self.debug
+    self._debugp = self.debugp
+    self._debugps = self.debugps
+    self._debug_open_block = self.debug_open_block
+    self._debug_close_block = self.debug_close_block
+    
     self.block_depth = 0
     self.log_debug = debug
     self.debug_reset()
@@ -80,7 +86,14 @@ class Compiler :
     
   def nop(*args, **kwargs) :
     pass
-  
+
+  def debug_on(self) :
+    self.debug = self._debug
+    self.debugp = self._debugp
+    self.debugps = self._debugps
+    self.debug_open_block = self._debug_open_block
+    self.debug_close_block = self._debug_close_block
+      
   def debug_off(self) :
     self.debug = self.nop
     self.debugp = self.nop

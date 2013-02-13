@@ -4,7 +4,7 @@ from Namespaces import Namespaces
 from PrettyQuery import prettyquery
 from Parser import Parser
 
-from rdflib import URIRef
+from URIRef import URIRef
 
 from itertools import izip
 import copy, time, random

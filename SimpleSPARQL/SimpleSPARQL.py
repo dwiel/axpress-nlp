@@ -8,7 +8,9 @@ TODO: make translation into SPARQL standards compliant or warn that it isn't(ins
 
 import time, re, copy, datetime, random
 from SPARQLWrapper import *
-from rdflib import *
+#from rdflib import *
+import rdflib
+from rdflib import Variable
 from urllib import urlopen, urlencode
 from pprint import pprint
 from itertools import izip
@@ -260,7 +262,7 @@ class SimpleSPARQL (SPARQLWrapper) :
 			return u'"%d-%d-%dT%d:%d:%dT"^^xsd:dateTime' % (data.year, data.month, data.day, data.hour, data.minute, data.second)
 		elif type(data) == time.struct_time :
 			return u'"%d-%d-%dT%d:%d:%dT"^^xsd:dateTime' % data[0:6]
-		elif type(data) == rdflib.URIRef :
+		elif type(data) == URIRef :
 			return data.n3()
 		# resulting in vars:
 		elif data == [] :
@@ -380,7 +382,7 @@ class SimpleSPARQL (SPARQLWrapper) :
 			return u'"%d-%d-%dT%d:%d:%dT"^^xsd:dateTime' % (query.year, query.month, query.day, query.hour, query.minute, query.second)
 		elif type(query) == time.struct_time :
 			return u'"%d-%d-%dT%d:%d:%dT"^^xsd:dateTime' % query[0:6]
-		elif type(query) == rdflib.URIRef :
+		elif type(query) == URIRef :
 			return query.n3()
 		elif type(query) == rdflib.Literal :
 			if query.datatype == None :

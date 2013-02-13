@@ -1,6 +1,8 @@
 from SimpleSPARQL import *
 from Utils import is_any_var
 
+from URIRef import URIRef
+from rdflib import Literal
 import types
 
 n = Namespaces.globalNamespaces()
@@ -58,8 +60,8 @@ def prettyquery_helper(query, tabs = '', indent = '  ', namespaces = n) :
   elif isinstance(query, URIRef) :
     return unicode(namespaces.shortenForN(query))
   elif isinstance(query, Literal) :
-    if query.datatype == rdflib.URIRef('http://www.w3.org/2001/XMLSchema#float') or \
-      query.datatype == rdflib.URIRef('http://www.w3.org/2001/XMLSchema#int') :
+    if query.datatype == URIRef('http://www.w3.org/2001/XMLSchema#float') or \
+      query.datatype == URIRef('http://www.w3.org/2001/XMLSchema#int') :
       return unicode(query.toPython())
     else :
       return repr(unicode(query))
