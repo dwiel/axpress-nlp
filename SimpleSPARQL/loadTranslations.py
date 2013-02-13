@@ -14,6 +14,7 @@ def loadTranslations(axpress, n = None) :
   n.bind('type', '<http://dwiel.net/express/type/0.1/>')
   n.bind('speech', '<http://dwiel.net/axpress/speech/0.1/>')
 
+  axpress.modules = []
   for name in glob.glob('/home/dwiel/axpress/translations/*.py') :
     if os.path.isdir(name) :
       pass
@@ -22,6 +23,9 @@ def loadTranslations(axpress, n = None) :
 
       f = open(name, 'rb')
       m = imp.load_source(md5.new(name).hexdigest(), name, f)
+      
+      axpress.modules.append(m)
+
       try :
         loadTranslations = m.loadTranslations
       except AttributeError, e:
