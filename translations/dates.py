@@ -246,5 +246,5 @@ def loadTranslations(axpress) :
       #m[dt.x] = x
     #""")
 
-def test() :
+def test(axpress) :
   pass
