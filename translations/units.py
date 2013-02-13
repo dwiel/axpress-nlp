@@ -5,14 +5,20 @@ def loadTranslations(axpress) :
     rule = axpress.rule
 
     # could go in a string/std library somewhere
+    # could also use at some point to add word number parsing ...
     def str_to_float(vars) :
         vars['f'] = float(vars['s'])
+    def infn(vars) :
+        try :
+            float(vars['s'])
+            return True
+        except :
+            return False
     rule('str to float', """
         a.float(_s) = f
     """, """
-        a.float(_s) = _f
         _f[a.type] = a.float
-    """, str_to_float)
+    """, str_to_float, infn)
 
     def unit(names, square=True) :
         singular = names[0].replace(' ', '_')
@@ -21,7 +27,8 @@ def loadTranslations(axpress) :
         # parsing the unit
         rule('parse %s str' % singular,
              '_[a.is] = "%i% ({s})"'.format(s='|'.join(names)),
-             '_[u.%s] = a.float(_i)' % plural)
+             #'_[u.%s] = a.float(_i)' % plural)
+             '_[u.{plural}] = a.float("%i%")'.format(plural=plural))
 
         # TODO: should be able to use _length instead of "%length%" in
         # the output
