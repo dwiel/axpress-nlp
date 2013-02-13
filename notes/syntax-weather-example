@@ -67,7 +67,7 @@ def loadTranslations(axpress, n) :
     x[w.forecast] = _forecast
     =>
     x[simple_display.text] = _out
-    # should really be => mako
+    # could also be => mako
     => py
     vars['out'] = Template(u"""## -*- coding: utf-8 -*-
       <div id="weather" style="width:400px">
