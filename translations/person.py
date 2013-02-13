@@ -12,10 +12,10 @@ def loadTranslations(axpress) :
         return False
       if re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", email) != None:
         return True
-    return False
-    
-  rule("parse email", """
-    person[axpress.is] = _email
-  """, """
-    person[person.email_address] = _email
-  """, input_function = match_email)
+    return False    
+  #rule("parse email", """
+  #  person[axpress.is] = _email
+  #""", """
+  #  person[person.email_address] = _email
+  #""", input_function = match_email)
+
