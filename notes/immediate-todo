@@ -8,6 +8,8 @@
   - how can we avoid it?
     - predict best direction to search in?
     - general faster searching/matching?
+  - use unicode/string instead of URIRef
+  - switch values_match to a member function of classes to remove lots of ifs
 
 simplify
   - refactor SimpleSparql out -> Axpress or just ax ?

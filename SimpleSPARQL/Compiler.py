@@ -18,13 +18,6 @@ from collections import defaultdict
 # for catching re errors
 import sre_constants
 
-import time
-
-"""
-some naming conventions:
-  var_triples are the triples which include outlitvars
-"""
-
 def logger(fn) :
   def new_fn(*args, **kwargs) :
     ret = fn(*args, **kwargs)
@@ -128,8 +121,6 @@ class Compiler :
   def rule(self, name, input, output, fn=None, input_function=None, **kwargs) :
     """ shorthand for full length register_translation """
     assert isinstance(name, basestring)
-    assert isinstance(input, basestring)
-    assert isinstance(output, basestring)
     options = {
       'name'   : name,
       'input'  : input,
@@ -203,8 +194,6 @@ class Compiler :
     with any of the input triples from next """
     for triple in this['output'] :
       for ntriple in next['input'] :
-        #if this['name'] == "say hi" and next['name'] == "parse email" :
-          #p('m', ntriple, triple, self.triples_match(ntriple, triple))
         if self.triples_match(ntriple, triple) :
           return True
     
@@ -224,13 +213,14 @@ class Compiler :
     self.match_strings_both_ways = False
   
   
-  ##############################################################################
+  #############################################################################
   # MATCHING
   
   def find_matches(self, value, qvalue) :
     return StringMatch.match(value, qvalue)
     
   def string_matches(self, value, qvalue) :
+    # boolean version of find_matches
     # note that [] denotes a successful basic string match, just without any
     # variables to match against
     return self.find_matches(value, qvalue) not in [None, False]
@@ -260,6 +250,8 @@ class Compiler :
           return False
         else :
           return True
+      else :
+        raise Exception('shouldnt get here')
     elif is_out_lit_var(qvalue) :
       return True
     elif isinstance(value, list) :
@@ -307,7 +299,7 @@ class Compiler :
         return True
     return False
     
-  ##############################################################################
+  #############################################################################
   # BINDINGS
   def mul_bindings_set(self, bs1, bs2) :
     new_bs = []
@@ -406,8 +398,8 @@ class Compiler :
     a and b are dictionaries.  Returns True if there are keys which are in 
     both a and b, but have different values.  Used in unification
     """
-    # WARNING: this should probably return the new binding so that is_out_lit_var
-    # never clobbers not is_any_var
+    # WARNING: this should probably return the new binding so that
+    # is_out_lit_var never clobbers not is_any_var
     new_bindings = Bindings()
     for k, v in a.iteritems() :
       if k in b and b[k] != v :
@@ -507,8 +499,8 @@ class Compiler :
       if len(new_bindings) > 0 :
         bindings = new_bindings
       else :
-        # in output unification reqd_facts will be False - in that case, we don't
-        # care if every triple binds
+        # in output unification reqd_facts will be False - in that
+        # case, we don't care if every triple binds
         if reqd_facts != False :
           return False
     
@@ -535,7 +527,8 @@ class Compiler :
     # match a reqd_triple.  In output unification reqd_facts is False and we 
     # only need partial bindings so this step isn't necessary
     if reqd_facts != False:
-      bindings = [binding for binding in bindings if len(binding) == len(vars) and binding.matches_reqd_fact]
+      bindings = [binding for binding in bindings
+                  if len(binding) == len(vars) and binding.matches_reqd_fact]
     
     # if there are no bindings, failed to find a match
     if len(bindings) == 0 :
@@ -545,7 +538,7 @@ class Compiler :
     #self.debugp('matches', matches, bindings)
     return bindings
 
-  ##############################################################################
+  #############################################################################
   # testtranslation and next_steps
 
   def testtranslation(self, translation, query, reqd_triples) :
