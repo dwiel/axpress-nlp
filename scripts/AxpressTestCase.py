@@ -728,11 +728,10 @@ class AxpressTestCase(unittest.TestCase):
     axpress.register_translation({
       'name' : 'range',
       'input' : """
-        x[test.range_from] = _from
-        x[test.range_to] = _to
+        x = test.range(_from, _to)
       """,
       'output' : """
-        x[test.in] = _i
+        x[a.int] = _i
       """,
       'function' : range_fn,
     })
@@ -744,7 +743,7 @@ class AxpressTestCase(unittest.TestCase):
     axpress.register_translation({
       'name' : 'multi_fn_test',
       'input' : """
-        o[test.in] = _in
+        o[a.int] = _in
       """,
       'output' : """
         o[test.out] = _out
@@ -753,13 +752,12 @@ class AxpressTestCase(unittest.TestCase):
     })
 
     axpress.compiler.compile_translations()
-
     ret = axpress.read_translate("""
-      x[test.range_from] = 1
-      x[test.range_to] = 10
+      x = test.range(1, 10)
       x[test.out] = _out
     """)
-    print ret
+    for row in ret :
+      print row
 
 if __name__ == "__main__" :
   import atexit
