@@ -8,8 +8,14 @@
   - how can we avoid it?
     - predict best direction to search in?
     - general faster searching/matching?
-  - use unicode/string instead of URIRef
+  - allowing literal values to populate output triples should help
+  - perhaps allow some fast function (str_to_float) to evaluate in the compiler
+  - X use unicode/string instead of URIRef
   - switch values_match to a member function of classes to remove lots of ifs
+  - lookahead on how far along a path a translation might take us.  ie. dont
+    add a triple with u.inches_str if there are no translations that take it
+    as an input and there isn't one in the triple set already ... kinda
+    complex ...
 
 simplify
   - refactor SimpleSparql out -> Axpress or just ax ?
