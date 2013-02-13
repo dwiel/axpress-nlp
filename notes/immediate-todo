@@ -1,5 +1,13 @@
 !!!!!!!!!! use this for something useful
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+- why are the unit conversions so slow?
+  - is there a different way to think about triples that would make them 
+    faster?  objects vertex/edge perhaps?
+  - where are we needlessly searching?
+  - how can we avoid it?
+    - predict best direction to search in?
+    - general faster searching/matching?
 
 simplify
   - refactor SimpleSparql out -> Axpress or just ax ?
@@ -27,13 +35,9 @@ conceptual:
         S = SetMaker()
         print S[1,2,3]
   - make optional parts of a query and part of a translation work
-  - how to implement range function ?
-    - everything has to be a property of an object, but what about numbers
-      or strings?  a.is ? seems a bit clunky ... :
-      o[a.is] = _v
-      =>
-      o = _v
-      ???
+  - lisp/clojure sure is tempting ... if only I weren't 5 years in ...
+    - not sure it really would be best, but there are some nice parts for sure
+
 ---
 
 See also dwi Axpress.Todo
