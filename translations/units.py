@@ -67,7 +67,8 @@ def loadTranslations(axpress) :
     unit(['m', 'meters', 'meter', 'ms'])
 
     def conv(src, dest, fn) :
-        def wrapper_fn(vars) : vars['out'] = fn(vars['in'])
+        def wrapper_fn(vars) :
+            vars['out'] = fn(vars['in'])
         rule("%s -> %s" % (src, dest),
              "_[u.%s] = _in" % src,
              """_[u.%s] = _out
@@ -81,7 +82,7 @@ def loadTranslations(axpress) :
     # 1 in in feet - 0.5 seconds compile time
     # 1 in in milimeters - 2.4 seconds compile time
     rconv('feet', 'inches', 12)
-    rconv('feet', 'yards', 3)
+    rconv('feet', 'yards', 1/3.)
     rconv('feet', 'meters', 0.3048)
     rconv('meters', 'kilometers', 0.001)
     rconv('meters', 'centimeters', 100)
