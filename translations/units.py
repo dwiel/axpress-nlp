@@ -27,7 +27,6 @@ def loadTranslations(axpress) :
         # parsing the unit
         rule('parse %s str' % singular,
              '_[a.is] = "%i% ({s})"'.format(s='|'.join(names)),
-             #'_[u.%s] = a.float(_i)' % plural)
              '_[u.{plural}] = a.float("%i%")'.format(plural=plural))
 
         # TODO: should be able to use _length instead of "%length%" in
