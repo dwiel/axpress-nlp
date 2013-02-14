@@ -10,12 +10,16 @@
     - general faster searching/matching?
   - allowing literal values to populate output triples should help
   - perhaps allow some fast function (str_to_float) to evaluate in the compiler
+    - this may not actually speed things up too much ... 
   - X use unicode/string instead of URIRef
   - switch values_match to a member function of classes to remove lots of ifs
   - lookahead on how far along a path a translation might take us.  ie. dont
     add a triple with u.inches_str if there are no translations that take it
     as an input and there isn't one in the triple set already ... kinda
     complex ...
+  - just increased initial depth to 6 (and broke it).  Could instead, not do 
+    iterative deepening in cases where there is only 1 path being explored.
+    Could also save the state at each search rather than drop it each time ...
 
 simplify
   - refactor SimpleSparql out -> Axpress or just ax ?
