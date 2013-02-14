@@ -133,6 +133,45 @@ class CompilerTestCase(unittest.TestCase):
     ]
     ret = compiler.find_bindings_for_triple(ttriple, facts, False)
     assert ret == []
+
+  def test_bind_vars_multi_triple_catch(self):
+    output_triples =[
+      [ Var('_'), n.u.inches, LitVar('out'), ],
+      [ LitVar('out'), n.axpress.type, n.axpress.float, ],
+    ]
+    query = [
+      [ Var('x'), n.u.feet, LitVar('f_out_1'), ],
+      [ n.axpress.float, u'1', LitVar('f_out_1'), ],
+      [ Var('x'), n.u.inches, OutLitVar('out'), ],
+      [ LitVar('f_out_1'), n.axpress.type, n.axpress.float, ],
+    ]
+    initial_bindings = {
+      '_' : Var('x'),
+    }
+    ret = compiler.bind_vars(output_triples, query, False, initial_bindings)
+    p('ret', ret)
+    assert ret == [{
+      '_' : Var('x'),
+      'out' : OutLitVar('out'),
+    }]
+
+  def test_simple_bind_vars(self):
+    output_triples =[
+      [ Var('_'), n.u.inches, LitVar('out'), ],
+    ]
+    query = [
+      [ Var('x'), n.u.inches, LitVar('f_out'), ],
+    ]
+    initial_bindings = {
+      '_' : Var('x'),
+    }
+    ret = compiler.bind_vars(output_triples, query, False, initial_bindings)
+    p('ret', ret)
+    assert ret == [{
+      '_' : Var('x'),
+      'out' : LitVar('f_out'),
+    }]
+    
   
 if __name__ == "__main__" :
   unittest.main()
