@@ -149,7 +149,7 @@ class CompilerTestCase(unittest.TestCase):
       '_' : Var('x'),
     }
     ret = compiler.bind_vars(output_triples, query, False, initial_bindings)
-    p('ret', ret)
+    #p('ret', ret)
     assert ret == [{
       '_' : Var('x'),
       'out' : OutLitVar('out'),
@@ -166,7 +166,7 @@ class CompilerTestCase(unittest.TestCase):
       '_' : Var('x'),
     }
     ret = compiler.bind_vars(output_triples, query, False, initial_bindings)
-    p('ret', ret)
+    #p('ret', ret)
     assert ret == [{
       '_' : Var('x'),
       'out' : LitVar('f_out'),
