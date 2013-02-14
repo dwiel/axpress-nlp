@@ -1154,7 +1154,7 @@ class Compiler :
       raise Exception("Waring, required bound triples were provided, but not found in the query")
     
     # an iterative deepening search
-    self.depth = 6
+    self.depth = 1
     steps = None
     max_depth = 12
     while not steps and self.depth < max_depth:
