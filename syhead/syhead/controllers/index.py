@@ -9,6 +9,12 @@ from syhead.lib.base import BaseController, render
 from SimpleSPARQL import p, CompilerException
 from SimpleSPARQL.Exceptions import TranslationResponse
 
+def parse_bool(s):
+  if s is True or s is False:
+    return s
+  s = str(s).strip().lower()
+  return not s in ['false','f','n','0','']
+
 log = logging.getLogger(__name__)
 
 class IndexController(BaseController):
@@ -20,15 +26,13 @@ class IndexController(BaseController):
     c.ret = u""
     c.debug_html = u""
     
-    if c.debug_on :
+    if parse_bool(c.debug_on) :
       c.debug_on_str = 'checked'
-    else :
-      c.debug_on_str = ''
-    
-    if c.debug_on :
       g.axpress.compiler.debug_on()
     else :
+      c.debug_on_str = ''
       g.axpress.compiler.debug_off()
+    g.axpress.compiler.show_dead_ends = False
     
     if c.string_query :
       #c.query = u"""
