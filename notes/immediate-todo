@@ -1,28 +1,13 @@
 !!!!!!!!!! use this for something useful
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-- why are the unit conversions so slow?
-  - is there a different way to think about triples that would make them 
-    faster?  objects vertex/edge perhaps?
-  - where are we needlessly searching?
-  - how can we avoid it?
-    - predict best direction to search in?
-    - general faster searching/matching?
-  - allowing literal values to populate output triples should help
-  - perhaps allow some fast function (str_to_float) to evaluate in the compiler
-    - this may not actually speed things up too much ... 
-  - X use unicode/string instead of URIRef
-  - switch values_match to a member function of classes to remove lots of ifs
-  - lookahead on how far along a path a translation might take us.  ie. dont
-    add a triple with u.inches_str if there are no translations that take it
-    as an input and there isn't one in the triple set already ... kinda
-    complex ...
-  - just increased initial depth to 6 (and broke it).  Could instead, not do 
-    iterative deepening in cases where there is only 1 path being explored.
-    Could also save the state at each search rather than drop it each time ...
+- compiler test fails
+- finish units
+- start freebase
 
 simplify
   - refactor SimpleSparql out -> Axpress or just ax ?
+    Pass, MultiLine, etc should probably just be moved out or something ...
   - use ENV paths
   - use relative paths. can see every translation in local direcotry like
     python (*.ax)
@@ -30,6 +15,7 @@ simplify
   - allow code with #!/usr/bin/axpress
   - clean up Evaluator.evalute
   - clean up all of Compiler ... again
+  - document more
 
   - heavy refactor : what are component steps, how to name things differently to that effect.  also less confused overloading of how to find bindings, matches, etc.  matching one intermediate form with another hsa slight differences ...
 
@@ -49,7 +35,8 @@ conceptual:
   - make optional parts of a query and part of a translation work
   - lisp/clojure sure is tempting ... if only I weren't 5 years in ...
     - not sure it really would be best, but there are some nice parts for sure
-
----
+  - ! what can make this more like a 'real' programming language.  If it
+    shouldn't be a real programming language, where is the line drawn and why?
+  - what is it for?  See very top.
 
 See also dwi Axpress.Todo

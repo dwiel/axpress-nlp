@@ -1,0 +1,99 @@
+  * todo list
+    * very simple version done
+    * slightly better css
+    * ajax
+    * use remember the milk as backend
+  * better weather app (ok for now ...)
+    * forecast
+    * nicer looking
+    * show what was asked for, but also other relevant information
+      * ! dew point translation directly to a display format is a bit odd ...
+        * it seems that it might be due to the fact that the dew point will
+          be present from the weather lookup even if the weather lookup was only
+          to lookup the current weather.  At that point in the search space
+          all kinds of information is known, so some hints as to which
+          information was asked for need to be leeked out to the display path
+      * ! also, with the weather example, there are a bunch of paths that are
+          very similar.  Like dew point, or barometeric pressure, etc.  How can
+          those code paths be DRY?
+  * !!! yelp
+    * pizza
+    * beer and buffalo wings
+    * nearby stores
+  * !!! check email, calendar - just for matching siri, good example
+    * get/set address, phone number, birthday
+    * when is my meeting with Joe?
+  * set an alarm - some UI stuff to figure out how this works
+    * android: http://developer.android.com/reference/android/provider/AlarmClock.html
+    * on desktop, this app doesn't make a whole lot of sense
+    * should be relatively easy, but makes more sense on phone ...
+    * nicer looking - show countdown timer for short alarms
+    * fine for now to leave most of the work on the server side
+    * allow setting sounds from freesound
+    * - wake me up every morning at 8 am
+    * - set an alarm for 5
+    * - set an alarm for 5 on the last friday of the month
+    * - set an alarm for noon using a pig sound
+    * select which device/method to use to set the alarm
+  * send a text to everyone attending that meeting 15 minutes before it starts with this confere\
+nce call number: 812-555-5555
+  * text messages
+  * _ names/specific dates
+    * my brithday
+    * mom's birthday
+      - connect to facebook/google/other
+  * asking about what is possible (introspection)
+    * maybe not easy ...
+  * search google for X
+  * open x's webpage (google feeling lucky? freebase?)
+  * web or android?
+    web - connect to X with X
+    android - same kind of thing, but different interface?
+  * ^^^^^^ MVP ^^^^^^
+  * location based reminders
+  * location based actions ...
+  * time based actions ...
+  * wakeup phrase (will be different on diff devices ...)
+  * name apps
+  * trueknowledge api ... $$$
+  * see for ideas:
+    * http://we.speaktoit.com/viewtopic.php?f=2&t=15
+    * http://www.bulletproof.com/eva/
+  * lookup X on netflix
+  * lookup X on amazon
+  * like a song
+  * sports scores - tell them at http://forums.macrumors.com/showthread.php?t=1259708
+  * theres a movie called eternal something or other ...
+    * yeah thats it, is it on amazon?  sweet, play/buy!
+  * craigslist ...
+  * buy something on amazon (an album that is playing on pandora/last.fm)
+  * put on a movie (netflix/amazon prime)
+  * show a live feed of the senate
+  * I'm reading XXX, does the author have any other books?
+    * what is the next one in the series?
+    * how much does it cost at amazon?
+    * I'll take it!
+  * see also dwi commands
+
+  * freebase/YQL !?
+    * teh beatles
+    * get some more basic freebase translations built in
+    * ! special cases?
+        * for example, have a view for most objects, but special case some of them too
+        * this would be a rule which says that if translation 1 matches, don't
+          even test translation 2.
+    * _ multiple results at once - rework the evaluator
+        * first pass of this working.  Still might have problems in edge cases
+    * ! how to automate/abstract the freebase translations?
+        {
+          "id":   null,
+          "type": "/type/property",
+          "/type/property/schema" : null,
+          "/type/property/expected_type": {
+            "id":   null,
+            "type": "/type/type",
+            "/freebase/type_hints/included_types": {
+              "id": "/common/topic"
+            }
+          }
+        } 

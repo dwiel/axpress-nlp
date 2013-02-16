@@ -1,0 +1,2 @@
+* we can not find all solutions.  This is because the Compiler is a
+turing machine which is suceptible to the halting problem
