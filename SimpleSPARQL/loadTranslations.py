@@ -4,6 +4,12 @@ def loadTranslations(axpress, n = None) :
   import os
   import imp
   import md5
+
+  # only allow loading
+  if axpress.__dict__.get('loaded_translations') :
+    return
+  else :
+    axpress.loaded_translations = True
   
   if not n :
     n = axpress.n
