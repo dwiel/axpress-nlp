@@ -6,12 +6,11 @@
 import unittest
 
 import time, urllib
-from SimpleSPARQL import Axpress, loadTranslations
+from SimpleSPARQL import Axpress
 from SimpleSPARQL.Utils import OutLitVar, Var, LitVar, p
 from SimpleSPARQL.Triple import Triple
 
 axpress = Axpress()
-loadTranslations(axpress)
 compiler = axpress.compiler
 n = compiler.n
 
@@ -134,7 +133,7 @@ class CompilerTestCase(unittest.TestCase):
     ret = compiler.find_bindings_for_triple(ttriple, facts, False)
     assert ret == []
 
-  def test_bind_vars_multi_triple_catch(self):
+  def test_bind_vars_out_lit_var(self):
     output_triples =[
       [ Var('_'), n.u.inches, LitVar('out'), ],
       [ LitVar('out'), n.axpress.type, n.axpress.float, ],
@@ -153,6 +152,25 @@ class CompilerTestCase(unittest.TestCase):
     assert ret == [{
       '_' : Var('x'),
       'out' : OutLitVar('out'),
+    }]
+
+  def test_bind_vars_multi_triple_catch(self):
+    output_triples =[
+      [ Var('_'), n.u.inches, LitVar('out'), ],
+      [ LitVar('out'), n.axpress.type, n.axpress.float, ],
+    ]
+    query = [
+      [ Var('x'), n.u.feet, LitVar('f_out_1'), ],
+      [ n.axpress.float, u'1', LitVar('f_out_1'), ],
+      [ LitVar('f_out_1'), n.axpress.type, n.axpress.float, ],
+    ]
+    initial_bindings = {
+      '_' : Var('x'),
+    }
+    ret = compiler.bind_vars(output_triples, query, False, initial_bindings)
+    p('ret', ret)
+    assert ret == [{
+      '_' : Var('x'),
     }]
 
   def test_simple_bind_vars(self):
