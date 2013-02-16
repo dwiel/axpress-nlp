@@ -2,19 +2,15 @@
 
 import sys
 
-from SimpleSPARQL import Axpress, loadTranslations
-        
-axpress = Axpress()
-loadTranslations(axpress)
+from SimpleSPARQL import Axpress        
+axpress = Axpress(options = [])
 
-cmd = ' '.join(sys.argv[1:])
-
-print cmd
 ret = axpress.read_translate("""
     x[axpress.is] = "%s"
     x[speech.out] = _out
-""" % cmd)
+""" % ' '.join(sys.argv[1:]))
 
+# just print the first answer for now
 if ret and 'out' in ret[0] :
    for r in ret :
        print r['out']
