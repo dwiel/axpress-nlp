@@ -1,5 +1,20 @@
 from SimpleSPARQL.PrettyQuery import prettyquery as p
 
+# note: can't just define m^2 units, m^3 units, ft * lbs units, etc.  There
+# are an infinite amount.  Need to be able to deal in compound units
+# units seem to be a somewhat poor example of axpress, since they dont deal
+# in complex objects, and a reasonable solution could probably be coded
+# in straight python more quickly
+# would be interesting to compare axpress vs python for the units problem
+# one thing about axpress solution though is that it easily allows mixing
+# in with other libraries ... or is that true of all languages, including
+# python?  Looks like there is already a units library in python :)
+# - the more I think about it, the more I understand this as a 'real' language
+#   where you might call other functions, etc.  The problems that exist in
+#   other languages, various libraries being too complex or too simple
+#   to use in a particular case may wind up manifesting in many of the same
+#   ways here.
+
 def loadTranslations(axpress) :
     axpress.n.bind('u', '<http://dwiel.net/axpress/units/0.1/>')
     rule = axpress.rule
