@@ -1,2 +1,4 @@
 #!/bin/bash
+. ../paths
+. bin/activate
 paster serve --reload development.ini
