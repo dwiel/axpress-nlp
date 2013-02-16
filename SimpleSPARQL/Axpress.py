@@ -9,7 +9,7 @@ class CompilerException(Exception) :
   pass
 
 class Axpress() :
-  def __init__(self, sparql = None, compiler = None, evaluator = None, multiline_parser = None, options = ['time'], debug=False) :
+  def __init__(self, sparql = None, compiler = None, evaluator = None, multiline_parser = None, options = ['time'], debug=False, load_translations = True) :
     self.sparql = sparql
     if self.sparql :
       self.n = sparql.n
@@ -33,6 +33,10 @@ class Axpress() :
     self.cum_eval_time = 0
     if not debug:
       self.compiler.debug_off()
+
+    if load_translations :
+      from loadTranslations import loadTranslations
+      loadTranslations(self)
   
   def rule(self, *args, **kwargs) :
     self.compiler.rule(*args, **kwargs)
