@@ -6,7 +6,7 @@ class URIRef(int) :
             i = URIRef.uri_to_id[str(uri)]
         except KeyError :
             i = len(URIRef.uri_to_id)
-            URIRef.uri_to_id[uri] = i
+            URIRef.uri_to_id[str(uri)] = i
         ret = super(URIRef, cls).__new__(cls, i)
         ret.uri = uri
         return ret
