@@ -11,8 +11,6 @@ class X():pass
 type_instance = type(X())
 
 axpress = Axpress()
-axpress.compiler.debug_off()
-loadTranslations(axpress)
 
 class AxpressTestCase(unittest.TestCase):
   def testGlob(self):
@@ -608,6 +606,7 @@ class AxpressTestCase(unittest.TestCase):
       foo[a.is] = "friday at 7"
       foo[simple_display.text] = _out
     """)
+    p('ret', ret)
     assert len(ret) == 1
 
   def testDayOfTodayAtNoon(self):
@@ -758,6 +757,26 @@ class AxpressTestCase(unittest.TestCase):
     """)
     for row in ret :
       print row
+
+  def testGreedySearch(self) :
+    # this query didn't work when I bumped the initial search depth to
+    # 6 deep rather than the correct 1 deep.
+    # turns out its a different, unrelated bug - might get to keep 6 deep
+    # search :)
+    ret = axpress.read_translate("""
+      x[a.is] = '1 foot in yards'
+      x[speech.out] = _out
+    """)
+    p('ret', ret)
+    assert ret == [{'out' : 0.333}]
+
+  def testCloseUnification(self) :
+    ret = axpress.read_translate("""
+      x[u.feet] = a.float('1')
+      x[u.inches] = _out
+    """)
+    print ret
+    
 
 if __name__ == "__main__" :
   import atexit
