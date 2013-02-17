@@ -19,17 +19,6 @@ from collections import defaultdict
 # for catching re errors
 import sre_constants
 
-def logger(fn) :
-  def new_fn(*args, **kwargs) :
-    ret = fn(*args, **kwargs)
-    if args[1].get('depends') :
-      p('log-fn', fn.__name__)
-      p('args', args)
-      p('kwargs', kwargs)
-      p('ret', ret)
-    return ret
-  return new_fn
-
 def isstr(v) :
   return isinstance(v, basestring) and not isinstance(v, URIRef)
 
@@ -54,7 +43,7 @@ class Compiler :
     else :
       self.n = Namespaces()
       
-    self.n.bind('query',  '<http://dwiel.net/axpress/query/0.1/>')
+    self.n.bind('query',   '<http://dwiel.net/axpress/query/0.1/>')
     self.n.bind('var',     '<http://dwiel.net/axpress/var/0.1/>')
     self.n.bind('tvar',    '<http://dwiel.net/axpress/translation/var/0.1/>')
     self.n.bind('bnode',   '<http://dwiel.net/simplesparql/bnode/0.1/>')
@@ -530,7 +519,6 @@ class Compiler :
   def find_specific_var_triples(self, query, vars) :
     return [triple for triple in query if any(map(lambda x:is_out_lit_var(x) and x.name in vars, triple))]
 
-  #@logger
   def next_steps(self, orig_query, lineage, reqd_triples) :
     """
     @arg orig_query the origional query in triples set form
@@ -573,15 +561,16 @@ class Compiler :
       if lineage_depth >= self.depth :
         translation_queue = []
     
-    # OPTIMIZATION: skip this translation if it is the inverse of the last translation
-    # WARNING: not 100% sure this is always going to work, but it does for now ...
-    def test_for_inverse(translation) :
-      inverse_function = lineage[-1]['translation'].get('inverse_function') 
-      if inverse_function :
-        if inverse_function == translation['name'] :
-          return False
-      return True
-    if lineage :
+      # OPTIMIZATION: skip this translation if it is the inverse of the last
+      # translation
+      # WARNING: not 100% sure this is always going to work, but it does for
+      # now ...
+      def test_for_inverse(translation) :
+        inverse_function = lineage[-1]['translation'].get('inverse_function') 
+        if inverse_function :
+          if inverse_function == translation['name'] :
+            return False
+        return True
       translation_queue = filter(test_for_inverse, translation_queue)
     
     # show the list of translations that show up in the queue
@@ -783,7 +772,7 @@ class Compiler :
           #p('step', step)
           yield step
   
-  ##############################################################################
+  #############################################################################
   # find solution
   
   def find_solution_values_match(self, tv, qv) :
@@ -806,10 +795,10 @@ class Compiler :
             return {tv : qv}
         return False
       elif is_out_lit_var(qv) :
-        # This happens when a query is looking for a literal variable and a 
-        # translation is willing to provide a variable, just not a literal one.
-        # (see lastfm similar artist output variable similar_artist) and a query
-        # wanting it to be literal
+        # This happens when a query is looking for a literal variable
+        # and a translation is willing to provide a variable, just not
+        # a literal one.  (see lastfm similar artist output variable
+        # similar_artist) and a query wanting it to be literal
         return False
       elif is_lit_var(tv) and is_lit_var(qv) :
         return True
@@ -1018,7 +1007,7 @@ class Compiler :
         if ret :
           return ret
   
-  ##############################################################################
+  #############################################################################
   # compile
   
   def make_vars_out_vars(self, query, reqd_bound_vars) :
@@ -1099,7 +1088,7 @@ class Compiler :
     interleaving paths didn't wind up causing translations to be run twice
     or run when they were not necessary, etc.  With DFS, this is no longer an
     issue, and we have moved away from attempting to run every guaranteed path
-    and instead run just one of them, or the first few.  I've prooven that 
+    and instead run just one of them, or the first few.  I've discovered that 
     finding all paths is much more difficult because there are many ways which
     translations can be combined into infite loops that are hard to detect
     """
