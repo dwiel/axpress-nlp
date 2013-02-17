@@ -74,6 +74,8 @@ class Compiler :
     self._debugps = self.debugps
     self._debug_open_block = self.debug_open_block
     self._debug_close_block = self.debug_close_block
+
+    self.show_dead_ends = True
     
     self.block_depth = 0
     self.log_debug = debug
@@ -173,11 +175,13 @@ class Compiler :
     # translation
     invars = find_vars(translation['input'], find_string_vars = True)
     outvars = find_vars(translation['output'], find_string_vars = True)
+    outvars = outvars.union(set(translation.get('output_vars', [])))
     #p(translation['name'])
     #p('invars', invars)
     #p('outvars', outvars)
-    constant_vars = list(invars.intersection(outvars))
-    translation['constant_vars'] = constant_vars
+    translation['constant_vars'] = list(
+      invars.intersection(outvars)
+    )
     
     translation['in_lit_vars'] = find_vars(
       translation['input'], is_lit_var, find_string_vars = True
@@ -378,7 +382,7 @@ class Compiler :
       elif t != q :
         return []
       elif is_lit_var(t) and is_out_lit_var(q) :
-        return []
+        bindings = self.mul_bindings_set(bindings, [Bindings({t.name : q})])
     if len(bindings) == 1 and not bindings[0] :
       return []
     return bindings
@@ -526,11 +530,14 @@ class Compiler :
     
     # get a set of all vars used in the translation
     vars = find_vars(translation, find_string_vars = True)
+
+    #if(translation == []) :
+    #  p('t', bindings)
     
     # if there are no vars, this does still match, but there are no bindings
     if len(vars) == 0 :
       #self.debugp('len(vars)==0')
-      return []
+      return bindings
 
     #self.debugp('vars', vars)
     #for binding in bindings :
@@ -766,7 +773,10 @@ class Compiler :
         # input unification that must also hold true for output unification
         # some of the initial_binding vars don't appear in the output triples
         # so we can get rid of them
-        output_triple_vars = find_vars(translation['output'], find_string_vars = True)
+        if not translation['output'] :
+          output_triple_vars = translation['constant_vars']
+        else :
+          output_triple_vars = find_vars(translation['output'], find_string_vars = True)
         output_triples = translation['output']
         #self.debugp('constant_vars', translation['constant_vars'])
         initial_bindings = dict(
@@ -776,7 +786,8 @@ class Compiler :
         )
         
         # used in a couple places later on
-        output_lit_vars = find_vars(translation['output'], is_lit_var)
+        output_lit_vars = find_vars(translation['output'], is_lit_var).union(
+          set(translation.get('output_vars', [])))
         #self.debugp('input_bindings', input_bindings)
         #self.debugp('initial_bindings', initial_bindings)
         
@@ -787,7 +798,14 @@ class Compiler :
             continue
         
         # unify output_triples with query
-        output_bindings_set = self.bind_vars(output_triples, query, False, initial_bindings = initial_bindings)
+        if not translation['output'] :
+          # if there is not output, simply replace input vars with litvars
+          # since after the translation is applied they will have values
+          output_bindings_set = [
+            {unicode(name) : LitVar(input_bindings[name].name)}
+            for name in translation['output_vars']]
+        else :
+          output_bindings_set = self.bind_vars(output_triples, query, False, initial_bindings = initial_bindings)
         # if no unification is found, just use the initial_bindings
         if output_bindings_set == False :
           output_bindings_set = [initial_bindings]
@@ -799,6 +817,8 @@ class Compiler :
           # WARNING: I think this means that bind_vars might not do the 
           # right thing if it thinks that it can bind whatever it wants to 
           # lit_vars.  lit_vars for example shouldn't bind to literal values
+          # this might also have to do with a schema, some things can be bound
+          # again (a.is), whereas some can not (u.inches)
           
           #self.debugp('output_bindings', output_bindings)
           
@@ -810,7 +830,8 @@ class Compiler :
             new_lit_var = LitVar(var+'_out_'+str(self.next_num()))
             if var in output_bindings :
               if is_any_var(output_bindings[var]) :
-                unified_bindings[output_bindings[var].name] = new_lit_var
+                if not is_out_lit_var(output_bindings[var]) :
+                  unified_bindings[output_bindings[var].name] = new_lit_var
             output_bindings[var] = new_lit_var
           
           #self.debugp('unified_bindings', unified_bindings)
@@ -825,7 +846,6 @@ class Compiler :
           # output bindings substituted in
           new_triples = sub_var_bindings(translation['output'], output_bindings)
 
-          #p('ub', unified_bindings)
           new_query, new_query_new_triples = sub_var_bindings_track_changes(query, unified_bindings)
 
           new_query.extend(new_triples)
@@ -1087,6 +1107,9 @@ class Compiler :
       # completely remove the partial solution step at the end of compilation
       found_solution = self.found_solution(step['new_query'])
       if found_solution :
+        self.debugp('last_step', step)
+        self.debugp('input', step['translation']['input'])
+        self.debugp('output', step['translation']['output'])
         self.debug_close_block()
         return new_lineage
       else :
@@ -1154,12 +1177,13 @@ class Compiler :
       raise Exception("Waring, required bound triples were provided, but not found in the query")
     
     # an iterative deepening search
-    self.depth = 1
+    self.depth = 6
     steps = None
     max_depth = 12
     while not steps and self.depth < max_depth:
       self.debugp("depth: %d" % self.depth)
-      self.show_dead_ends = self.depth == max_depth - 1
+      #self.show_dead_end = self.show_dead_ends and self.depth == max_depth - 1
+      self.show_dead_ends = False
       self.partials = defaultdict(list)
       steps = self.search(query, query, lineage = [], root = True)
       self.depth += 1
