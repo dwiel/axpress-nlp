@@ -14,8 +14,11 @@ simplify
   - temp data path standard - .axpress
   - allow code with #!/usr/bin/axpress
   - clean up Evaluator.evalute
-  - clean up all of Compiler ... again
-  - document more
+  - would love to refactor Compiler.py some more.  I can't believe it needs 
+    to be so complex
+    - doing what I did to the evaluator should help a lot.  Those names made
+      reasoning a lot easier
+  - more documentation
 
   - heavy refactor : what are component steps, how to name things differently to that effect.  also less confused overloading of how to find bindings, matches, etc.  matching one intermediate form with another hsa slight differences ...
 
