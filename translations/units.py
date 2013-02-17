@@ -32,7 +32,7 @@ def loadTranslations(axpress) :
     # TODO: better interface for this ...
     rule('str to float', """
         a.float(_s) = f
-    """, "", str_to_float, infn, output_vars = ['f'])
+    """, "", str_to_float, infn, add_output_vars = ['f'])
 
     def unit(names, square=True) :
         singular = names[0].replace(' ', '_')

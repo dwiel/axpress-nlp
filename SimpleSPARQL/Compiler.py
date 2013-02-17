@@ -175,7 +175,7 @@ class Compiler :
     # translation
     invars = find_vars(translation['input'], find_string_vars = True)
     outvars = find_vars(translation['output'], find_string_vars = True)
-    outvars = outvars.union(set(translation.get('output_vars', [])))
+    outvars = outvars.union(set(translation.get('add_output_vars', [])))
     #p(translation['name'])
     #p('invars', invars)
     #p('outvars', outvars)
@@ -771,7 +771,7 @@ class Compiler :
         
         # used in a couple places later on
         output_lit_vars = find_vars(translation['output'], is_lit_var).union(
-          set(translation.get('output_vars', [])))
+          set(translation.get('add_output_vars', [])))
         #self.debugp('input_bindings', input_bindings)
         #self.debugp('initial_bindings', initial_bindings)
         
@@ -787,7 +787,7 @@ class Compiler :
           # since after the translation is applied they will have values
           output_bindings_set = [
             {unicode(name) : LitVar(input_bindings[name].name)}
-            for name in translation['output_vars']]
+            for name in translation['add_output_vars']]
         else :
           output_bindings_set = self.bind_vars(output_triples, query, False, initial_bindings = initial_bindings)
         # if no unification is found, just use the initial_bindings
