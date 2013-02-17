@@ -331,8 +331,11 @@ class Compiler :
   
   def get_binding(self, triple, ftriple) :
     bindings = [Bindings()]
-    for t, q in izip(triple, ftriple) :
+    for i, (t, q) in enumerate(izip(triple, ftriple)) :
       if is_any_var(t) and self.values_match(t, q):
+        # two lit_vars in the front of a triple don't match
+        if i == 0 and is_lit_var(t) and is_lit_var(q) :
+          return []
         # if the same var is trying to be bound to two different values, 
         # not a valid binding
         if t in bindings[0] and bindings[0][t.name] != q :
