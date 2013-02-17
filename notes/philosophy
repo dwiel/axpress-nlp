@@ -1,2 +1,5 @@
 * we can not find all solutions.  This is because the Compiler is a
-turing machine which is suceptible to the halting problem
+  turing machine which is suceptible to the halting problem
+
+* todo: swap first and second positions in the triple to be more lisp
+  like rather than more OO like ... ?

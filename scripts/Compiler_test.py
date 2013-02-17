@@ -158,8 +158,21 @@ class CompilerTestCase(unittest.TestCase):
     # not entirely sure how to solve this, but in this case, out is
     # bound to f_out_1 since they are both floats (and don't conflict
     # in other triple in that theres no explicit reason that
-    # _[u.inches] can't equal _[u.feet].
-    output_triples =[
+    # _[u.inches] can't equal _[u.feet].  it seems that the biggest
+    # problem is that two objects having the same type doesn't make
+    # them unify.  I think so far we have been able to ignore the
+    # position of a value in the triple when unfying, but in this case
+    # it is relevant.  At some point we will also need to define
+    # properties as unique or not. ie: can one object have multiple
+    # types?  Actually, if instead of a.type = a.float we had a.is =
+    # "the beatles", we could unify the lhs.  right?  In every other
+    # case I can think of we dont want to unify.  What is special
+    # about a.is?  It is acting right now as a cononical string form
+    # of any object, which is why it seems to force uniqueness on the
+    # lhs.  I can't think of any reason atm to unify these two, so
+    # lets not worry about it for now (though also dont make it
+    # impossible to allow this type of unification later)
+    output_triples = [
       [ Var('_'), n.u.inches, LitVar('out'), ],
       [ LitVar('out'), n.axpress.type, n.axpress.float, ],
     ]
