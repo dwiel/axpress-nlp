@@ -179,6 +179,7 @@ class Compiler :
     #p(translation['name'])
     #p('invars', invars)
     #p('outvars', outvars)
+    translation['output_vars'] = outvars
     translation['constant_vars'] = list(
       invars.intersection(outvars)
     )
@@ -757,16 +758,12 @@ class Compiler :
         # input unification that must also hold true for output unification
         # some of the initial_binding vars don't appear in the output triples
         # so we can get rid of them
-        if not translation['output'] :
-          output_triple_vars = translation['constant_vars']
-        else :
-          output_triple_vars = find_vars(translation['output'], find_string_vars = True)
         output_triples = translation['output']
         #self.debugp('constant_vars', translation['constant_vars'])
         initial_bindings = dict(
           (unicode(name), bindings[name]) for name in translation['constant_vars']
             if name in bindings and 
-              name in output_triple_vars
+              name in translation['output_vars']
         )
         
         # used in a couple places later on
