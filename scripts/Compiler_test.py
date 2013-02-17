@@ -155,6 +155,10 @@ class CompilerTestCase(unittest.TestCase):
     }]
 
   def test_bind_vars_multi_triple_catch(self):
+    # not entirely sure how to solve this, but in this case, out is
+    # bound to f_out_1 since they are both floats (and don't conflict
+    # in other triple in that theres no explicit reason that
+    # _[u.inches] can't equal _[u.feet].
     output_triples =[
       [ Var('_'), n.u.inches, LitVar('out'), ],
       [ LitVar('out'), n.axpress.type, n.axpress.float, ],
