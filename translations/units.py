@@ -29,11 +29,10 @@ def loadTranslations(axpress) :
             return True
         except :
             return False
+    # TODO: better interface for this ...
     rule('str to float', """
         a.float(_s) = f
-    """, """
-        _f[a.type] = a.float
-    """, str_to_float, infn)
+    """, "", str_to_float, infn, output_vars = ['f'])
 
     def unit(names, square=True) :
         singular = names[0].replace(' ', '_')
