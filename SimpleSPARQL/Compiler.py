@@ -5,6 +5,7 @@ from PrettyQuery import prettyquery
 from Parser import Parser
 from Triple import Triple
 from Utils import *
+from Debug import Debug, DebugNop
 import StringMatch
 
 from Bindings import Bindings
@@ -68,71 +69,22 @@ class Compiler :
     self._next_translation_id = 0
     
     self.match_strings_both_ways = False
-    
-    self._debug = self.debug
-    self._debugp = self.debugp
-    self._debugps = self.debugps
-    self._debug_open_block = self.debug_open_block
-    self._debug_close_block = self.debug_close_block
+
+    self._debug = self.debug = Debug()
 
     self.show_dead_ends = True
-    
-    self.block_depth = 0
-    self.log_debug = debug
-    self.debug_reset()
 
   def next_num(self) :
     """ for generating unique lit_var name """
     self._next_num += 1
     return self._next_num
     
-  def nop(*args, **kwargs) :
-    pass
-
   def debug_on(self) :
     self.debug = self._debug
-    self.debugp = self._debugp
-    self.debugps = self._debugps
-    self.debug_open_block = self._debug_open_block
-    self.debug_close_block = self._debug_close_block
       
   def debug_off(self) :
-    self.debug = self.nop
-    self.debugp = self.nop
-    self.debugps = self.nop
-    self.debug_open_block = self.nop
-    self.debug_close_block = self.nop
+    self.debug = DebugNop()
 
-  def debug_reset(self) :
-    self.debug_str = ""
-    self.debug_block_id = 0
-  
-  def debug(self, str, endline='<br>') :
-    self.debug_str += str + endline
-
-  def debugp(self, *args) :
-    self.debug('<xmp>' + ' '.join([prettyquery(arg) for arg in args]) + '</xmp>', '')
-    
-  def debugps(self, *args) :
-    self.debug(' '.join([prettyquery(arg) for arg in args]))
-  
-  def debug_open_block(self, title) :
-    """ this is used to generate HTML debug output.  Reset the output first by
-    calling debug_reset, then make the compile call, then get the output by 
-    calling debugp """
-    
-    self.debug_str += """
-      <div class="logblock">
-      <div class="logblock-title" id="block-title-%d">%s</div>
-      <div class="logblock-body" id="block-body-%d" style="display:none">
-    """ % (self.debug_block_id, title, self.debug_block_id)
-    self.debug_block_id += 1
-    self.block_depth += 1
-  
-  def debug_close_block(self) :
-    self.debug_str += """</div></div>"""
-    self.block_depth -= 1
-  
   def rule(self, name, input, output, fn=None, input_function=None, **kwargs) :
     """ shorthand for full length register_translation """
     assert isinstance(name, basestring)
@@ -244,7 +196,7 @@ class Compiler :
     return self.find_matches(value, qvalue) not in [None, False]
   
   def values_match(self, value, qvalue) :
-    #self.debugp('values_match', value, qvalue)
+    #self.debug.p('values_match', value, qvalue)
     if is_any_var(value) :
       if is_var(value) :
         return True
@@ -395,12 +347,12 @@ class Compiler :
     ret_bindings = []
     for ftriple in facts :
       bindings = self.get_binding(triple, ftriple)
-      #self.debugp('ftriple', triple, ftriple, reqd_facts)
+      #self.debug.p('ftriple', triple, ftriple, reqd_facts)
       if not reqd_facts or ftriple in reqd_facts :
-        #self.debugp(True)
+        #self.debug.p(True)
         for binding in bindings :
           binding.matches_reqd_fact = True
-      #self.debugp('binding', binding, bindings)
+      #self.debug.p('binding', binding, bindings)
       if bindings :
         for binding in bindings :
           if binding in ret_bindings :
@@ -411,7 +363,7 @@ class Compiler :
             ret_bindings.append(binding)
     
     #for b in bindings :
-      #self.debugp('b', b, b.matches_reqd_fact)
+      #self.debug.p('b', b, b.matches_reqd_fact)
     return ret_bindings
   
   def merge_bindings(self, a, b) :
@@ -587,7 +539,7 @@ class Compiler :
       Ensures that this set of translation and bindings haven't already been 
       searched.....
     """
-    #self.debugp('orig_query', orig_query)
+    #self.debug.p('orig_query', orig_query)
     guaranteed_steps = []
     
     # the translation_queue is a list of translations that will be searched.  
@@ -617,7 +569,7 @@ class Compiler :
     # HEURISTIC: stop DFS search at self.depth
     if lineage :
       lineage_depth = sum(s['translation']['step_size'] for s in lineage)
-      self.debugp('lineage_depth', lineage_depth)
+      self.debug.p('lineage_depth', lineage_depth)
       if lineage_depth >= self.depth :
         translation_queue = []
     
@@ -633,7 +585,7 @@ class Compiler :
       translation_queue = filter(test_for_inverse, translation_queue)
     
     # show the list of translations that show up in the queue
-    #self.debugp('tq', [t['name'] for t in translation_queue])
+    #self.debug.p('tq', [t['name'] for t in translation_queue])
     
     def merge_partial(translation, matched_triples) :
       # this function gets called if this translation was partially matched
@@ -648,7 +600,7 @@ class Compiler :
       #     * comparing how recently the two paths diverged might correlate
       #     * prefer combined_bindings_set with more litvars
       # TODO: n-way merges instead of just 2-way merges ... ouch!
-      #self.debugp('past_partials', len(past_partials))
+      #self.debug.p('past_partials', len(past_partials))
       for past_lineage, past_query, past_matched_triples in past_partials :
         # make sure that the triples that these two partials atleast cover
         # all input triples
@@ -684,12 +636,12 @@ class Compiler :
             ret, more = self.testtranslation(translation, new_query, new_triples)
             if ret == True :
               found_merge = True
-              self.debug_open_block('merge for ' + translation['name'])
-              self.debugp('orig_query', orig_query)
-              self.debugp('past_query', past_query)
-              self.debugp('merged_bindings_set', merged_bindings_set)
+              self.debug.open_block('merge for ' + translation['name'])
+              self.debug.p('orig_query', orig_query)
+              self.debug.p('past_query', past_query)
+              self.debug.p('merged_bindings_set', merged_bindings_set)
               yield new_query, translation, more, past_lineage
-              self.debug_close_block()
+              self.debug.close_block()
       
       # add this instance to past partials
       #p('storing partial', translation['name'], matched_triples)
@@ -699,7 +651,6 @@ class Compiler :
       """ test each translation against the current query.  If there is a 
       partial match, also yield all possible merges """
       for translation in translation_queue :
-        #self.debug('testing ' + translation['name'])
         ret, more = self.testtranslation(translation, orig_query, reqd_triples)
         if ret == "partial" :
           # in this case more is a list of the triples that matched
@@ -815,10 +766,10 @@ class Compiler :
           
           new_query = remove_duplicate_triples(new_query)
           
-          #self.debugp('new_triples', new_triples)
-          #self.debugp('new_query', new_query)
-          #self.debugp('input_bindings', input_bindings)
-          #self.debugp('output_bindings', output_bindings)
+          #self.debug.p('new_triples', new_triples)
+          #self.debug.p('new_query', new_query)
+          #self.debug.p('input_bindings', input_bindings)
+          #self.debug.p('output_bindings', output_bindings)
           
           step = {
             'input_bindings' : input_bindings,
@@ -990,9 +941,9 @@ class Compiler :
   def log_root(fn) :
     def log_root_wrapper(self, *args, **kwargs) :
       if 'root' in kwargs and kwargs['root'] :
-        self.debug_open_block('search')
+        self.debug.open_block('search')
         ret = fn(self, *args, **kwargs)
-        self.debug_close_block()
+        self.debug.close_block()
         return ret
       else :
         return fn(self,  *args, **kwargs)
@@ -1013,7 +964,7 @@ class Compiler :
     @return the compiled guaranteed path
     """
     
-    self.debugp('query', query)
+    self.debug.p('query', query)
     
     # find the possible next steps
     steps = self.next_steps(query, lineage, new_triples)
@@ -1029,14 +980,14 @@ class Compiler :
         p()
     
     #steps = list(steps)
-    #self.debug_open_block('steps')
-    #self.debugp(steps)
-    #self.debug_close_block()
+    #self.debug.open_block('steps')
+    #self.debug.p(steps)
+    #self.debug.close_block()
     
     # look through all steps recursively to see if they result in a 
     # solution and should be added to the compile_node, the finished 'program'
     for step in steps :
-      self.debug_open_block((step['translation']['name'] or '<unnamed>') + ' ' + color(hash(step['input_bindings'], step['output_bindings'])) + ' ' + prettyquery(step['input_bindings']) + str(time.time() - self.start_time))
+      self.debug.open_block((step['translation']['name'] or '<unnamed>') + ' ' + color(hash(step['input_bindings'], step['output_bindings'])) + ' ' + prettyquery(step['input_bindings']) + str(time.time() - self.start_time))
       
       # add this step to the lineage, but before that, add any new steps that
       # were injected by the step itself (in the case of a merged path)
@@ -1055,15 +1006,15 @@ class Compiler :
       # completely remove the partial solution step at the end of compilation
       found_solution = self.found_solution(step['new_query'])
       if found_solution :
-        self.debugp('last_step', step)
-        self.debugp('input', step['translation']['input'])
-        self.debugp('output', step['translation']['output'])
-        self.debug_close_block()
+        self.debug.p('last_step', step)
+        self.debug.p('input', step['translation']['input'])
+        self.debug.p('output', step['translation']['output'])
+        self.debug.close_block()
         return new_lineage
       else :
         # recur
         ret = self.search(step['new_query'], step['new_triples'], new_lineage)
-        self.debug_close_block()
+        self.debug.close_block()
         if ret :
           return ret
   
@@ -1101,7 +1052,7 @@ class Compiler :
     return new_query, modifiers
   
   def compile(self, query, reqd_bound_vars, input = [], output = []) :
-    self.debug_reset()
+    self.debug.reset()
     self.start_time = time.time()
     
     if isinstance(query, basestring) :
@@ -1129,7 +1080,7 @@ class Compiler :
     steps = None
     max_depth = 12
     while not steps and self.depth < max_depth:
-      self.debugp("depth: %d" % self.depth)
+      self.debug.p("depth: %d" % self.depth)
       #self.show_dead_end = self.show_dead_ends and self.depth == max_depth - 1
       self.show_dead_ends = False
       self.partials = defaultdict(list)

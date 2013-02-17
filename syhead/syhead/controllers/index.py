@@ -54,7 +54,7 @@ class IndexController(BaseController):
           # divide by 0".  Or "Couldn't find a band by the name xyzyxz"
           c.raw_ret = str(e)
         
-        c.debug_html = g.axpress.compiler.debug_str
+        c.debug_html = g.axpress.compiler.debug.str
         if c.raw_ret and 'out' in c.raw_ret[0] :
           c.ret = u'<ul>%s</ul>' % u''.join(u'<li>'+unicode(o['out']) for o in c.raw_ret)
           c.ret_html = True
@@ -64,10 +64,10 @@ class IndexController(BaseController):
       except CompilerException, e :
         c.ret = str(e)
         c.ret_html = False
-        c.debug_html = g.axpress.compiler.debug_str
+        c.debug_html = g.axpress.compiler.debug.str
     else :
       c.ret_html = False
-      c.debug_html = g.axpress.compiler.debug_str
+      c.debug_html = g.axpress.compiler.debug.str
     
     return render('debug.mako')
   
