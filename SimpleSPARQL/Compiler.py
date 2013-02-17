@@ -743,22 +743,6 @@ class Compiler :
       #self.debugp('found match ' + translation['name'])
       #p('translation['name']', translation['name'])
       for bindings in bindings_set :
-        # copies the bindings so we can manipulate it while keeping the 
-        # possible property intact
-        new_bindings = Bindings(possible = bindings.possible)
-        # replace the bindings which the translation defines as constant with
-        # the exact binding value
-        # replace the other bindings which are variables, with variables with
-        # the name from the query and the type from the translation ...
-        for var, value in bindings.iteritems() :
-          if var in translation['constant_vars'] :
-            new_bindings[var] = value
-          elif is_any_var(value) :
-            new_var = LitVar(value.name+'_'+str(self.next_num()))
-            new_bindings[var] = new_var
-          else :
-            assert "none shall pass"
-        
         # input_bindings map from translation space to query space
         input_bindings = bindings
         # output_bindings map from translation space to query space
