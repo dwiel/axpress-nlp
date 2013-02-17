@@ -84,8 +84,7 @@ def loadTranslations(axpress) :
             vars['out'] = fn(vars['in'])
         rule("%s -> %s" % (src, dest),
              "_[u.%s] = _in" % src,
-             """_[u.%s] = _out
-                _out[a.type] = a.float""" % dest,
+             """_[u.%s] = _out""" % dest,
              wrapper_fn)
     def rconv(src, dest, m) :
         conv(src, dest, lambda x:x*m)
