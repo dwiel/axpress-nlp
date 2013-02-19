@@ -116,14 +116,14 @@ class PassCompleteReadsTestCase(unittest.TestCase):
   """
   
   def test9(self):
-    #assert self.parser.parse_expression("""
-      #math.sum(1, 2) = sum""") == [
-      #[Var.bnode1, n.call.arg1, 1],
-      #[Var.bnode1, n.call.arg2, 2],
-      #[Var.bnode1, n.math.sum, Var.sum],
-    #]
     assert self.parser.parse_expression("""
       math.sum(1, 2) = sum""") == [
+      [n.math.sum, 1, 2, Var.sum],
+    ]
+  
+  def test9_1(self):
+    assert self.parser.parse_expression("""
+      sum = math.sum(1, 2)""") == [
       [n.math.sum, 1, 2, Var.sum],
     ]
   
@@ -398,6 +398,18 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       [ Var.dt, n.test.datetime, "%datetime%"],
     ]
 
+  def test_nested_fns(self) :
+    query = """
+      x = test.foo(test.bar(1), test.baz(2), 3)
+    """
+    ret = self.parser.parse_query(query)
+    #p('ret', ret)
+    assert ret == [
+      [ n.test.bar, 1, Var.bnode1, ],
+      [ n.test.baz, 2, Var.bnode2, ],
+      [ n.test.foo, Var.bnode1, Var.bnode2, 3, Var.x, ],
+    ]
+    
 if __name__ == "__main__" :
   unittest.main()
 

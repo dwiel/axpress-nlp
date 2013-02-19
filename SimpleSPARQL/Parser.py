@@ -13,7 +13,7 @@ re_equals = re.compile('(\||)\s*(.+)\s*=\s*(.+)')
 re_prop = re.compile('(.+)\[(.+)\]')
 re_dict = re.compile('(.+){(.+)}')
 re_dict_pair = re.compile('\s*([^,:\.]*[:\.]*[^,:\.]*)\s*:\s*([^,:\.]*[:\.]*[^,:\.]*)\s*,')
-re_call = re.compile('(.+)\((.*)\)')
+re_call = re.compile('(.+?)\((.*)\)')
 re_call_params = re.compile('([^,]+),')
 re_uri = re.compile('(\D\w*|)[\.:]([\w/]+)')
 re_var = re.compile('^[a-zA-Z_]\w*$')
@@ -98,39 +98,6 @@ class Parser() :
     triples = eval(code, {'n' : self.n, 'Triple' : Triple, 'Var' : Var, 'LitVar' : LitVar, 'MetaVar' : MetaVar}, {})
     
     if str_bindings :
-      ## add triples for special strings
-      #for k, str in str_bindings.items() :
-        #if isinstance(str, list) :
-          ## list strings shouldn't have %% in them
-          #assert all(len(split_string(s)[1]) == 0 for s in str)
-          #continue
-        
-        ## var will be each of the %var% in the str
-        #const, vars = split_string(str)
-        #new_vars = []
-        #for var in vars :
-          #if ':' in var :
-            #new_var_name, type = var.split(':')
-            #namespace, name = type.split('.')
-            #prop = self.n[namespace][name]
-            #new_var_name = new_var_name or name
-            
-            #str_name = new_var_name + '_auto_str'
-            
-            #bnode = eval(self.next_bnode(), {'n' : self.n})
-            #triples.extend([
-              #Triple([bnode, self.n.axpress['is'], '%'+str_name+'%']),
-              #Triple([bnode, self.n[namespace][name+'_string'], '%'+str_name+'%']),
-              #Triple([bnode, prop, self.n.lit_var[new_var_name]]),
-            #])
-            
-            #var = str_name
-          #new_vars.append('%'+var+'%')
-        
-        #str_bindings[k] = merge_string(const, new_vars)
-      
-      #p('str', str_bindings)
-      # if there were strings before, insert them back in now that its been parsed
       for triple in triples :
         for i, value in enumerate(triple) :
           if is_lit_var(value) and value.name[:4] == '_str' :
@@ -370,14 +337,21 @@ class Parser() :
       params = re_call_params.findall(params)
       
       params = [self.parse_expression_new(param) for param in params]
-      
-      return Expression([obj] + params + [None], [-1])
-      #bnode = self.next_bnode()
-      #triples = []
-      #for i, param in enumerate(params) :
-        #triples.append([bnode, 'n.call.arg%d' % (i+1), param])
-      #triples.append([bnode, obj, None])
-      #return Expression(triples, [len(triples)-1, 2])
+
+      triples = []
+      new_params = []
+      for param in params :
+        # this happens when an argument into the call is the return value of
+        # another call
+        if isinstance(param, Expression) :
+          bnode = self.next_bnode()
+          param.put(bnode)
+          triples.extend(param.triplelist())
+          param = bnode
+        new_params.append(param)
+
+      triples.append([obj] + new_params + [None])
+      return Expression(triples, [len(triples)-1, -1])
     
     g = re_uri.match(expression)
     if g is not None :
