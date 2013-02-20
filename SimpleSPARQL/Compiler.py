@@ -203,8 +203,6 @@ class Compiler :
         # not often ... probably only in the if matches(q,v) or (v,q) ...
         if is_lit_var(qvalue) :
           return True
-        #elif is_out_lit_var(qvalue) :
-          #return True
         elif is_any_var(qvalue) :
           return False
         else :
@@ -225,8 +223,6 @@ class Compiler :
     
     if value == qvalue :
       return True
-    
-    #return False
   
   _triples_hash = {}
   def triples_match(self, triple, qtriple) :
@@ -236,12 +232,9 @@ class Compiler :
       return self._triples_hash[key]
     
     for tv, qv in izip(triple, qtriple) :
-      #print 'v',prettyquery(tv),'q',prettyquery(qv)
       if not self.values_match(tv, qv) :
         self._triples_hash[key] = False
-        #print 'v',prettyquery(tv),'q',prettyquery(qv), False
         return False
-    #print 'v',prettyquery(tv),'q',prettyquery(qv), True
     self._triples_hash[key] = True
     return True
   
@@ -282,7 +275,6 @@ class Compiler :
         if t in bindings[0] and bindings[0][t.name] != q :
           return []
         bindings = self.mul_bindings_set(bindings, [Bindings({t.name : q})])
-        #binding[t.name] = q
       elif (is_lit_var(t) or is_var(t)) and is_var(q) :
         # prefer_litvars is set in bind_vars.  In some cases we never want to 
         # bind a litvar to a var because it means we would be loosing 
@@ -290,11 +282,9 @@ class Compiler :
         if self.prefer_litvars and is_lit_var(t) :
           assert q.name not in bindings[0]
           bindings = self.mul_bindings_set(bindings, [Bindings({q.name : t})])
-          #binding[q.name] = t
         else :
           assert t.name not in bindings[0]
           bindings = self.mul_bindings_set(bindings, [Bindings({t.name : q})])
-          #binding[t.name] = q
       elif isstr(t) and isstr(q) :
         # BUG: if there is more than one way to match the string with the 
         # pattern this will only return the first
@@ -305,25 +295,16 @@ class Compiler :
           for name, value in ret[0].iteritems() :
             assert unicode(name) not in bindings[0]
           
-          #p('pre', bindings)
           bindings = self.mul_bindings_set(bindings, map(Bindings, ret))
-          #p('post', bindings)
-        #p('')
-        #binding[unicode(name)] = unicode(value)
       elif isinstance(t, list) :
         # NOTE: copy and paste from above ...
         for ti in t :
-          #p('qi',str(ti), '-', str(q))
           ret = self.find_matches(str(ti), str(q))
           if ret not in [None, False, []] :
             for name, value in ret[0].iteritems() :
               assert unicode(name) not in bindings[0]
             
-            #p('pre', bindings)
             bindings = self.mul_bindings_set(bindings, map(Bindings, ret))
-            #p('post', bindings)
-            #binding[unicode(name)] = unicode(value)
-          #p('')
       elif t != q :
         return []
       elif is_lit_var(t) and is_out_lit_var(q) :
@@ -336,12 +317,9 @@ class Compiler :
     ret_bindings = []
     for ftriple in facts :
       bindings = self.get_binding(triple, ftriple)
-      #self.debug.p('ftriple', triple, ftriple, reqd_facts)
       if not reqd_facts or ftriple in reqd_facts :
-        #self.debug.p(True)
         for binding in bindings :
           binding.matches_reqd_fact = True
-      #self.debug.p('binding', binding, bindings)
       if bindings :
         for binding in bindings :
           if binding in ret_bindings :
@@ -351,8 +329,6 @@ class Compiler :
           else :
             ret_bindings.append(binding)
     
-    #for b in bindings :
-      #self.debug.p('b', b, b.matches_reqd_fact)
     return ret_bindings
   
   def merge_bindings(self, a, b) :
@@ -774,7 +750,6 @@ class Compiler :
           }
           if new_lineage :
             step['new_lineage'] = new_lineage
-          #p('step', step)
           yield step
   
   #############################################################################
@@ -852,8 +827,6 @@ class Compiler :
       new_bindings, ftriple = self.find_solution_triple(triple, facts)
       if not new_bindings :
         return False
-      #if isinstance(new_bindings, dict) :
-        #bindings.update(new_bindings)
       bindings.update(new_bindings)
     return bindings or True
   
@@ -1097,8 +1070,7 @@ class Compiler :
     finding all paths is much more difficult because there are many ways which
     translations can be combined into infite loops that are hard to detect
     """
-    #p('steps', [(id(s), s['translation']['name']) for s in steps])
-    
+
     solution_bindings_set = {}
     for step in steps :
       step['input_bindings'] = dict([(var, binding) for (var, binding) in step['input_bindings'].iteritems() if not is_var(binding)])
