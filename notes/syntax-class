@@ -128,17 +128,19 @@ rule = rule.add("%from% -> %to%",
   <_[to]   = _out>
   => py
   vars['out'] = fn(vars['in'])
+)
 ---
+# example use:
 u.conv(u.feet, u.inch, lambda x:x*12)
 
 # version 5
 (rule.add 
   `((eq rule (u.conv _from _to _fn)))
   `((eq rule (rule.add (<< "~(from) -> ~(to)")
-               `(eq (get _ from) _in)
-               `(eq (get _ to)   _out)
+               `(eq (_ from) _in)
+               `(eq (_ to)   _out)
                (lambda (vars)
-                 (set (get vars :out) (fn (get vars :in))))))))
+                 (set (vars :out) (fn (vars :in))))))))
 # version 6
 (rule.add 
   `((eq rule (u.conv _from _to _fn)))
