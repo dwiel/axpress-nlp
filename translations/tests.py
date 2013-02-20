@@ -248,4 +248,32 @@ def loadTranslations(axpress) :
     """,
     'function' : t3_t4,
   })
-  
+
+  # for testDiverge
+  axpress.rule('a1 -> a2', """
+      x[test.a1] = a
+  """, """
+      x[test.a2] = a
+  """)
+  axpress.rule('b1 -> b2', """
+      x[test.b1] = b
+  """, """
+      x[test.b2] = b
+  """)
+  axpress.rule('a1 + b1', """
+      x[test.a2] = a
+      x[test.b2] = b
+  """, """
+      x[test.a2b2] = test.add(a, b)
+  """)
+  def math_add(vars) :
+    vars['sum'] = vars['x'] + vars['y']
+  #axpress.rule('math.add', """
+  #    sum = test.add(_x, _y)
+  #""", "", math_add, add_output_vars = ['sum'])
+  axpress.rule('math.add', """
+      sum = test.add(_x, _y)
+  """, """
+      _sum = test.add(_x, _y)
+  """, math_add)
+
