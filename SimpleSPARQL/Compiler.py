@@ -589,6 +589,7 @@ class Compiler :
       #     * comparing how recently the two paths diverged might correlate
       #     * prefer combined_bindings_set with more litvars
       # TODO: n-way merges instead of just 2-way merges ... ouch!
+      #      just found a case that needs this 
       #self.debug.p('past_partials', len(past_partials))
       for past_lineage, past_query, past_matched_triples in past_partials :
         # make sure that the triples that these two partials atleast cover
@@ -723,13 +724,17 @@ class Compiler :
               if is_any_var(output_bindings[var]) :
                 if not is_out_lit_var(output_bindings[var]) :
                   unified_bindings[output_bindings[var].name] = new_lit_var
-            output_bindings[var] = new_lit_var
+            # only replace output_bindings with a lit var if
+            # output_bindings isn't already bound to a literal value,
+            # like a string or an int
+            if var not in output_bindings or is_any_var(output_bindings[var]) :
+              output_bindings[var] = new_lit_var
           
           # make sure all vanila vars have unique names
           for var in find_vars(translation['output'], is_var) :
             if var not in output_bindings :
               output_bindings[var] = Var(var+'_'+str(self.next_num()))
-          
+
           # generate the new query by adding the output triples with 
           # output bindings substituted in
           new_triples = sub_var_bindings(translation['output'], output_bindings)
@@ -887,7 +892,7 @@ class Compiler :
     # looking to bind
     var_triples = self.find_specific_var_triples(new_query, self.reqd_bound_vars)
     initial_bindings = dict((var, Var(var)) for var in find_vars(var_triples, lambda x:is_var(x) or is_lit_var(x)))
-    
+
     # see if the triples which contain the variables can bind to any of the 
     # other triples in the query
     bindings_set = self.bind_vars(var_triples, new_query, False, initial_bindings = initial_bindings)

@@ -776,7 +776,24 @@ class AxpressTestCase(unittest.TestCase):
       x[u.inches] = _out
     """)
     print ret
-    
+
+  def testDiverge(self) :
+    ret = axpress.read_translate("""
+        f[test.a1] = 1
+        f[test.b1] = 2
+        f[test.a2b2] = _out
+    """)
+    #p('ret', ret)
+    assert ret == [{
+      'out' : 3
+    }]
+
+  def testMultiMerge(self) :
+    ret = axpress.read_translate("""
+        z = math.mul(u.unit(1, u.meter), u.unit(1, u.meter))
+        z = u.unit(_val, _unit)
+    """)
+    p('ret', ret)
 
 if __name__ == "__main__" :
   import atexit
