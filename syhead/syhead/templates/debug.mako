@@ -66,8 +66,13 @@ ${'<textarea class="advanced" name="query" rows=10 cols=70>' + c.query + '</text
       $(this).next('.logblock-body').toggle();
     });
     
-    $('.advanced').hide();
-    $('.simple').show();
+    if($('.advanced')) {
+      $('.advanced').show();
+      $('.simple').hide();
+    } else {
+      $('.advanced').hide();
+      $('.simple').show();
+    }
     
     document.getElementById('string_query').onwebkitspeechchange = function(e) {
       $('#target').submit();
