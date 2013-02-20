@@ -409,6 +409,29 @@ class PassCompleteReadsTestCase(unittest.TestCase):
       [ n.test.baz, 2, Var.bnode2, ],
       [ n.test.foo, Var.bnode1, Var.bnode2, 3, Var.x, ],
     ]
+
+  def test_nested_fns2(self) :
+    query = """
+        z = math.mul(test.unit(val1, units1), test.unit(val2, units2))
+    """
+    ret = self.parser.parse_query(query)
+    #p('ret', ret)
+    assert ret == [
+      [ n.test.unit, Var.val1, Var.units1, Var.bnode1, ],
+      [ n.test.unit, Var.val2, Var.units2, Var.bnode2, ],
+      [ n.math.mul, Var.bnode1, Var.bnode2, Var.z, ],
+    ]
+    
+  def test_fn_with_comma_in_string(self) :
+    query = """
+      x = test.foo("1, 2", 3)
+    """
+    ret = self.parser.parse_query(query)
+    #p('ret', ret)
+    assert ret == [
+      [ n.test.foo, "1, 2", 3, Var.x, ],
+    ]
+
     
 if __name__ == "__main__" :
   unittest.main()

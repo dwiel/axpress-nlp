@@ -23,7 +23,46 @@ re_comment = re.compile('(#.*)$')
 
 python_keywords = ['True', 'False']
 
-class Expression() :
+from pyparsing import Forward, nestedExpr, Word
+import string
+
+enclosed = Forward()
+nestedParens = nestedExpr('(', ')', content=enclosed)
+anything_but_parens = Word(
+    string.printable
+    .replace('(','')
+    .replace(')','')
+    .replace(',','')
+)
+enclosed << (anything_but_parens | nestedParens | ',')
+
+def flatten(l) :
+    ret = '('
+    for i in l :
+	if isinstance(i, list) :
+            ret += flatten(i)
+	else :
+            ret += i
+    return ret + ')'
+
+def parse_arglist(str) :
+    """ given the string inside of a function call, return comma
+    seperated expressions.  More of the parser should probably be
+    written with pyparsing ..."""
+    par = enclosed.parseString('('+str+')').asList()[0]
+    ret = []
+    for w in par :
+	if isinstance(w, list) :
+            if not ret : ret = ['']
+
+            ret[-1] += flatten(w)
+	elif w == ',' :
+            pass
+	else :
+            ret.append(w)
+    return ret
+
+class Expression():
   def __init__(self, exp, missing = None, optional = False) :
     self.exp = exp
     # a list of indicies into exp where the missing value is
@@ -333,9 +372,9 @@ class Parser() :
       #p('re_call', g.group(0))
       obj = self.parse_expression_new(g.group(1))
       params = g.group(2) + ','
-      
-      params = re_call_params.findall(params)
-      
+
+      params = parse_arglist(params)
+
       params = [self.parse_expression_new(param) for param in params]
 
       triples = []
@@ -349,7 +388,7 @@ class Parser() :
           triples.extend(param.triplelist())
           param = bnode
         new_params.append(param)
-
+      
       triples.append([obj] + new_params + [None])
       return Expression(triples, [len(triples)-1, -1])
     
