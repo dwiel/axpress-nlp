@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import string
 
 from pylons import request, response, session, tmpl_context as c, url, app_globals as g
 from pylons.controllers.util import abort, redirect
@@ -44,7 +45,8 @@ class IndexController(BaseController):
         x[speech.out] = _out
       """ % c.string_query
       c.query = '\n'.join(line.strip() for line in c.query.split('\n'))
-      
+
+    c.query = '\n'.join(map(string.strip, c.query.split('\n')))
     if c.query :
       try :
         try :
