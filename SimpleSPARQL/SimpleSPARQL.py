@@ -19,7 +19,7 @@ import pdb
 try :
   import rdflib_sparql.parser
 except :
-  import rdflib.sparql.parser
+  import rdflib.plugins.sparql.parser
 
 import Namespaces
 from RDFObject import RDFObject
@@ -86,7 +86,7 @@ class SimpleSPARQL (SPARQLWrapper) :
 	# from parseMatchOutput
 	# returns a GraphPattern
 	def parseConstruct(self, construct_str) :
-		where = rdflib.sparql.parser._buildQueryArgs(self.n.SPARQL_PREFIX()+str(" WHERE { %s }" % construct_str))
+		where = rdflib.plugins.sparql.parser._buildQueryArgs(self.n.SPARQL_PREFIX()+str(" WHERE { %s }" % construct_str))
 		return where['where'][0]
 	
 	def _parseQueryType(self, query) :

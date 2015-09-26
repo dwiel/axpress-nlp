@@ -1,7 +1,8 @@
 
 
 def loadTranslations(axpress) :
-  pass
+  axpress.n.bind('math',    '<http://dwiel.net/express/math/0.1/>')
+  
   #def parse_number(vars) :
     #vars['number'] = float(vars['x'])
   #axpress.register_translation({

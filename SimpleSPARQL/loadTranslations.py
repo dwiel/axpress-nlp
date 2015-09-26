@@ -21,7 +21,7 @@ def loadTranslations(axpress, n = None) :
   n.bind('speech', '<http://dwiel.net/axpress/speech/0.1/>')
 
   axpress.modules = []
-  for name in glob.glob('/home/dwiel/axpress/translations/*.py') :
+  for name in glob.glob('/home/dwiel/src/axpress-nlp/translations/*.py') :
     if os.path.isdir(name) :
       pass
     else :

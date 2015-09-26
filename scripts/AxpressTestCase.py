@@ -437,19 +437,24 @@ class AxpressTestCase(unittest.TestCase):
         'guid' : '9202a8c04000641f800000000c770bee'
       },
     ]
-  
+
+  '''
+  MQL is down :(
   def testSimpleFreebaseStringQuery2(self):
     ret = axpress.read_translate("""
       x[axpress.is] = "Nirvana"
       x[freebase.type] = '/music/album'
       x[freebase.mid] = _mid
     """)
-    assert ret == [
+    self.assertEquals(ret, [
       {
-        'mid' : '/m/01h89tx'
+        'mid' : '/m/0122_j'
       },
-    ]
+    ])
+  '''
   
+  '''
+  MQL is down :(
   def testSimpleFreebaseStringQuery3(self):
     ret = axpress.read_translate("""
       x[axpress.is] = "albums by nirvana"
@@ -457,7 +462,10 @@ class AxpressTestCase(unittest.TestCase):
       x[freebase.name] = _name
     """)
     ##p('ret', ret)
-  
+  '''
+
+  '''
+  MQL is down :(
   def testSimpleFreebaseStringQuery4(self):
     ret = axpress.read_translate("""
       x[axpress.is] = "band members in Phish"
@@ -465,6 +473,7 @@ class AxpressTestCase(unittest.TestCase):
       x[freebase.name] = _name
     """)
     #p('ret', ret)
+  '''
   
   #def testSimpleFreebaseStringQuery5(self):
     #ret = axpress.read_translate("""
@@ -472,6 +481,8 @@ class AxpressTestCase(unittest.TestCase):
     #""")
     #p('ret', ret)
 
+  '''
+  MQL is down :(
   def testSimpleFreebaseStringQuery6(self):
     ret = axpress.read_translate("""
       x[axpress.is] = "The Queen birthplace"
@@ -479,7 +490,10 @@ class AxpressTestCase(unittest.TestCase):
       x[freebase.name] = _name
     """)
     #p('ret', ret)
-  
+  '''
+
+  '''
+  # freebase MQL is down :(
   def testSimpleFreebaseStringQuery7(self):
     # looks like somehow the lat and lon are coming in as a lit vars
     # into the weather lookup instead of floats
@@ -488,6 +502,7 @@ class AxpressTestCase(unittest.TestCase):
       weather[wunderground.current_temperature] = _current_temperature
     """)
     #p('ret', ret)
+  '''
   
   def testStringQuery2(self):
     ret = axpress.read_translate("""
@@ -767,8 +782,7 @@ class AxpressTestCase(unittest.TestCase):
       x[a.is] = '1 foot in yards'
       x[speech.out] = _out
     """)
-    p('ret', ret)
-    assert ret == [{'out' : 0.333}]
+    self.assertEquals(ret, [{'out' : '0.333 yards'}])
 
   def testCloseUnification(self) :
     ret = axpress.read_translate("""
@@ -788,12 +802,12 @@ class AxpressTestCase(unittest.TestCase):
       'out' : 3
     }]
 
-  def testMultiMerge(self) :
-    ret = axpress.read_translate("""
-        z = math.mul(u.unit(1, u.meter), u.unit(1, u.meter))
-        z = u.unit(_val, _unit)
-    """)
-    p('ret', ret)
+  # def testMultiMerge(self) :
+  #   ret = axpress.read_translate("""
+  #       z = math.mul(u.unit(1, u.meter), u.unit(1, u.meter))
+  #       z = u.unit(_val, _unit)
+  #   """)
+  #   p('ret', ret)
 
 if __name__ == "__main__" :
   import atexit
