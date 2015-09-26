@@ -25,24 +25,17 @@ class AxpressTestCase(unittest.TestCase):
     assert 'pictures/foobar.jpg' in [ret['filename'] for ret in rets]
   
   def testTranslationReturnsMultipleValues(self):
-    """ note, at one time, thumb was included in the reqd_bound_vars, but
-    I'm not really sure why.  It doesn't really have any meaning.
-    """
     ret = axpress.read_translate("""
       image[glob.glob] = "pictures/*.jpg"
       thumb = image.thumbnail(image, 4, 4)
       thumb[pil.image] = _thumb_image
     """, reqd_bound_vars = ['thumb_image'])
-    #""", reqd_bound_vars = ['thumb_image', 'thumb'])
-    #print 'ret2',prettyquery(ret)
     for i, bindings in enumerate(ret) :
       ret[i]['thumb_image'] = type(bindings['thumb_image'])
     assert ret == [
       {
-        #'thumb' : n.out_var.thumb,
         'thumb_image' : type_instance,
       }, {
-        #'thumb' : n.out_var.thumb,
         'thumb_image' : type_instance,
       }
     ]
